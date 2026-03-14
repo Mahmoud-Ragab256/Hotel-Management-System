@@ -1,4 +1,4 @@
-import { Invoice } from '../../../DB/Models/invoice.model.js';
+import { Invoice } from '../../../../DB/Models/invoice.model.js';
 
 // Get all invoices
 export const getAllInvoices = async (req, res) => {

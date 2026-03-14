@@ -21,15 +21,19 @@ const serviceOrderSchema = new mongoose.Schema({
     min: 1,
     default: 1
   },
-  totalCost: {
+  totalPrice: {
     type: Number,
-    required: [true, 'Total cost is required'],
+    required: [true, 'Total price is required'],
     min: 0
   },
   status: {
     type: String,
     enum: ['Pending', 'InProgress', 'Completed', 'Cancelled'],
     default: 'Pending'
+  },
+  notes: {
+    type: String,
+    default: ''
   },
   orderTime: {
     type: Date,

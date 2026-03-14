@@ -1,7 +1,7 @@
-import { Room } from '../../../DB/Models/room.model.js';
-import { RoomCategory } from '../../../DB/Models/roomCategory.model.js';
-import { Service } from '../../../DB/Models/service.model.js';
-import { Review } from '../../../DB/Models/review.model.js';
+import { Room } from '../../../../DB/Models/room.model.js';
+import { RoomCategory } from '../../../../DB/Models/roomCategory.model.js';
+import { Service } from '../../../../DB/Models/service.model.js';
+import { Review } from '../../../../DB/Models/review.model.js';
 
 // Get landing page data
 export const getLandingPageData = async (req, res) => {

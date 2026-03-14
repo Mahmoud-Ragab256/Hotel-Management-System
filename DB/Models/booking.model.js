@@ -38,6 +38,10 @@ const bookingSchema = new mongoose.Schema({
     type: [Object],
     default: []
   },
+  specialRequests: {
+    type: String,
+    default: ''
+  },
   cancelledAt: {
     type: Date
   },

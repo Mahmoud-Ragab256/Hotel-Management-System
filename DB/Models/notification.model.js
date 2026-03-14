@@ -10,6 +10,10 @@ const notificationSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     required: [true, 'Recipient ID is required']
   },
+  title: {
+    type: String,
+    required: [true, 'Title is required']
+  },
   message: {
     type: String,
     required: [true, 'Message is required']

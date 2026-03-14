@@ -1,4 +1,4 @@
-import { Employee } from '../../../DB/Models/employee.model.js';
+import { Employee } from '../../../../DB/Models/employee.model.js';
 import bcrypt from 'bcrypt';
 
 // Get all employees
@@ -196,4 +196,4 @@ export const loginEmployee = async (req, res) => {
       message: error.message
     });
   }
-};
+};   

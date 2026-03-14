@@ -11,10 +11,19 @@ const invoiceSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Employee'
   },
-  amount: {
+  totalAmount: {
     type: Number,
-    required: [true, 'Amount is required'],
+    required: [true, 'Total amount is required'],
     min: 0
+  },
+  paidAmount: {
+    type: Number,
+    default: 0
+  },
+  status: {
+    type: String,
+    enum: ['Pending', 'Paid', 'Cancelled'],
+    default: 'Pending'
   },
   method: {
     type: String,

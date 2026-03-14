@@ -1,4 +1,4 @@
-import { RoomCategory } from '../../../DB/Models/roomCategory.model.js';
+import { RoomCategory } from '../../../../DB/Models/roomCategory.model.js';
 
 // Get all room categories
 export const getAllRoomCategories = async (req, res) => {

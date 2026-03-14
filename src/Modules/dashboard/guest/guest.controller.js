@@ -1,4 +1,4 @@
-import { Guest } from '../../../DB/Models/guest.model.js';
+import { Guest } from '../../../../DB/Models/guest.model.js';
 import bcrypt from 'bcrypt';
 
 // Get all guests

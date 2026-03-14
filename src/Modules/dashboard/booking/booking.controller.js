@@ -1,5 +1,5 @@
-import { Booking } from '../../../DB/Models/booking.model.js';
-import { Room } from '../../../DB/Models/room.model.js';
+import { Booking } from '../../../../DB/Models/booking.model.js';
+import { Room } from '../../../../DB/Models/room.model.js';
 
 // Get all bookings
 export const getAllBookings = async (req, res) => {

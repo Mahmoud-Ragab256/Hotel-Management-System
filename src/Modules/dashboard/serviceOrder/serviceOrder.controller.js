@@ -1,4 +1,4 @@
-import { ServiceOrder } from '../../../DB/Models/serviceOrder.model.js';
+import { ServiceOrder } from '../../../../DB/Models/serviceOrder.model.js';
 
 // Get all service orders
 export const getAllServiceOrders = async (req, res) => {
