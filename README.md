@@ -244,178 +244,180 @@ EMAIL_PASS=your_email_app_password
 ---
 
 #### Rooms — `/api/client/rooms`
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/available` | Get all currently available rooms |
-| `POST` | `/search` | Search rooms by filters (type, price, date…) |
-| `GET` | `/:id` | Get full details for a specific room |
-
+ 
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| `GET` | `/available` | Get all currently available rooms | 🔒 Protected |
+| `POST` | `/search` | Search rooms by filters (type, price, date…) | 🔒 Protected |
+| `GET` | `/:id` | Get full details for a specific room | 🔒 Protected |
+ 
 ---
-
+ 
 #### Bookings — `/api/client/booking`
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/` | Create a new booking |
-| `GET` | `/:id` | Get booking details by ID |
-| `GET` | `/user/:guestId` | Get all bookings belonging to a guest |
-| `PUT` | `/:id/cancel` | Cancel a booking |
-
+ 
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| `POST` | `/` | Create a new booking | 🔒 Protected |
+| `GET` | `/:id` | Get booking details by ID | 🔒 Protected |
+| `GET` | `/user/:guestId` | Get all bookings belonging to a guest | 🔒 Protected |
+| `PUT` | `/:id/cancel` | Cancel a booking | 🔒 Protected |
+ 
 ---
-
+ 
 #### Profile — `/api/client/profile`
-
+ 
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
 | `GET` | `/me` | Get the current logged-in guest's profile | 🔒 Protected |
-| `PUT` | `/:id` | Update guest profile info | |
-| `GET` | `/:id/bookings` | Get a guest's full booking history | |
-| `GET` | `/:id/reviews` | Get all reviews submitted by a guest | |
-
+| `PUT` | `/:id` | Update guest profile info | 🔒 Protected |
+| `GET` | `/:id/bookings` | Get a guest's full booking history | 🔒 Protected |
+| `GET` | `/:id/reviews` | Get all reviews submitted by a guest | 🔒 Protected |
+ 
 ---
-
+ 
 ### 🖥️ Dashboard API
-
+ 
+> 🔒 **All Dashboard routes are Protected** — a valid JWT must be sent in the `Authorization: Bearer <token>` header for every request.
+ 
 #### Auth — `/api/dashboard/auth`
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/login` | Employee / Admin login |
-| `POST` | `/forgot-password` | Send a password reset OTP |
-| `POST` | `/reset-code` | Verify the reset OTP code |
-| `POST` | `/reset-password` | Set a new password |
-
+ 
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| `POST` | `/login` | Employee / Admin login | |
+| `POST` | `/forgot-password` | Send a password reset OTP | |
+| `POST` | `/reset-code` | Verify the reset OTP code | |
+| `POST` | `/reset-password` | Set a new password | |
+ 
 ---
-
+ 
 #### Bookings — `/api/dashboard/booking`
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/` | Get all bookings |
-| `GET` | `/:id` | Get a booking by ID |
-| `POST` | `/` | Create a new booking |
-| `PUT` | `/:id` | Update booking details |
-| `PUT` | `/:id/cancel` | Cancel a booking |
-| `DELETE` | `/:id` | Permanently delete a booking |
-
+ 
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| `GET` | `/` | Get all bookings | 🔒 Protected |
+| `GET` | `/:id` | Get a booking by ID | 🔒 Protected |
+| `POST` | `/` | Create a new booking | 🔒 Protected |
+| `PUT` | `/:id` | Update booking details | 🔒 Protected |
+| `PUT` | `/:id/cancel` | Cancel a booking | 🔒 Protected |
+| `DELETE` | `/:id` | Permanently delete a booking | 🔒 Protected |
+ 
 ---
-
+ 
 #### Employees — `/api/dashboard/employee`
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/` | Get all employees |
-| `GET` | `/:id` | Get an employee by ID |
-| `POST` | `/register` | Create a new employee account |
-| `POST` | `/login` | Employee login |
-| `PUT` | `/:id` | Update employee details |
-| `DELETE` | `/:id` | Delete an employee |
-
+ 
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| `GET` | `/` | Get all employees | 🔒 Protected |
+| `GET` | `/:id` | Get an employee by ID | 🔒 Protected |
+| `POST` | `/register` | Create a new employee account | 🔒 Protected |
+| `POST` | `/login` | Employee login | |
+| `PUT` | `/:id` | Update employee details | 🔒 Protected |
+| `DELETE` | `/:id` | Delete an employee | 🔒 Protected |
+ 
 ---
-
+ 
 #### Guests — `/api/dashboard/guest`
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/` | Get all registered guests |
-| `GET` | `/:id` | Get a guest by ID |
-| `POST` | `/register` | Create a guest account |
-| `POST` | `/login` | Guest login |
-| `PUT` | `/:id` | Update guest details |
-| `DELETE` | `/:id` | Delete a guest |
-
+ 
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| `GET` | `/` | Get all registered guests | 🔒 Protected |
+| `GET` | `/:id` | Get a guest by ID | 🔒 Protected |
+| `POST` | `/register` | Create a guest account | 🔒 Protected |
+| `POST` | `/login` | Guest login | |
+| `PUT` | `/:id` | Update guest details | 🔒 Protected |
+| `DELETE` | `/:id` | Delete a guest | 🔒 Protected |
+ 
 ---
-
+ 
 #### Invoices — `/api/dashboard/invoice`
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/` | Get all invoices |
-| `GET` | `/:id` | Get an invoice by ID |
-| `GET` | `/booking/:bookingId` | Get the invoice linked to a specific booking |
-| `POST` | `/` | Create a new invoice |
-| `PUT` | `/:id` | Update an invoice |
-| `DELETE` | `/:id` | Delete an invoice |
-
+ 
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| `GET` | `/` | Get all invoices | 🔒 Protected |
+| `GET` | `/:id` | Get an invoice by ID | 🔒 Protected |
+| `GET` | `/booking/:bookingId` | Get the invoice linked to a specific booking | 🔒 Protected |
+| `POST` | `/` | Create a new invoice | 🔒 Protected |
+| `PUT` | `/:id` | Update an invoice | 🔒 Protected |
+| `DELETE` | `/:id` | Delete an invoice | 🔒 Protected |
+ 
 ---
-
+ 
 #### Notifications — `/api/dashboard/notification`
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/` | Get all notifications |
-| `GET` | `/:id` | Get a notification by ID |
-| `GET` | `/recipient/:recipientId` | Get all notifications for a recipient |
-| `GET` | `/recipient/:recipientId/unread` | Get unread notifications for a recipient |
-| `POST` | `/` | Create a new notification |
-| `PUT` | `/:id/read` | Mark a single notification as read |
-| `PUT` | `/recipient/:recipientId/read-all` | Mark all of a recipient's notifications as read |
-| `DELETE` | `/:id` | Delete a notification |
-
+ 
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| `GET` | `/` | Get all notifications | 🔒 Protected |
+| `GET` | `/:id` | Get a notification by ID | 🔒 Protected |
+| `GET` | `/recipient/:recipientId` | Get all notifications for a recipient | 🔒 Protected |
+| `GET` | `/recipient/:recipientId/unread` | Get unread notifications for a recipient | 🔒 Protected |
+| `POST` | `/` | Create a new notification | 🔒 Protected |
+| `PUT` | `/:id/read` | Mark a single notification as read | 🔒 Protected |
+| `PUT` | `/recipient/:recipientId/read-all` | Mark all of a recipient's notifications as read | 🔒 Protected |
+| `DELETE` | `/:id` | Delete a notification | 🔒 Protected |
+ 
 ---
-
+ 
 #### Reviews — `/api/dashboard/review`
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/` | Get all reviews |
-| `GET` | `/approved` | Get only approved reviews |
-| `GET` | `/:id` | Get a review by ID |
-| `POST` | `/` | Create a new review |
-| `PUT` | `/:id` | Update a review |
-| `PUT` | `/:id/approve` | Approve a pending review |
-| `DELETE` | `/:id` | Delete a review |
-
+ 
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| `GET` | `/` | Get all reviews | 🔒 Protected |
+| `GET` | `/approved` | Get only approved reviews | 🔒 Protected |
+| `GET` | `/:id` | Get a review by ID | 🔒 Protected |
+| `POST` | `/` | Create a new review | 🔒 Protected |
+| `PUT` | `/:id` | Update a review | 🔒 Protected |
+| `PUT` | `/:id/approve` | Approve a pending review | 🔒 Protected |
+| `DELETE` | `/:id` | Delete a review | 🔒 Protected |
+ 
 ---
-
+ 
 #### Rooms — `/api/dashboard/room`
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/` | Get all rooms |
-| `GET` | `/available` | Get available rooms only |
-| `GET` | `/:id` | Get a room by ID |
-| `POST` | `/` | Create a new room |
-| `PUT` | `/:id` | Update room details |
-| `DELETE` | `/:id` | Delete a room |
-
+ 
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| `GET` | `/` | Get all rooms | 🔒 Protected |
+| `GET` | `/available` | Get available rooms only | 🔒 Protected |
+| `GET` | `/:id` | Get a room by ID | 🔒 Protected |
+| `POST` | `/` | Create a new room | 🔒 Protected |
+| `PUT` | `/:id` | Update room details | 🔒 Protected |
+| `DELETE` | `/:id` | Delete a room | 🔒 Protected |
+ 
 ---
-
+ 
 #### Room Categories — `/api/dashboard/room-category`
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/` | Get all room categories |
-| `GET` | `/:id` | Get a category by ID |
-| `POST` | `/` | Create a new category |
-| `PUT` | `/:id` | Update a category |
-| `DELETE` | `/:id` | Delete a category |
-
+ 
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| `GET` | `/` | Get all room categories | 🔒 Protected |
+| `GET` | `/:id` | Get a category by ID | 🔒 Protected |
+| `POST` | `/` | Create a new category | 🔒 Protected |
+| `PUT` | `/:id` | Update a category | 🔒 Protected |
+| `DELETE` | `/:id` | Delete a category | 🔒 Protected |
+ 
 ---
-
+ 
 #### Services — `/api/dashboard/service`
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/` | Get all services |
-| `GET` | `/available` | Get currently available services |
-| `GET` | `/:id` | Get a service by ID |
-| `POST` | `/` | Create a new service |
-| `PUT` | `/:id` | Update a service |
-| `DELETE` | `/:id` | Delete a service |
-
+ 
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| `GET` | `/` | Get all services | 🔒 Protected |
+| `GET` | `/available` | Get currently available services | 🔒 Protected |
+| `GET` | `/:id` | Get a service by ID | 🔒 Protected |
+| `POST` | `/` | Create a new service | 🔒 Protected |
+| `PUT` | `/:id` | Update a service | 🔒 Protected |
+| `DELETE` | `/:id` | Delete a service | 🔒 Protected |
+ 
 ---
-
+ 
 #### Service Orders — `/api/dashboard/service-order`
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/` | Get all service orders |
-| `GET` | `/:id` | Get a service order by ID |
-| `POST` | `/` | Create a new service order |
-| `PUT` | `/:id` | Update a service order |
-| `DELETE` | `/:id` | Delete a service order |
+ 
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| `GET` | `/` | Get all service orders | 🔒 Protected |
+| `GET` | `/:id` | Get a service order by ID | 🔒 Protected |
+| `POST` | `/` | Create a new service order | 🔒 Protected |
+| `PUT` | `/:id` | Update a service order | 🔒 Protected |
+| `DELETE` | `/:id` | Delete a service order | 🔒 Protected |
 
 ---
 
