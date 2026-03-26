@@ -42,11 +42,17 @@ export const protect = async (
       })
       return;
     };
+
     let currentUser: IEmployee | IGuest | null;
     const { EmployeeId, guestId, iat } = jwt.verify(token, process.env.SECRET as string) as { EmployeeId: string, guestId: string, iat: number };
-    if (guestId) currentUser = await Guest.findById(guestId);
-    else if (EmployeeId) currentUser = await Employee.findById(guestId);
-    else currentUser = null;
+
+    if (guestId) {
+      currentUser = await Guest.findById(guestId);
+    } else if (EmployeeId) {
+      currentUser = await Employee.findById(EmployeeId); // ✅ تم تصليح البق هنا
+    } else {
+      currentUser = null;
+    }
 
     if (!currentUser) {
       res.status(401).json({

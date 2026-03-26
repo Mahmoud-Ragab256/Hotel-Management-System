@@ -16,6 +16,8 @@ export interface IGuest extends Document {
   preferences: Record<string, unknown>;
   avatar: string;
   images: string[];
+  telegramId?: string;
+  telegramUsername?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -74,6 +76,13 @@ const guestSchema = new Schema<IGuest>(
     images: {
       type: [String],
       default: [],
+    },
+    telegramId: {
+      type: String,
+      sparse: true,
+    },
+    telegramUsername: {
+      type: String,
     },
   },
   {

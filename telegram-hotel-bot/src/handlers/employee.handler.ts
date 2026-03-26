@@ -1,10 +1,27 @@
 import { Markup } from 'telegraf';
 import { BotContext } from '../middlewares/auth.middleware';
-import mongoose from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 
-const Room = mongoose.model('Room');
-const Booking = mongoose.model('Booking');
-const ServiceOrder = mongoose.model('ServiceOrder');
+// ========== ServiceOrder Schema (defined here since no separate model file exists) ==========
+const serviceOrderSchema = new Schema({
+  bookingId: { type: Schema.Types.ObjectId, ref: 'Booking' },
+  guestId: { type: Schema.Types.ObjectId, ref: 'Guest' },
+  serviceType: String,
+  details: String,
+  status: { type: String, default: 'Pending' },
+  assignedEmployeeId: { type: Schema.Types.ObjectId, ref: 'Employee' },
+  requestedAt: Date,
+  completedAt: Date,
+  completedBy: String,
+}, { collection: 'serviceorders', timestamps: true });
+
+const ServiceOrder = (mongoose.models['ServiceOrder'] ||
+  mongoose.model('ServiceOrder', serviceOrderSchema)) as any;
+
+// Helper: get model safely (Room, Booking, Guest must be loaded via database.ts first)
+function getModel(name: string) {
+  return mongoose.models[name] || (() => { throw new Error(`Model ${name} not registered`); })();
+}
 
 export class EmployeeHandler {
   // Employee Main Menu
@@ -28,42 +45,39 @@ export class EmployeeHandler {
   // Show Today's Statistics
   static async showStats(ctx: BotContext) {
     try {
+      const Room = getModel('Room');
+      const Booking = getModel('Booking');
+
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       const tomorrow = new Date(today);
       tomorrow.setDate(tomorrow.getDate() + 1);
 
-      // Count rooms
       const totalRooms = await Room.countDocuments();
-      const availableRooms = await Room.countDocuments({ isAvailable: true });
+      const availableRooms = await Room.countDocuments({ status: 'available' });
       const occupiedRooms = totalRooms - availableRooms;
 
-      // Count bookings
       const confirmedBookings = await Booking.countDocuments({
-        status: 'Confirmed',
+        status: 'confirmed',
         checkInDate: { $gte: today }
       });
 
-      const pendingBookings = await Booking.countDocuments({
-        status: 'Pending'
-      });
+      const pendingBookings = await Booking.countDocuments({ status: 'pending' });
 
-      // Calculate revenue
       const todayBookings = await Booking.find({
         createdAt: { $gte: today, $lt: tomorrow },
-        status: { $in: ['Confirmed', 'CheckedIn', 'Completed'] }
+        status: { $in: ['confirmed', 'checked-in', 'checked-out'] }
       });
 
-      const todayRevenue = todayBookings.reduce((sum, b) => sum + (b.totalAmount || 0), 0);
+      const todayRevenue = todayBookings.reduce((sum: number, b: any) => sum + (b.totalPrice || 0), 0);
 
-      // Monthly revenue
       const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
       const monthBookings = await Booking.find({
         createdAt: { $gte: monthStart },
-        status: { $in: ['Confirmed', 'CheckedIn', 'Completed'] }
+        status: { $in: ['confirmed', 'checked-in', 'checked-out'] }
       });
 
-      const monthRevenue = monthBookings.reduce((sum, b) => sum + (b.totalAmount || 0), 0);
+      const monthRevenue = monthBookings.reduce((sum: number, b: any) => sum + (b.totalPrice || 0), 0);
 
       const message = `
 📊 *${ctx.t!('employee.stats.title')}*
@@ -88,8 +102,10 @@ export class EmployeeHandler {
   // Show Occupied Rooms
   static async showOccupiedRooms(ctx: BotContext) {
     try {
+      const Booking = getModel('Booking');
+
       const occupiedBookings = await Booking.find({
-        status: { $in: ['Confirmed', 'CheckedIn'] },
+        status: { $in: ['confirmed', 'checked-in'] },
         checkInDate: { $lte: new Date() },
         checkOutDate: { $gte: new Date() }
       })
@@ -104,14 +120,14 @@ export class EmployeeHandler {
 
       await ctx.reply(ctx.t!('employee.occupiedRooms.title'));
 
-      for (const booking of occupiedBookings) {
-        const room = booking.room as any;
-        const guest = booking.guest as any;
+      for (const booking of occupiedBookings as any[]) {
+        const room = booking.room;
+        const guest = booking.guest;
         const checkOut = new Date(booking.checkOutDate).toLocaleDateString('ar-EG');
 
         const message = `
-🛏️ *${ctx.t!('employee.occupiedRooms.room', { number: room.roomNumber })}*
-👤 ${ctx.t!('employee.occupiedRooms.guest', { name: guest.name })}
+🛏️ *${ctx.t!('employee.occupiedRooms.room', { number: room?.roomNumber || 'N/A' })}*
+👤 ${ctx.t!('employee.occupiedRooms.guest', { name: guest?.name || 'N/A' })}
 📆 ${ctx.t!('employee.occupiedRooms.checkOut', { date: checkOut })}
 📊 الحالة: ${booking.status}
         `.trim();
@@ -128,8 +144,6 @@ export class EmployeeHandler {
   static async showPendingRequests(ctx: BotContext) {
     try {
       const pendingOrders = await ServiceOrder.find({ status: 'Pending' })
-        .populate('booking')
-        .populate('guest')
         .sort({ requestedAt: -1 })
         .limit(10)
         .lean();
@@ -141,14 +155,9 @@ export class EmployeeHandler {
 
       await ctx.reply('📋 *الطلبات المعلقة:*', { parse_mode: 'Markdown' });
 
-      for (const order of pendingOrders) {
-        const guest = order.guest as any;
-        const booking = order.booking as any;
-        
+      for (const order of pendingOrders as any[]) {
         const message = `
 🛎️ *طلب خدمة جديد*
-👤 الضيف: ${guest.name}
-🛏️ الغرفة: ${booking.room?.roomNumber || 'N/A'}
 📝 الخدمة: ${order.serviceType}
 💬 التفاصيل: ${order.details}
 ⏰ الوقت: ${new Date(order.requestedAt).toLocaleString('ar-EG')}
@@ -170,52 +179,59 @@ export class EmployeeHandler {
   static async completeServiceRequest(ctx: BotContext, orderId: string) {
     try {
       const order = await ServiceOrder.findById(orderId);
-      
+
       if (!order) {
         await ctx.answerCbQuery('❌ الطلب غير موجود');
         return;
       }
 
-      if (order.status === 'Completed') {
+      if ((order as any).status === 'Completed') {
         await ctx.answerCbQuery('✅ تم إنهاء هذا الطلب مسبقاً');
         return;
       }
 
-      // Update order status
-      order.status = 'Completed';
-      order.completedBy = ctx.user!.id;
-      order.completedAt = new Date();
+      (order as any).status = 'Completed';
+      (order as any).completedBy = ctx.user!.id;
+      (order as any).completedAt = new Date();
       await order.save();
 
       await ctx.answerCbQuery('✅ تم إنهاء الطلب بنجاح');
 
-      // Edit the message
       const completionMessage = ctx.t!('notifications.taskCompleted', {
         employeeName: ctx.user!.name
       });
 
       try {
         await ctx.editMessageText(
-          ctx.callbackQuery!.message!.text + '\n\n' + completionMessage,
+          (ctx.callbackQuery as any)!.message!.text + '\n\n' + completionMessage,
           { parse_mode: 'Markdown' }
         );
         await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
       } catch (editError) {
-        // Message might be too old to edit
         await ctx.reply(completionMessage);
       }
 
       // Notify the guest
-      const guest = await mongoose.model('Guest').findById(order.guest);
-      if (guest?.telegramId) {
-        await ctx.telegram.sendMessage(
-          guest.telegramId,
-          `✅ تم إنهاء طلب الخدمة الخاص بك: ${order.serviceType}\nشكراً لثقتك بنا! 🙏`
-        );
+      const GuestModel = mongoose.models['Guest'];
+      if (GuestModel) {
+        const guest = await GuestModel.findById((order as any).guestId);
+        if (guest?.telegramId) {
+          await ctx.telegram.sendMessage(
+            guest.telegramId,
+            `✅ تم إنهاء طلب الخدمة الخاص بك: ${(order as any).serviceType}\nشكراً لثقتك بنا! 🙏`
+          );
+        }
       }
     } catch (error) {
       console.error('Complete Service Error:', error);
       await ctx.answerCbQuery('❌ حدث خطأ');
     }
   }
+}
+
+export function registerEmployeeHandlers(bot: any) {
+  bot.action(/^complete_service_(.+)$/, async (ctx: BotContext) => {
+    const orderId = (ctx as any).match[1];
+    await EmployeeHandler.completeServiceRequest(ctx, orderId);
+  });
 }

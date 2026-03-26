@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
-import { connectDB } from './config/database';
+import { connectDatabase as connectDB } from './config/database';
 import { Guest } from './models/Guest.model';
 import { Employee } from './models/Employee.model';
 import { SystemSettings } from './models/SystemSettings.model';
@@ -12,7 +12,7 @@ dotenv.config();
 const Room = mongoose.model('Room');
 const RoomCategory = mongoose.model('RoomCategory');
 const Booking = mongoose.model('Booking');
-
+ 
 async function seed() {
   try {
     await connectDB();

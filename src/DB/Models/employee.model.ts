@@ -19,6 +19,8 @@ export interface IEmployee extends Document {
   isActive: boolean;
   avatar: string;
   images: string[];
+  telegramId?: string;
+  telegramUsername?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -79,6 +81,13 @@ const employeeSchema = new Schema<IEmployee>(
     images: {
       type: [String],
       default: [],
+    },
+    telegramId: {
+      type: String,
+      sparse: true,
+    },
+    telegramUsername: {
+      type: String,
     },
   },
   {

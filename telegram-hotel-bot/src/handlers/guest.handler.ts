@@ -1,11 +1,71 @@
 import { Markup } from 'telegraf';
 import { BotContext } from '../middlewares/auth.middleware';
 import { aiService } from '../services/ai.service';
-import mongoose from 'mongoose';
+import mongoose, { Document, Schema } from 'mongoose';
 
-const Room = mongoose.model('Room');
-const Booking = mongoose.model('Booking');
-const ServiceOrder = mongoose.model('ServiceOrder');
+// ========== Room Category Schema ==========
+const roomCategorySchema = new Schema({
+  name: String,
+  basePrice: Number,
+  capacity: Object,
+  amenities: [String],
+  description: String,
+}, { collection: 'roomcategories' });
+
+const RoomCategory = (mongoose.models['RoomCategory'] ||
+  mongoose.model('RoomCategory', roomCategorySchema)) as any;
+
+// ========== Room Schema ==========
+const roomSchema = new Schema({
+  roomNumber: String,
+  categoryId: { type: Schema.Types.ObjectId, ref: 'RoomCategory' },
+  status: String,
+  floor: Number,
+  images: [String],
+}, { collection: 'rooms' });
+
+const Room = (mongoose.models['Room'] ||
+  mongoose.model('Room', roomSchema)) as any;
+
+// ========== Booking Schema ==========
+const bookingSchema = new Schema({
+  guestId: { type: Schema.Types.ObjectId, ref: 'Guest' },
+  roomId: { type: Schema.Types.ObjectId, ref: 'Room' },
+  checkInDate: Date,
+  checkOutDate: Date,
+  status: String,
+  totalPrice: Number,
+  paymentStatus: String,
+}, { collection: 'bookings' });
+
+const Booking = (mongoose.models['Booking'] ||
+  mongoose.model('Booking', bookingSchema)) as any;
+
+// ========== Service Order Schema ==========
+const serviceOrderSchema = new Schema({
+  bookingId: { type: Schema.Types.ObjectId, ref: 'Booking' },
+  guestId: { type: Schema.Types.ObjectId, ref: 'Guest' },
+  serviceType: String,
+  details: String,
+  status: String,
+  assignedEmployeeId: { type: Schema.Types.ObjectId, ref: 'Employee' },
+  requestedAt: Date,
+  completedAt: Date,
+  completedBy: String,
+}, { collection: 'serviceorders' });
+
+const ServiceOrder = (mongoose.models['ServiceOrder'] ||
+  mongoose.model('ServiceOrder', serviceOrderSchema)) as any;
+
+// ========== System Settings Schema ==========
+const systemSettingsSchema = new Schema({
+  aiToken: String,
+  staffGroupId: String,
+}, { collection: 'system_settings' });
+
+const SystemSettings = (mongoose.models['SystemSettings'] ||
+  mongoose.model('SystemSettings', systemSettingsSchema)) as any;
+
 
 export class GuestHandler {
   // Guest Main Menu
@@ -13,19 +73,18 @@ export class GuestHandler {
     const keyboard = Markup.keyboard([
       [ctx.t!('guest.menu.aiAssistant'), ctx.t!('guest.menu.exploreRooms')],
       [ctx.t!('guest.menu.myBookings'), ctx.t!('guest.menu.requestService')],
-      [ctx.t!('guest.menu.faq'), ctx.t!('guest.menu.back')]
+      [ctx.t!('guest.menu.faq')]
     ]).resize();
 
     await ctx.reply(ctx.t!('mainMenu.title'), keyboard);
   }
 
-  // AI Assistant for Smart Room Search
+  // AI Assistant
   static async handleAIAssistant(ctx: BotContext) {
     await ctx.reply(ctx.t!('guest.aiAssistant.welcome'), Markup.keyboard([
       [ctx.t!('buttons.back'), ctx.t!('buttons.home')]
     ]).resize());
 
-    // Store state to expect AI query
     (ctx.session as any).expectingAIQuery = true;
   }
 
@@ -33,9 +92,8 @@ export class GuestHandler {
     try {
       await ctx.reply(ctx.t!('guest.aiAssistant.processing'));
 
-      // Get available rooms
-      const availableRooms = await Room.find({ isAvailable: true })
-        .populate('category')
+      const availableRooms = await Room.find({ status: 'Available' })
+        .populate('categoryId')
         .lean();
 
       if (availableRooms.length === 0) {
@@ -43,7 +101,6 @@ export class GuestHandler {
         return;
       }
 
-      // Use AI to search
       const matchedRooms = await aiService.searchRooms(query, availableRooms);
 
       if (matchedRooms.length === 0) {
@@ -53,22 +110,20 @@ export class GuestHandler {
 
       await ctx.reply(ctx.t!('guest.aiAssistant.foundRooms'));
 
-      // Display matched rooms
       for (const room of matchedRooms.slice(0, 5)) {
-        const amenitiesList = room.amenities?.join(', ') || 'N/A';
+        const category = room.categoryId as any;
+        const amenitiesList = category?.amenities?.join(', ') || 'N/A';
+
         const message = `
 🏨 *غرفة ${room.roomNumber}*
-📂 النوع: ${room.category?.name || 'Standard'}
-💰 السعر: $${room.pricePerNight}/ليلة
-👥 السعة: ${room.capacity} أشخاص
+📂 النوع: ${category?.name || 'Standard'}
+💰 السعر: $${category?.basePrice || 0}/ليلة
 ✨ المرافق: ${amenitiesList}
-
-${room.description || ''}
         `.trim();
 
         const keyboard = Markup.inlineKeyboard([
           [Markup.button.callback('📅 احجز الآن', `book_${room._id}`)],
-          [Markup.button.callback('👁️ المزيد من التفاصيل', `room_${room._id}`)]
+          [Markup.button.callback('👁️ تفاصيل', `room_${room._id}`)]
         ]);
 
         await ctx.reply(message, { ...keyboard, parse_mode: 'Markdown' });
@@ -84,8 +139,8 @@ ${room.description || ''}
   // Explore Available Rooms
   static async showAvailableRooms(ctx: BotContext) {
     try {
-      const rooms = await Room.find({ isAvailable: true })
-        .populate('category')
+      const rooms = await Room.find({ status: 'Available' })
+        .populate('categoryId')
         .limit(10)
         .lean();
 
@@ -97,12 +152,13 @@ ${room.description || ''}
       await ctx.reply(ctx.t!('guest.rooms.available'));
 
       for (const room of rooms) {
-        const amenitiesList = room.amenities?.join(', ') || 'N/A';
+        const category = room.categoryId as any;
+        const amenitiesList = category?.amenities?.join(', ') || 'N/A';
+
         const message = `
 🏨 *غرفة ${room.roomNumber}*
-📂 ${room.category?.name || 'Standard'}
-💰 $${room.pricePerNight}/ليلة
-👥 ${room.capacity} أشخاص
+📂 ${category?.name || 'Standard'}
+💰 $${category?.basePrice || 0}/ليلة
 ✨ ${amenitiesList}
         `.trim();
 
@@ -119,13 +175,11 @@ ${room.description || ''}
     }
   }
 
-  // Show User Bookings
+  // My Bookings
   static async showMyBookings(ctx: BotContext) {
     try {
-      const bookings = await Booking.find({ 
-        guest: ctx.user!.id 
-      })
-        .populate('room')
+      const bookings = await Booking.find({ guestId: ctx.user!.id })
+        .populate('roomId')
         .sort({ createdAt: -1 })
         .limit(10)
         .lean();
@@ -138,29 +192,20 @@ ${room.description || ''}
       await ctx.reply(ctx.t!('guest.bookings.myBookings'));
 
       for (const booking of bookings) {
-        const room = booking.room as any;
+        const room = booking.roomId as any;
         const checkIn = new Date(booking.checkInDate).toLocaleDateString('ar-EG');
         const checkOut = new Date(booking.checkOutDate).toLocaleDateString('ar-EG');
 
         const message = `
 📅 *حجز #${booking._id.toString().slice(-6)}*
-🛏️ الغرفة: ${room.roomNumber}
-📊 ${ctx.t!('guest.bookings.status', { status: booking.status })}
+🛏️ الغرفة: ${room?.roomNumber || 'N/A'}
+📊 الحالة: ${booking.status}
 📆 الدخول: ${checkIn}
 📆 الخروج: ${checkOut}
-💰 الإجمالي: $${booking.totalAmount}
+💰 الإجمالي: $${booking.totalPrice}
         `.trim();
 
-        const buttons = [];
-        if (booking.status === 'Confirmed' || booking.status === 'Pending') {
-          buttons.push([
-            Markup.button.callback('📄 الفاتورة', `invoice_${booking._id}`),
-            Markup.button.callback('❌ إلغاء', `cancel_booking_${booking._id}`)
-          ]);
-        }
-
-        const keyboard = Markup.inlineKeyboard(buttons);
-        await ctx.reply(message, { ...keyboard, parse_mode: 'Markdown' });
+        await ctx.reply(message, { parse_mode: 'Markdown' });
       }
     } catch (error) {
       console.error('Show Bookings Error:', error);
@@ -168,12 +213,12 @@ ${room.description || ''}
     }
   }
 
-  // Request Service
+  // Service Menu
   static async showServiceMenu(ctx: BotContext) {
     const keyboard = Markup.keyboard([
       [ctx.t!('guest.service.roomService'), ctx.t!('guest.service.housekeeping')],
       [ctx.t!('guest.service.laundry'), ctx.t!('guest.service.maintenance')],
-      [ctx.t!('guest.service.spa'), ctx.t!('guest.service.other')],
+      [ctx.t!('guest.service.spa')],
       [ctx.t!('buttons.back'), ctx.t!('buttons.home')]
     ]).resize();
 
@@ -183,23 +228,22 @@ ${room.description || ''}
 
   static async processServiceRequest(ctx: BotContext, serviceType: string, details: string) {
     try {
-      // Find active booking for this guest
       const activeBooking = await Booking.findOne({
-        guest: ctx.user!.id,
+        guestId: ctx.user!.id,
         status: { $in: ['Confirmed', 'CheckedIn'] }
-      }).populate('room');
+      }).populate('roomId');
 
       if (!activeBooking) {
         await ctx.reply('❌ لا يوجد لديك حجز نشط حالياً.');
+        (ctx.session as any).expectingServiceRequest = false;
         return;
       }
 
-      const room = activeBooking.room as any;
+      const room = activeBooking.roomId as any;
 
-      // Create service order
       const serviceOrder = await ServiceOrder.create({
-        booking: activeBooking._id,
-        guest: ctx.user!.id,
+        bookingId: activeBooking._id,
+        guestId: ctx.user!.id,
         serviceType,
         details,
         status: 'Pending',
@@ -208,10 +252,8 @@ ${room.description || ''}
 
       await ctx.reply(ctx.t!('guest.service.requestSent'));
 
-      // Send notification to staff group
       await this.notifyStaffGroup(ctx, {
-        type: 'service_request',
-        roomNumber: room.roomNumber,
+        roomNumber: room?.roomNumber || 'N/A',
         serviceType,
         details,
         guestName: ctx.user!.name,
@@ -226,7 +268,7 @@ ${room.description || ''}
     }
   }
 
-  // FAQ Section
+  // FAQ
   static async showFAQ(ctx: BotContext) {
     const keyboard = Markup.inlineKeyboard([
       [Markup.button.callback(ctx.t!('guest.faq.checkInTime'), 'faq_checkin')],
@@ -241,7 +283,7 @@ ${room.description || ''}
   }
 
   static async handleFAQAnswer(ctx: BotContext, topic: string) {
-    const answers: any = {
+    const answers: Record<string, string> = {
       checkin: ctx.t!('guest.faq.checkInAnswer'),
       wifi: ctx.t!('guest.faq.wifiAnswer'),
       location: ctx.t!('guest.faq.locationAnswer'),
@@ -256,28 +298,90 @@ ${room.description || ''}
   // Notify Staff Group
   private static async notifyStaffGroup(ctx: BotContext, data: any) {
     try {
-      const SystemSettings = mongoose.model('SystemSettings');
       const settings = await SystemSettings.findOne();
-      
+
       if (!settings?.staffGroupId) {
         console.warn('Staff group not configured');
         return;
       }
 
-      const message = ctx.t!('notifications.serviceRequest', {
-        roomNumber: data.roomNumber,
-        service: data.serviceType,
-        details: data.details,
-        assignedTo: 'خدمة الغرف'
-      });
+      const message = `
+🛎️ *طلب خدمة جديد!*
+
+🏨 الغرفة: ${data.roomNumber}
+👤 الضيف: ${data.guestName}
+🔧 الخدمة: ${data.serviceType}
+📝 التفاصيل: ${data.details}
+      `.trim();
 
       const keyboard = Markup.inlineKeyboard([
         [Markup.button.callback('✅ إنهاء الطلب', `complete_service_${data.orderId}`)]
       ]);
 
-      await ctx.telegram.sendMessage(settings.staffGroupId, message, keyboard);
+      await ctx.telegram.sendMessage(settings.staffGroupId, message, {
+        ...keyboard,
+        parse_mode: 'Markdown'
+      });
     } catch (error) {
       console.error('Notify Staff Error:', error);
     }
   }
+}
+
+export function registerGuestHandlers(bot: any) {
+  bot.command('mybookings', async (ctx: BotContext) => {
+    if (!ctx.user) { await ctx.reply('❌ يجب تسجيل الدخول أولاً.'); return; }
+    await GuestHandler.showMyBookings(ctx);
+  });
+
+  bot.action('back_guest_menu', async (ctx: BotContext) => {
+    await ctx.answerCbQuery();
+    await GuestHandler.showGuestMenu(ctx);
+  });
+
+  bot.action(/^faq_(.+)$/, async (ctx: BotContext) => {
+    const topic = (ctx as any).match[1];
+    await GuestHandler.handleFAQAnswer(ctx, topic);
+  });
+
+  bot.action(/^book_(.+)$/, async (ctx: BotContext) => {
+    const { BookingHandler } = await import('./booking.handler');
+    const roomId = (ctx as any).match[1];
+    await BookingHandler.initiateBooking(ctx, roomId);
+  });
+
+  // Handle text messages for guest flows (AI queries, service requests)
+  bot.on('text', async (ctx: BotContext, next: () => Promise<void>) => {
+    const session = ctx.session as any;
+    const text = (ctx.message as any)?.text;
+
+    if (!text) return next();
+    if (!ctx.user || ctx.user.type !== 'guest') return next();
+
+    if (session?.expectingAIQuery) {
+      await GuestHandler.processAIQuery(ctx, text);
+      return;
+    }
+
+    if (session?.expectingServiceRequest) {
+      await GuestHandler.processServiceRequest(ctx, 'General', text);
+      return;
+    }
+
+    // Handle keyboard button presses
+    const t = ctx.t!;
+    if (text === t('guest.menu.aiAssistant')) {
+      await GuestHandler.handleAIAssistant(ctx);
+    } else if (text === t('guest.menu.exploreRooms')) {
+      await GuestHandler.showAvailableRooms(ctx);
+    } else if (text === t('guest.menu.myBookings')) {
+      await GuestHandler.showMyBookings(ctx);
+    } else if (text === t('guest.menu.requestService')) {
+      await GuestHandler.showServiceMenu(ctx);
+    } else if (text === t('guest.menu.faq')) {
+      await GuestHandler.showFAQ(ctx);
+    } else {
+      return next();
+    }
+  });
 }

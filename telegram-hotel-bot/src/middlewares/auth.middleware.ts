@@ -3,6 +3,7 @@ import { Guest } from '../models/Guest.model';
 import { Employee } from '../models/Employee.model';
 
 export interface BotContext extends Context {
+  session: Record<string, any>;
   user?: {
     id: string;
     type: 'guest' | 'employee';
@@ -17,40 +18,43 @@ export interface BotContext extends Context {
 
 export const authMiddleware = async (ctx: BotContext, next: () => Promise<void>) => {
   const telegramId = ctx.from?.id.toString();
-  
+
   if (!telegramId) {
     return next();
   }
 
-  // Check if user is a guest
-  let guest = await Guest.findOne({ telegramId });
-  if (guest) {
-    ctx.user = {
-      id: guest._id.toString(),
-      type: 'guest',
-      name: guest.name,
-      email: guest.email,
-      language: guest.language || 'ar'
-    };
-    return next();
+  try {
+    // Check if user is a guest
+    const guest = await Guest.findOne({ telegramId });
+    if (guest) {
+      ctx.user = {
+        id: guest._id.toString(),
+        type: 'guest',
+        name: guest.name,
+        email: guest.email,
+        language: guest.language || 'ar'
+      };
+      return next();
+    }
+
+    // Check if user is an employee
+    const employee = await Employee.findOne({ telegramId, isActive: true });
+    if (employee) {
+      ctx.user = {
+        id: employee._id.toString(),
+        type: 'employee',
+        role: employee.role,
+        name: employee.name,
+        email: employee.email,
+        language: employee.language || 'ar',
+        isAdmin: employee.role === 'Admin'
+      };
+      return next();
+    }
+  } catch (error) {
+    console.error('Auth Middleware Error:', error);
   }
 
-  // Check if user is an employee
-  let employee = await Employee.findOne({ telegramId, isActive: true });
-  if (employee) {
-    ctx.user = {
-      id: employee._id.toString(),
-      type: 'employee',
-      role: employee.role,
-      name: employee.name,
-      email: employee.email,
-      language: employee.language || 'ar',
-      isAdmin: employee.role === 'Admin'
-    };
-    return next();
-  }
-
-  // User not found, proceed without user context
   return next();
 };
 

@@ -2,11 +2,13 @@ import { Markup } from 'telegraf';
 import { BotContext } from '../middlewares/auth.middleware';
 import mongoose from 'mongoose';
 
-const Guest = mongoose.model('Guest');
-const SystemSettings = mongoose.model('SystemSettings');
+function getModel(name: string) {
+  const m = mongoose.models[name];
+  if (!m) throw new Error(`Model ${name} not registered yet`);
+  return m;
+}
 
 export class AdminHandler {
-  // Show Admin Menu
   static async showAdminMenu(ctx: BotContext) {
     const keyboard = Markup.keyboard([
       [ctx.t!('admin.menu.broadcast'), ctx.t!('admin.menu.systemSettings')],
@@ -17,36 +19,31 @@ export class AdminHandler {
     await ctx.reply('⚙️ *لوحة إدارة النظام*', { ...keyboard, parse_mode: 'Markdown' });
   }
 
-  // Broadcast Message to All Guests
   static async initiateBroadcast(ctx: BotContext) {
     await ctx.reply(ctx.t!('admin.broadcast.enterMessage'), Markup.keyboard([
       [ctx.t!('buttons.cancel')]
     ]).resize());
-
     (ctx.session as any).expectingBroadcast = true;
   }
 
   static async sendBroadcast(ctx: BotContext, message: string) {
     try {
-      const guests = await Guest.find({ 
-        telegramId: { $exists: true, $ne: null } 
-      }).lean();
+      const Guest = getModel('Guest');
+      const guests = await Guest.find({ telegramId: { $exists: true, $ne: null } }).lean();
 
       if (guests.length === 0) {
         await ctx.reply('❌ لا يوجد ضيوف لديهم حساب تيليجرام.');
         return;
       }
 
-      // Confirm before sending
       const keyboard = Markup.inlineKeyboard([
         [Markup.button.callback(
-          ctx.t!('admin.broadcast.confirm', { count: guests.length }), 
+          ctx.t!('admin.broadcast.confirm', { count: guests.length }),
           `confirm_broadcast`
         )],
         [Markup.button.callback(ctx.t!('buttons.cancel'), 'cancel_broadcast')]
       ]);
 
-      // Store the message temporarily
       (ctx.session as any).broadcastMessage = message;
 
       await ctx.reply(
@@ -72,16 +69,14 @@ export class AdminHandler {
         return;
       }
 
-      const guests = await Guest.find({ 
-        telegramId: { $exists: true, $ne: null } 
-      }).lean();
-
+      const Guest = getModel('Guest');
+      const guests = await Guest.find({ telegramId: { $exists: true, $ne: null } }).lean();
       await ctx.reply(ctx.t!('admin.broadcast.sending'));
 
       let sentCount = 0;
       let failedCount = 0;
 
-      for (const guest of guests) {
+      for (const guest of guests as any[]) {
         try {
           await ctx.telegram.sendMessage(
             guest.telegramId!,
@@ -89,8 +84,6 @@ export class AdminHandler {
             { parse_mode: 'Markdown' }
           );
           sentCount++;
-          
-          // Small delay to avoid rate limiting
           await new Promise(resolve => setTimeout(resolve, 50));
         } catch (error) {
           console.error(`Failed to send to ${guest.telegramId}:`, error);
@@ -98,14 +91,11 @@ export class AdminHandler {
         }
       }
 
-      const resultMessage = ctx.t!('admin.broadcast.sent', { count: sentCount });
-      const failMessage = failedCount > 0 
-        ? '\n' + ctx.t!('admin.broadcast.failed', { count: failedCount })
-        : '';
+      await ctx.reply(
+        ctx.t!('admin.broadcast.sent', { count: sentCount }) +
+        (failedCount > 0 ? '\n' + ctx.t!('admin.broadcast.failed', { count: failedCount }) : '')
+      );
 
-      await ctx.reply(resultMessage + failMessage);
-
-      // Clear session
       delete (ctx.session as any).broadcastMessage;
     } catch (error) {
       console.error('Broadcast Execution Error:', error);
@@ -113,12 +103,12 @@ export class AdminHandler {
     }
   }
 
-  // System Settings Menu
   static async showSystemSettings(ctx: BotContext) {
     try {
+      const SystemSettings = getModel('SystemSettings');
       const settings = await SystemSettings.findOne();
 
-      const groupStatus = settings?.staffGroupId 
+      const groupStatus = settings?.staffGroupId
         ? ctx.t!('admin.settings.currentGroup', { groupId: settings.staffGroupId })
         : ctx.t!('admin.settings.noGroup');
 
@@ -146,23 +136,15 @@ ${groupStatus}
     }
   }
 
-  // Link Staff Group
   static async linkStaffGroup(ctx: BotContext) {
     try {
-      // This command should be executed in a group
       if (ctx.chat?.type !== 'group' && ctx.chat?.type !== 'supergroup') {
         await ctx.reply(ctx.t!('admin.settings.notInGroup'));
         return;
       }
 
-      const groupId = ctx.chat.id.toString();
-
-      await SystemSettings.updateOne(
-        {},
-        { staffGroupId: groupId },
-        { upsert: true }
-      );
-
+      const SystemSettings = getModel('SystemSettings');
+      await SystemSettings.updateOne({}, { staffGroupId: ctx.chat.id.toString() }, { upsert: true });
       await ctx.reply(ctx.t!('admin.settings.groupLinked'));
     } catch (error) {
       console.error('Link Group Error:', error);
@@ -170,25 +152,19 @@ ${groupStatus}
     }
   }
 
-  // Update AI Token
   static async updateAIToken(ctx: BotContext) {
     await ctx.answerCbQuery();
     await ctx.reply(ctx.t!('admin.settings.enterAiToken'), Markup.keyboard([
       [ctx.t!('buttons.cancel')]
     ]).resize());
-
     (ctx.session as any).expectingAIToken = true;
   }
 
   static async saveAIToken(ctx: BotContext, token: string) {
     try {
-      await SystemSettings.updateOne(
-        {},
-        { aiToken: token, updatedAt: new Date() },
-        { upsert: true }
-      );
+      const SystemSettings = getModel('SystemSettings');
+      await SystemSettings.updateOne({}, { aiToken: token, updatedAt: new Date() }, { upsert: true });
 
-      // Reinitialize AI service
       const { aiService } = await import('../services/ai.service');
       await aiService.initialize();
 
@@ -201,11 +177,10 @@ ${groupStatus}
     }
   }
 
-  // Employee Statistics
   static async showEmployeeStats(ctx: BotContext) {
     try {
-      const Employee = mongoose.model('Employee');
-      
+      const Employee = getModel('Employee');
+
       const totalEmployees = await Employee.countDocuments({ isActive: true });
       const adminCount = await Employee.countDocuments({ role: 'Admin', isActive: true });
       const receptionistCount = await Employee.countDocuments({ role: 'Receptionist', isActive: true });
@@ -230,8 +205,40 @@ ${groupStatus}
     }
   }
 
-  // Reports (placeholder for future implementation)
   static async showReports(ctx: BotContext) {
     await ctx.reply('📈 قسم التقارير قيد التطوير...\n\nسيتم إضافة:\n• تقارير الإيرادات\n• تقارير الإشغال\n• تقارير التقييمات\n• تقارير الخدمات');
   }
+}
+
+export function registerAdminHandlers(bot: any) {
+  bot.command('admin', async (ctx: BotContext) => {
+    if (!ctx.user || ctx.user.type !== 'employee' || !ctx.user.isAdmin) {
+      await ctx.reply('❌ هذه الميزة متاحة للإدمن فقط.');
+      return;
+    }
+    await AdminHandler.showAdminMenu(ctx);
+  });
+
+  bot.action('confirm_broadcast', async (ctx: BotContext) => {
+    await AdminHandler.executeBroadcast(ctx);
+  });
+
+  bot.action('cancel_broadcast', async (ctx: BotContext) => {
+    await ctx.answerCbQuery();
+    delete (ctx.session as any).broadcastMessage;
+    await ctx.reply('✅ تم إلغاء الإرسال.');
+  });
+
+  bot.action('link_staff_group', async (ctx: BotContext) => {
+    await AdminHandler.linkStaffGroup(ctx);
+  });
+
+  bot.action('update_ai_token', async (ctx: BotContext) => {
+    await AdminHandler.updateAIToken(ctx);
+  });
+
+  bot.action('back_admin_menu', async (ctx: BotContext) => {
+    await ctx.answerCbQuery();
+    await AdminHandler.showAdminMenu(ctx);
+  });
 }

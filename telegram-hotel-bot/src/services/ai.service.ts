@@ -1,106 +1,89 @@
-import OpenAI from 'openai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { SystemSettings } from '../models/SystemSettings.model';
 
 export class AIService {
-  private openai: OpenAI | null = null;
+  private genAI: GoogleGenerativeAI | null = null;
 
   async initialize() {
+    // أولاً: جرب من الداتابيز
     const settings = await SystemSettings.findOne();
-    if (settings?.aiToken) {
-      this.openai = new OpenAI({
-        apiKey: settings.aiToken
-      });
+    const token = settings?.aiToken || process.env.GEMINI_API_KEY;
+
+    if (token) {
+      this.genAI = new GoogleGenerativeAI(token);
+      console.log('✅ Gemini AI initialized');
+    } else {
+      console.warn('⚠️ No Gemini API Key found');
     }
   }
 
-  async searchRooms(userQuery: string, availableRooms: any[]) {
-    if (!this.openai) {
+  private async getModel() {
+    if (!this.genAI) {
       await this.initialize();
     }
-
-    if (!this.openai) {
-      throw new Error('AI Token not configured');
+    if (!this.genAI) {
+      throw new Error('Gemini API Key not configured');
     }
+    return this.genAI.getGenerativeModel({ model: process.env.AI_MODEL || 'gemini-1.5-flash' });
+  }
+
+  async searchRooms(userQuery: string, availableRooms: any[]) {
+    const model = await this.getModel();
 
     const roomsData = availableRooms.map(room => ({
       id: room._id,
       number: room.roomNumber,
-      type: room.category?.name || 'Standard',
-      price: room.pricePerNight,
-      capacity: room.capacity,
-      amenities: room.amenities || [],
-      description: room.description || ''
+      type: room.categoryId?.name || 'Standard',
+      price: room.categoryId?.basePrice || 0,
+      capacity: room.categoryId?.capacity || {},
+      amenities: room.categoryId?.amenities || [],
+      description: room.categoryId?.description || ''
     }));
 
-    const prompt = `You are a hotel assistant. Based on the user's request, find the most suitable rooms.
+    const prompt = `أنت مساعد فندق ذكي. بناءً على طلب الضيف، ابحث عن أنسب الغرف.
 
-User Request: "${userQuery}"
+طلب الضيف: "${userQuery}"
 
-Available Rooms:
+الغرف المتاحة:
 ${JSON.stringify(roomsData, null, 2)}
 
-Instructions:
-1. Analyze the user's requirements (amenities, price range, capacity, etc.)
-2. Match rooms based on amenities and features
-3. Return ONLY a JSON array of room IDs in order of relevance
-4. Format: ["roomId1", "roomId2", "roomId3"]
-5. Return maximum 5 rooms
-6. If no rooms match, return empty array []
+التعليمات:
+1. حلل متطلبات الضيف (المرافق، السعر، السعة، إلخ)
+2. طابق الغرف بناءً على المرافق والمميزات
+3. أرجع فقط JSON array من IDs الغرف مرتبة حسب الأنسب
+4. الشكل: ["roomId1", "roomId2", "roomId3"]
+5. أقصى 5 غرف
+6. لو مفيش غرف مناسبة، أرجع []
 
-Return ONLY the JSON array, no explanations.`;
+أرجع فقط الـ JSON array بدون أي شرح.`;
 
     try {
-      const completion = await this.openai.chat.completions.create({
-        model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: 'You are a helpful hotel assistant. Return only JSON arrays.' },
-          { role: 'user', content: prompt }
-        ],
-        temperature: 0.3,
-        max_tokens: 500
-      });
-
-      const response = completion.choices[0]?.message?.content || '[]';
+      const result = await model.generateContent(prompt);
+      const response = result.response.text();
       const cleanResponse = response.replace(/```json\n?|\n?```/g, '').trim();
-      const roomIds = JSON.parse(cleanResponse);
+      const roomIds: string[] = JSON.parse(cleanResponse);
 
-      // Filter and return matched rooms in order
       return roomIds
         .map((id: string) => availableRooms.find(r => r._id.toString() === id))
         .filter((r: any) => r !== undefined);
     } catch (error) {
-      console.error('AI Search Error:', error);
+      console.error('Gemini Search Error:', error);
       throw new Error('AI search failed');
     }
   }
 
   async generateResponse(userMessage: string, context?: string) {
-    if (!this.openai) {
-      await this.initialize();
-    }
+    const model = await this.getModel();
 
-    if (!this.openai) {
-      throw new Error('AI Token not configured');
-    }
+    const systemPrompt = context
+      ? `أنت مساعد فندق مفيد. السياق: ${context}\n\n`
+      : 'أنت مساعد فندق مفيد.\n\n';
 
     try {
-      const systemPrompt = context 
-        ? `You are a helpful hotel assistant. Context: ${context}`
-        : 'You are a helpful hotel assistant.';
-
-      const completion = await this.openai.chat.completions.create({
-        model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userMessage }
-        ],
-        temperature: 0.7,
-        max_tokens: 500
-      });
-
-      return completion.choices[0]?.message?.content || 'Sorry, I could not generate a response.';
+      const result = await model.generateContent(systemPrompt + userMessage);
+      return result.response.text();
     } catch (error) {
-      console.error('AI Response Error:', error);
+      console.error('Gemini Response Error:', error);
       throw new Error('AI response generation failed');
     }
   }
