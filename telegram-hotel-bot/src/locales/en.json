@@ -1,0 +1,183 @@
+{
+  "welcome": "Welcome to Hotel Management Bot! 🏨",
+  "selectLanguage": "Select your preferred language:",
+  "languageChanged": "Language changed successfully ✅",
+  
+  "mainMenu": {
+    "title": "Main Menu",
+    "guest": "🏨 Guest Interface",
+    "employee": "👔 Employee Interface",
+    "admin": "⚙️ Admin Panel"
+  },
+
+  "auth": {
+    "notRegistered": "Account not found. Please register first:",
+    "login": "🔑 Login",
+    "register": "📝 Create Account",
+    "enterEmail": "Please enter your email:",
+    "enterPassword": "Please enter your password:",
+    "enterName": "Please enter your full name:",
+    "enterPhone": "Please enter your phone number:",
+    "loginSuccess": "✅ Login successful!",
+    "loginFailed": "❌ Login failed. Check your credentials.",
+    "registerSuccess": "✅ Account created successfully!",
+    "cancel": "❌ Cancel",
+    "invalidEmail": "❌ Invalid email",
+    "invalidPhone": "❌ Invalid phone number"
+  },
+
+  "guest": {
+    "menu": {
+      "aiAssistant": "🤖 AI Assistant",
+      "exploreRooms": "🏨 Explore Rooms",
+      "myBookings": "📅 My Bookings",
+      "requestService": "🛎️ Request Service",
+      "faq": "❓ FAQ",
+      "back": "🔙 Back",
+      "home": "🏠 Home"
+    },
+    "aiAssistant": {
+      "welcome": "🤖 Welcome to AI Assistant!\n\nTell me what you need and I'll help you find the perfect room.\n\nExample: \"I need a room with WiFi and sea view\"",
+      "processing": "⏳ Searching for the best rooms...",
+      "noResults": "😔 Sorry, no rooms match your request.",
+      "foundRooms": "✨ Found these rooms for you:"
+    },
+    "rooms": {
+      "available": "Available Rooms:",
+      "details": "Room Details:",
+      "price": "Price: ${{price}}/night",
+      "capacity": "Capacity: {{capacity}} people",
+      "amenities": "Amenities:",
+      "book": "📅 Book Now",
+      "viewMore": "👁️ View Details"
+    },
+    "bookings": {
+      "myBookings": "My Bookings:",
+      "noBookings": "You have no bookings yet",
+      "status": "Status: {{status}}",
+      "room": "Room: {{room}}",
+      "checkIn": "Check-in: {{date}}",
+      "checkOut": "Check-out: {{date}}",
+      "total": "Total: ${{amount}}",
+      "viewInvoice": "📄 View Invoice",
+      "cancel": "❌ Cancel Booking",
+      "cancelConfirm": "Are you sure you want to cancel this booking?",
+      "cancelled": "✅ Booking cancelled successfully"
+    },
+    "service": {
+      "selectService": "Select the service you need:",
+      "roomService": "🍽️ Room Service",
+      "housekeeping": "🧹 Housekeeping",
+      "laundry": "👔 Laundry",
+      "maintenance": "🔧 Maintenance",
+      "spa": "💆 Spa",
+      "other": "📋 Other",
+      "enterDetails": "Please describe your request:",
+      "requestSent": "✅ Your request has been sent!\nWe'll contact you soon."
+    },
+    "faq": {
+      "title": "❓ Frequently Asked Questions",
+      "checkInTime": "⏰ Working Hours",
+      "checkInAnswer": "Check-in: 2:00 PM\nCheck-out: 12:00 PM",
+      "wifi": "📶 WiFi",
+      "wifiAnswer": "Network: HotelGuest\nPassword: Welcome2024",
+      "location": "📍 Location",
+      "locationAnswer": "Corniche Street, Alexandria\nPhone: +20123456789",
+      "parking": "🅿️ Parking",
+      "parkingAnswer": "Free parking available 24/7 for guests",
+      "breakfast": "🍳 Breakfast",
+      "breakfastAnswer": "7:00 AM - 10:30 AM\nOpen buffet in main restaurant"
+    }
+  },
+
+  "employee": {
+    "menu": {
+      "stats": "📊 Today's Statistics",
+      "occupiedRooms": "🛏️ Occupied Rooms",
+      "pendingRequests": "📋 Pending Requests",
+      "back": "🔙 Back",
+      "home": "🏠 Home"
+    },
+    "stats": {
+      "title": "📊 Today's Statistics",
+      "availableRooms": "Available Rooms: {{count}}",
+      "occupiedRooms": "Occupied Rooms: {{count}}",
+      "confirmedBookings": "Confirmed Bookings: {{count}}",
+      "pendingBookings": "Pending Bookings: {{count}}",
+      "todayRevenue": "Today's Revenue: ${{amount}}",
+      "monthRevenue": "Monthly Revenue: ${{amount}}"
+    },
+    "occupiedRooms": {
+      "title": "🛏️ Currently Occupied Rooms",
+      "noOccupied": "No occupied rooms currently",
+      "room": "Room {{number}}",
+      "guest": "Guest: {{name}}",
+      "checkOut": "Check-out: {{date}}"
+    }
+  },
+
+  "admin": {
+    "menu": {
+      "broadcast": "📢 Send Broadcast",
+      "systemSettings": "⚙️ System Settings",
+      "employeeStats": "👥 Employee Stats",
+      "reports": "📈 Reports",
+      "back": "🔙 Back"
+    },
+    "broadcast": {
+      "title": "📢 Send Mass Broadcast",
+      "enterMessage": "Enter the message to send to all guests:",
+      "confirm": "Send to All ({{count}} guests)",
+      "sending": "⏳ Sending...",
+      "sent": "✅ Message sent to {{count}} guests successfully!",
+      "failed": "❌ Failed to send to {{count}} guests"
+    },
+    "settings": {
+      "title": "⚙️ System Settings",
+      "linkStaffGroup": "🔗 Link Staff Group",
+      "updateAiToken": "🧠 Update AI Token",
+      "currentGroup": "Current Group: {{groupId}}",
+      "noGroup": "No group linked yet",
+      "linkInstructions": "Add bot to staff group and send /linkgroup",
+      "enterAiToken": "Enter new AI Token:",
+      "tokenUpdated": "✅ AI Token updated successfully!",
+      "groupLinked": "✅ Group linked successfully!",
+      "notInGroup": "❌ This command must be executed in a group"
+    }
+  },
+
+  "notifications": {
+    "newBooking": "🔔 New Booking!\n\nGuest: {{guestName}}\nRoom: {{roomNumber}}\nDate: {{date}}\nTotal: ${{amount}}",
+    "newReview": "⭐ New Review!\n\nGuest: {{guestName}}\nRating: {{rating}}/5\nComment: {{comment}}",
+    "serviceRequest": "🛎️ New Service Request!\n\nRoom: {{roomNumber}}\nService: {{service}}\nDetails: {{details}}\nAssigned to: {{assignedTo}}",
+    "taskCompleted": "✅ Task completed by: {{employeeName}}",
+    "notAuthorized": "❌ You are not authorized for this action"
+  },
+
+  "buttons": {
+    "yes": "Yes",
+    "no": "No",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "back": "🔙 Back",
+    "home": "🏠 Home",
+    "next": "Next ➡️",
+    "previous": "⬅️ Previous",
+    "complete": "✅ Complete"
+  },
+
+  "errors": {
+    "general": "❌ An error occurred. Please try again later.",
+    "unauthorized": "❌ You are not authorized.",
+    "notFound": "❌ Data not found.",
+    "invalidInput": "❌ Invalid input.",
+    "aiError": "❌ AI Assistant error. Check token."
+  },
+
+  "success": {
+    "general": "✅ Operation completed successfully!",
+    "saved": "✅ Saved successfully!",
+    "updated": "✅ Updated successfully!",
+    "deleted": "✅ Deleted successfully!"
+  }
+}
