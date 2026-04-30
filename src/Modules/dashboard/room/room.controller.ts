@@ -133,6 +133,82 @@ export const createRoom = async (
   }
 };
 
+export const RoomImages = async (
+  req: Request<{ id: string }, ApiResponse<IRoom>, CreateRoomBody>,
+  res: Response<ApiResponse<IRoom | null>>
+): Promise<void> => {
+  try {
+    const room = await Room.findById(req.params.id);
+
+    if (!room) {
+      res.status(404).json({
+        success: false,
+        message: 'Room not found',
+      });
+      return;
+    }
+
+    const files = req.files as Express.Multer.File[];
+
+    if (req.files) {
+      room.images = files.map((file) => file.path);
+    };
+
+
+    await room.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Room images updated successfully',
+      data: room,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: (error as Error).message,
+    });
+  }
+};
+
+
+export const getAllRoomImages = async (
+  req: Request<{ id: string }>,
+  res: Response
+): Promise<void> => {
+  try {
+    const room = await Room.findById(req.params.id);
+
+    if (!room) {
+      res.status(404).json({
+        success: false,
+        message: "Room not found"
+      });
+      return;
+    }
+
+    if (!room.images) {
+      res.status(404).json({
+        success: false,
+        message: "No images for this room found"
+      });
+      return;
+    }
+
+    const images = room.images.map((image) => image);
+
+    res.status(200).json({
+      success: true,
+      count: images.length,
+      data: images
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: (error as Error).message,
+    });
+  }
+};
+
 
 export const updateRoom = async (
   req: Request<{ id: string }, ApiResponse<RoomData>, UpdateRoomBody>,

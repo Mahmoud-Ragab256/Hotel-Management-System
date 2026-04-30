@@ -19,6 +19,7 @@ interface AppError extends Error {
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use("/uploads", express.static("uploads"));
 
 const limiter = {
   windowMs: 15 * 60 * 1000, // 15 minutes

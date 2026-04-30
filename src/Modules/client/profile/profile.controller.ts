@@ -42,7 +42,7 @@ export const getProfile = async (
   res: Response<ApiResponse<ProfileData>>
 ): Promise<void> => {
   try {
-    const guest: IGuest | null = res.locals.guest
+    const guest: IGuest | null = res.locals.user
     if (!guest) {
       res.status(404).json({
         success: false,
@@ -85,10 +85,46 @@ export const updateProfile = async (
       return;
     }
 
+    if (req.file) {
+      const file = req.file as Express.Multer.File;
+      guest.avatar = file.path;
+    };
+
+    await guest.save();
+
     res.status(200).json({
       success: true,
       message: 'Profile updated successfully',
       data: { guest },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: (error as Error).message,
+    });
+  }
+};
+
+
+export const getProfileImage = async (
+  req: Request<{ id: string }>,
+  res: Response<ApiResponse<string>>
+): Promise<void> => {
+  try {
+    const guest: IGuest | null = res.locals.user;
+
+    if (!guest || !guest.avatar) {
+      res.status(500).json({
+        success: false,
+        message: "Image or guest not found!",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Profile updated successfully',
+      data: guest.avatar,
     });
   } catch (error) {
     res.status(500).json({

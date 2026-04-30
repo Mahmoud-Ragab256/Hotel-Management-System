@@ -56,15 +56,15 @@ export const protect = async (
       return;
     };
 
-    const updatedAtInSec = Math.floor(currentUser.updatedAt.getTime() / 1000);
+    // const updatedAtInSec = Math.floor(currentUser.updatedAt.getTime() / 1000);
 
-    if (updatedAtInSec > iat) {
-      res.status(401).json({
-        success: false,
-        message: "please login again",
-      });
-      return;
-    };
+    // if (updatedAtInSec > iat) {
+    //   res.status(401).json({
+    //     success: false,
+    //     message: "please login again",
+    //   });
+    //   return;
+    // };
 
     res.locals.user = currentUser;
 

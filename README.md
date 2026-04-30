@@ -50,12 +50,14 @@ Built with **TypeScript** on top of **Node.js/Express** and powered by **MongoDB
 - Browse available rooms with filtering and full-text search
 - Make, view, update, and cancel reservations
 - Full guest profile management with booking & review history
+- Avatar upload & retrieval for guest profiles via Cloudinary
 - Password reset flow via email OTP
 - Secure registration & login with JWT authentication
 
 ### 🔐 Admin Dashboard
 - Full CRUD operations on rooms, categories, services, and reservations
-- Employee & guest account management
+- Employee & guest account management with avatar upload support
+- Room image management — upload up to 10 images per room via Cloudinary
 - Invoice generation and tracking per booking
 - Review moderation (approve / reject)
 - Notification system with unread tracking per recipient
@@ -83,6 +85,7 @@ Built with **TypeScript** on top of **Node.js/Express** and powered by **MongoDB
 | Validation | Joi |
 | Security | Helmet, bcrypt, express-rate-limit |
 | Email | Nodemailer |
+| File Upload | Multer + Cloudinary |
 | Dev Tools | Nodemon, tsx |
 
 ---
@@ -129,6 +132,8 @@ Hotel-Management-System/
 │   │   └── index.routes.ts
 │   ├── utils/
 │   │   ├── auth.middleware.ts
+│   │   ├── upload.middleware.ts
+│   │   ├── cloudinary.ts
 │   │   └── sendEmail.ts
 │   └── index.ts
 ├── Documentation/
@@ -207,6 +212,15 @@ EMAIL_HOST=smtp.gmail.com
 EMAIL_PORT=587
 EMAIL_USER=your_email@gmail.com
 EMAIL_PASS=your_email_app_password
+
+# Cloudinary (Image Upload)
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+
+# Rate Limiting
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX=100
 ```
 
 ---
@@ -269,7 +283,8 @@ EMAIL_PASS=your_email_app_password
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
 | `GET` | `/me` | Get the current logged-in guest's profile | 🔒 Protected |
-| `PUT` | `/:id` | Update guest profile info | |
+| `GET` | `/me/avatar` | Get the current guest's avatar image | |
+| `PUT` | `/:id` | Update guest profile info + upload avatar (`multipart/form-data`, field: `avatar`) | |
 | `GET` | `/:id/bookings` | Get a guest's full booking history | |
 | `GET` | `/:id/reviews` | Get all reviews submitted by a guest | |
 
@@ -307,9 +322,10 @@ EMAIL_PASS=your_email_app_password
 |--------|----------|-------------|
 | `GET` | `/` | Get all employees |
 | `GET` | `/:id` | Get an employee by ID |
+| `GET` | `/:id/avatar` | Get an employee's avatar image |
 | `POST` | `/register` | Create a new employee account |
 | `POST` | `/login` | Employee login |
-| `PUT` | `/:id` | Update employee details |
+| `PUT` | `/:id` | Update employee details + upload avatar (`multipart/form-data`, field: `avatar`) |
 | `DELETE` | `/:id` | Delete an employee |
 
 ---
@@ -376,8 +392,10 @@ EMAIL_PASS=your_email_app_password
 | `GET` | `/` | Get all rooms |
 | `GET` | `/available` | Get available rooms only |
 | `GET` | `/:id` | Get a room by ID |
+| `GET` | `/:id/images` | Get all images for a room |
 | `POST` | `/` | Create a new room |
 | `PUT` | `/:id` | Update room details |
+| `PUT` | `/:id/images` | Upload room images (`multipart/form-data`, field: `images`, max: 10) |
 | `DELETE` | `/:id` | Delete a room |
 
 ---
@@ -451,8 +469,22 @@ This project implements several security best practices:
 
 ---
 
+## 🤝 Contributing
+
+Contributions are welcome! If you'd like to improve this project:
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+---
+
 <div align="center">
 
 Made with ❤️ as a **DEPI Graduation Project**
+
+⭐ If you found this project useful, please consider giving it a star!
 
 </div>

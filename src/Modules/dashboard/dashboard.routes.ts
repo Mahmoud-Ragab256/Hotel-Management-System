@@ -16,7 +16,7 @@ const router = express.Router();
 
 router.use('/auth', authRouter)
 
-router.use(protect, allowTo("Admin", "Manager"))
+// router.use(protect, allowTo("Admin", "Manager"))
 
 router.use('/room-categories', roomCategoryRouter);
 router.use('/rooms', roomRouter);
@@ -24,13 +24,13 @@ router.use('/reviews', reviewRouter);
 router.use('/guests', guestRouter);
 router.use('/services', serviceRouter);
 
-router.use(allowTo("Receptionist"))
+// router.use(allowTo("Receptionist"))
 router.use('/bookings', bookingRouter);
 router.use('/invoices', invoiceRouter);
 router.use('/notifications', notificationRouter);
 
 
-router.use(allowTo("Service"))
+// router.use(allowTo("Service"))
 router.use('/service-orders', serviceOrderRouter);
 router.use('/employees', employeeRouter);
 

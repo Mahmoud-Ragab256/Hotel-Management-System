@@ -183,11 +183,48 @@ export const updateEmployee = async (
       return;
     }
 
+    if (req.file) {
+      const file = req.file as Express.Multer.File;
+      employee.avatar = file.path;
+    };
+
+    await employee.save();
+
     res.status(200).json({
       success: true,
       message: 'Employee updated successfully',
       data: { employee },
     });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: (error as Error).message,
+    });
+  }
+};
+
+
+export const getProfileImage = async (
+  req: Request<{ id: string }>,
+  res: Response<ApiResponse<String>>
+): Promise<void> => {
+  try {
+    const employee: IEmployee | null = await Employee.findOne({ _id: req.params.id });
+
+    if (!employee || !employee.avatar) {
+      res.status(500).json({
+        success: false,
+        message: "Image or employee not found!",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Employee updated successfully',
+      data: employee.avatar,
+    });
+
   } catch (error) {
     res.status(500).json({
       success: false,
