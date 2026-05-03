@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
-import { Guest, IGuest } from "./../DB/Models/guest.model.js";
+import { Guest, IGuest } from "../DB/Models/guest.model.js";
 import { Employee, IEmployee } from "../DB/Models/employee.model.js";
 
 
