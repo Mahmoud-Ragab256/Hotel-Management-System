@@ -10,7 +10,6 @@ import rateLimit from 'express-rate-limit';
 dotenv.config();
 
 const app: Application = express();
-const PORT: number = Number(process.env.PORT) || 3000;
 
 interface AppError extends Error {
   statusCode?: number;
@@ -55,7 +54,4 @@ app.use((err: AppError, req: Request, res: Response, next: NextFunction) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-  console.log(`http://localhost:${PORT}`);
-});
+export default app;
