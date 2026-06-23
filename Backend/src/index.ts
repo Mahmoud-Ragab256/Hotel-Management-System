@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import { connectDB } from './DB/connection.js';
 import indexRouter from './Modules/index.routes.js';
+import { seedDatabaseIfEmpty } from './seedDatabase.js';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
@@ -34,8 +35,6 @@ app.use(morgan('dev'));
 
 app.use('/uploads', express.static('uploads'));
 
-connectDB();
-
 app.use('/', indexRouter);
 
 app.use('*', (req: Request, res: Response) => {
@@ -55,3 +54,20 @@ app.use((err: AppError, req: Request, res: Response, next: NextFunction) => {
 });
 
 export default app;
+
+// const startServer = async (): Promise<void> => {
+//   try {
+//     await connectDB();
+//     await seedDatabaseIfEmpty();
+
+//     app.listen(PORT, () => {
+//       console.log(`Server is running on port ${PORT}`);
+//       console.log(`http://localhost:${PORT}`);
+//     });
+//   } catch (error) {
+//     console.error('Server startup failed:', error);
+//     process.exit(1);
+//   }
+// };
+
+// startServer();

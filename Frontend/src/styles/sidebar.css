@@ -1,0 +1,123 @@
+.app-sidebar {
+  width: 285px;
+  min-width: 285px;
+  background: #111827;
+}
+
+.brand-icon,
+.stat-icon {
+  width: 44px;
+  height: 44px;
+}
+
+.brand-icon {
+  background: #1f2937;
+}
+
+.sidebar-nav {
+  max-height: calc(100vh - 98px);
+}
+
+.sidebar-link {
+  color: rgba(255, 255, 255, 0.72) !important;
+}
+
+.sidebar-link:hover,
+.sidebar-link.active {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.sidebar-link-disabled {
+  opacity: 0.62;
+  cursor: not-allowed;
+}
+
+.sidebar-icon {
+  width: 20px;
+}
+
+.dashboard-content {
+  min-width: 0;
+}
+
+.topbar-search {
+  width: 320px;
+}
+
+@media (max-width: 991.98px) {
+  .app-sidebar {
+    width: 92px;
+    min-width: 92px;
+  }
+
+  .app-sidebar h1,
+  .app-sidebar small,
+  .sidebar-link span,
+  .sidebar-link .badge {
+    display: none;
+  }
+
+  .sidebar-link {
+    justify-content: center;
+  }
+}
+
+.feedback-card {
+  border-left: 5px solid var(--bs-primary) !important;
+  border-radius: 16px;
+}
+
+.feedback-card-success { border-left-color: var(--bs-success) !important; }
+.feedback-card-danger { border-left-color: var(--bs-danger) !important; }
+.feedback-card-warning { border-left-color: var(--bs-warning) !important; }
+.feedback-card-info { border-left-color: var(--bs-info) !important; }
+
+.feedback-icon {
+  width: 40px;
+  height: 40px;
+}
+
+.admin-table-centered th,
+.admin-table-centered td {
+  text-align: center !important;
+  vertical-align: middle !important;
+}
+
+.admin-table-centered .btn-group {
+  justify-content: center;
+}
+
+.login-page {
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.18), transparent 30%),
+    linear-gradient(135deg, #0f172a 0%, #111827 45%, #1f2937 100%);
+}
+
+.login-card {
+  border-radius: 24px;
+}
+
+.login-brand-icon {
+  width: 64px;
+  height: 64px;
+  color: #ffffff;
+  background: #111827;
+  font-size: 1.5rem;
+}
+
+.login-pill {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.login-feature-icon {
+  width: 46px;
+  height: 46px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.text-white-75 {
+  color: rgba(255, 255, 255, 0.75) !important;
+}

@@ -1,38 +1,23 @@
-<div align="center">
+# Hotel Management System
 
-# 🏨 Hotel Management System
+![Node.js](https://img.shields.io/badge/Node.js-Backend-informational)
+![Express](https://img.shields.io/badge/Express.js-API-informational)
+![TypeScript](https://img.shields.io/badge/TypeScript-Core-informational)
+![MongoDB](https://img.shields.io/badge/MongoDB-Database-informational)
+![React](https://img.shields.io/badge/React-Frontend-informational)
+![Vite](https://img.shields.io/badge/Vite-Build_Tool-informational)
 
-### A Production-Ready RESTful API for Modern Hotel Operations
-
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org/)
-[![Express](https://img.shields.io/badge/Express-4.x-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
-[![MongoDB](https://img.shields.io/badge/MongoDB-8.x-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
-[![JWT](https://img.shields.io/badge/JWT-Auth-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white)](https://jwt.io/)
-
-> **DEPI Graduation Project** — A robust backend system that handles everything from guest reservations to admin operations, built with scalability and security in mind.
-
-</div>
+A full-stack hotel management platform designed to organize hotel operations through a structured backend API and a React-based dashboard interface.
 
 ---
 
-## 📋 Table of Contents
+## Overview
 
-- [Overview](#-overview)
-- [Features](#-features)
-- [Tech Stack](#-tech-stack)
-- [Project Structure](#-project-structure)
-- [Getting Started](#-getting-started)
-- [Environment Variables](#-environment-variables)
-- [API Reference](#-api-reference)
-  - [Client API](#-client-api)
-  - [Dashboard API](#️-dashboard-api)
-- [Scripts](#-scripts)
-- [Security](#-security)
-- [Contributing](#-contributing)
+Hotel Management System provides a clean administrative workflow for managing core hotel operations such as guests, employees, rooms, room categories, bookings, invoices, services, service orders, reviews, notifications, and authentication.
 
----
+The project is divided into two main applications:
 
+<<<<<<<< HEAD:Backend/README.md
 ## 🌟 Overview
 
 The **Hotel Management System** is a comprehensive RESTful API designed to digitize and streamline hotel operations. It serves two primary audiences:
@@ -87,11 +72,18 @@ Built with **TypeScript** on top of **Node.js/Express** and powered by **MongoDB
 | Email | Nodemailer |
 | File Upload | Multer + Cloudinary |
 | Dev Tools | Nodemon, tsx |
+========
+| Part | Description |
+|---|---|
+| Backend | REST API built with Node.js, Express, TypeScript, and MongoDB |
+| Frontend | Admin dashboard built with React and Vite |
+>>>>>>>> origin/add-frontend:README.md
 
 ---
 
-## 📁 Project Structure
+## Tech Stack
 
+<<<<<<<< HEAD:Backend/README.md
 ```
 Hotel-Management-System/
 ├── src/
@@ -142,57 +134,171 @@ Hotel-Management-System/
 ├── package.json
 ├── tsconfig.json
 └── README.md
+========
+### Backend
+
+| Technology | Purpose |
+|---|---|
+| Node.js | Runtime environment |
+| Express.js | API framework |
+| TypeScript | Static typing |
+| MongoDB | Database |
+| Mongoose | Database modeling |
+| JWT | Authentication |
+| Bcrypt | Password hashing |
+| Joi | Request validation |
+| Multer | File upload handling |
+| Cloudinary | Image storage |
+| Nodemailer | Email service |
+| Helmet | HTTP security headers |
+| Morgan | Request logging |
+| Express Rate Limit | API request protection |
+
+### Frontend
+
+| Technology | Purpose |
+|---|---|
+| React.js | User interface |
+| Vite | Development and build tool |
+| React Router | Application routing |
+| Axios | API communication |
+| CSS | Styling |
+
+---
+
+## Project Structure
+
+```txt
+hotel-management-system/
+│
+├── Backend/
+│   ├── Documentation/
+│   │
+│   ├── src/
+│   │   ├── DB/
+│   │   │   ├── Models/
+│   │   │   └── connection.ts
+│   │   │
+│   │   ├── Modules/
+│   │   │   ├── client/
+│   │   │   ├── dashboard/
+│   │   │   └── index.routes.ts
+│   │   │
+│   │   ├── utils/
+│   │   ├── index.ts
+│   │   ├── seedAdmin.ts
+│   │   └── seedDatabase.ts
+│   │
+│   ├── package.json
+│   └── tsconfig.json
+│
+├── Frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── data/
+│   │   ├── layouts/
+│   │   ├── pages/
+│   │   ├── services/
+│   │   ├── styles/
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   │
+│   ├── package.json
+│   └── vite.config.js
+│
+└── .gitignore
+>>>>>>>> origin/add-frontend:README.md
 ```
 
 ---
 
-## 🚀 Getting Started
+## Core Modules
 
-### Prerequisites
+### Authentication
 
-- [Node.js](https://nodejs.org/) v18 or higher
-- [npm](https://www.npmjs.com/) v9 or higher
-- [MongoDB](https://www.mongodb.com/) (local or [MongoDB Atlas](https://www.mongodb.com/atlas))
+The system includes authentication flows for dashboard users and guests, including login and password recovery logic.
 
-### Installation
+### Guests
 
-**1. Clone the repository**
+Guest records can be managed through the system, including profile data and booking-related information.
 
-```bash
-git clone https://github.com/Mahmoud-Ragab256/Hotel-Management-System.git
-cd Hotel-Management-System
-```
+### Employees
 
-**2. Install dependencies**
+The dashboard supports employee management with roles, shifts, salary data, and account status.
 
-```bash
-npm install
-```
+### Rooms
 
-**3. Set up environment variables**
+Rooms can be managed with details such as room number, category, status, floor, images, and smart device metadata.
 
-```bash
-cp .env.example .env
-# Edit .env with your values — see Environment Variables section below
-```
+### Room Categories
 
-**4. Run in development mode**
+Room categories define pricing, capacity, amenities, images, and descriptions for different room types.
 
-```bash
-npm run dev
-```
+### Bookings
 
-**5. Build & run in production**
+The booking module handles reservation creation, updates, cancellation, and booking status tracking.
 
-```bash
-npm run build
-npm start
-```
+### Invoices
+
+Invoices are connected to bookings and include payment status, payment method, total amount, and paid amount.
+
+### Services
+
+Hotel services such as room service, spa, laundry, restaurant, and transport can be managed through the dashboard.
+
+### Service Orders
+
+Service orders track guest service requests and their current processing status.
+
+### Reviews
+
+Guest reviews can be created, reviewed, approved, rejected, or managed by the dashboard.
+
+### Notifications
+
+The system supports notifications for guests and employees based on booking, payment, service, review, system, and promotion events.
 
 ---
 
-## 🔑 Environment Variables
+## API Route Groups
 
+### Main Route
+
+```txt
+GET /
+```
+
+### Client Routes
+
+| Route Group | Purpose |
+|---|---|
+| `/client/auth` | Guest authentication |
+| `/client/landing` | Landing page data |
+| `/client/rooms` | Room browsing and search |
+| `/client/booking` | Guest booking operations |
+| `/client/profile` | Guest profile operations |
+
+### Dashboard Routes
+
+| Route Group | Purpose |
+|---|---|
+| `/dashboard/auth` | Dashboard authentication |
+| `/dashboard/guests` | Guests management |
+| `/dashboard/employees` | Employees management |
+| `/dashboard/room-categories` | Room categories management |
+| `/dashboard/rooms` | Rooms management |
+| `/dashboard/bookings` | Bookings management |
+| `/dashboard/invoices` | Invoices management |
+| `/dashboard/services` | Services management |
+| `/dashboard/service-orders` | Service orders management |
+| `/dashboard/reviews` | Reviews management |
+| `/dashboard/notifications` | Notifications management |
+
+---
+
+## Backend Highlights
+
+<<<<<<<< HEAD:Backend/README.md
 Create a `.env` file in the root directory:
 
 ```env
@@ -222,19 +328,35 @@ CLOUDINARY_API_SECRET=your_api_secret
 RATE_LIMIT_WINDOW_MS=900000
 RATE_LIMIT_MAX=100
 ```
+========
+- Modular API architecture
+- TypeScript-based codebase
+- MongoDB models using Mongoose
+- Authentication middleware
+- Role-based authorization middleware
+- File upload support
+- Email service integration
+- Centralized route grouping
+- Initial database seeding logic
+>>>>>>>> origin/add-frontend:README.md
 
 ---
 
-## 📡 API Reference
+## Frontend Highlights
 
-**Base URL:** `http://localhost:3000/api`
-
-> 🔒 Routes marked with **Protected** require a valid JWT in the `Authorization: Bearer <token>` header.
+- React dashboard interface
+- Protected routes
+- Sidebar-based dashboard navigation
+- Reusable UI components
+- API service layer
+- Authentication service layer
+- Organized pages for hotel management modules
 
 ---
 
-### 🧑‍💻 Client API
+## Repository Notes
 
+<<<<<<<< HEAD:Backend/README.md
 #### Auth — `/api/client/auth`
 
 | Method | Endpoint | Description |
@@ -488,3 +610,7 @@ Contributions are welcome! If you'd like to improve this project:
 Made with ❤️ as a **DEPI Graduation Project**
 
 </div>
+========
+This repository contains the source code for both the backend and frontend applications.  
+Sensitive configuration values are intentionally excluded from the documentation and repository.
+>>>>>>>> origin/add-frontend:README.md
