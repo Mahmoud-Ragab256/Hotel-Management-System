@@ -21,10 +21,16 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use("/uploads", express.static("uploads"));
 
+
+app.set('trust proxy', 1);
+
 const limiter = {
   windowMs: 15 * 60 * 1000, // 15 minutes
   limit: 100,
-  message: "Too much requests try again later"
+  message: "Too much requests try again later",
+  standardHeaders: "draft-7" as const,
+  legacyHeaders: false,
+  validate: { trustProxy: false }
 };
 
 app.use(rateLimit(limiter));
