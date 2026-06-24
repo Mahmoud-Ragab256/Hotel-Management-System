@@ -53,6 +53,8 @@ app.use((err: AppError, req: Request, res: Response, next: NextFunction) => {
   });
 });
 
+connectDB()
+
 export default app;
 
 // const startServer = async (): Promise<void> => {
