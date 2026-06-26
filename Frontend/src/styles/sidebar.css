@@ -121,3 +121,11 @@
 .text-white-75 {
   color: rgba(255, 255, 255, 0.75) !important;
 }
+
+/* dashboard */
+@media (min-width: 1200px) {
+  .custom-card-col {
+    flex: 0 0 auto !important;
+    width: 20% !important;
+  }
+}

@@ -7,6 +7,7 @@ import RoomsPage from './pages/RoomsPage.jsx';
 import RoomCategoriesPage from './pages/RoomCategoriesPage.jsx';
 import GuestsPage from './pages/GuestsPage.jsx';
 import EmployeesPage from './pages/EmployeesPage.jsx';
+import DashboardPage from './pages/DashboardPage.jsx';
 
 function App() {
   return (
@@ -14,17 +15,19 @@ function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route element={<ProtectedRoute />}>
         <Route path="/" element={<AdminLayout />}>
-          <Route index element={<Navigate to="/bookings" replace />} />
+          <Route index element={<Navigate to="/dashboard" replace />} /> 
+          <Route path="dashboard" element={<DashboardPage />} /> 
           <Route path="bookings" element={<BookingsPage />} />
           <Route path="rooms" element={<RoomsPage />} />
           <Route path="room-categories" element={<RoomCategoriesPage />} />
           <Route path="guests" element={<GuestsPage />} />
           <Route path="employees" element={<EmployeesPage />} />
-          <Route path="*" element={<Navigate to="/bookings" replace />} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} /> 
         </Route>
       </Route>
     </Routes>
   );
 }
+
 
 export default App;
