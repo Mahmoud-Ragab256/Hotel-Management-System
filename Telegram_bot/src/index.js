@@ -1,4 +1,5 @@
 import dotenv from 'dotenv';
+import { pathToFileURL } from 'url';
 import { Telegraf } from 'telegraf';
 import {
   getAvailableRooms,
@@ -100,15 +101,8 @@ console.log(`✅ تم توصيل البوت بقاعدة البيانات: ${sto
 console.log('✅ تم فحص بيانات البوت: لو لا توجد بيانات تم إنشاؤها مرة واحدة فقط، ولو توجد بيانات تم تركها كما هي.');
 
 const bot = new Telegraf(token);
+export { bot };
 
-process.once('SIGINT', async () => {
-  await closeStore();
-  process.exit(0);
-});
-process.once('SIGTERM', async () => {
-  await closeStore();
-  process.exit(0);
-});
 const pendingState = new Map();
 
 
@@ -1604,9 +1598,39 @@ bot.catch((error, ctx) => {
   if (ctx) ctx.reply('حدث خطأ غير متوقع داخل البوت. جرّب مرة أخرى.').catch(() => {});
 });
 
-bot.launch();
-console.log('Telegram hotel bot is running.');
-console.log('Press Ctrl+C to stop.');
+async function startPolling() {
+  const mode = String(process.env.BOT_MODE || 'polling').toLowerCase();
+  if (mode === 'webhook' || process.env.VERCEL) {
+    console.log('Webhook mode enabled. Polling is disabled.');
+    return;
+  }
 
-process.once('SIGINT', () => bot.stop('SIGINT'));
-process.once('SIGTERM', () => bot.stop('SIGTERM'));
+  try {
+    await bot.telegram.callApi('deleteWebhook', { drop_pending_updates: false });
+    console.log('✅ تم تعطيل Webhook لتشغيل البوت محليًا بنظام Polling.');
+  } catch (error) {
+    console.warn('تعذر تعطيل Webhook تلقائيًا:', error?.message || error);
+  }
+
+  await bot.launch();
+  console.log('Telegram hotel bot is running locally with polling.');
+  console.log('Press Ctrl+C to stop.');
+
+  const shutdown = async (signal) => {
+    try { bot.stop(signal); } catch {}
+    await closeStore();
+    process.exit(0);
+  };
+
+  process.once('SIGINT', () => shutdown('SIGINT'));
+  process.once('SIGTERM', () => shutdown('SIGTERM'));
+}
+
+const isMainModule = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+if (isMainModule) {
+  startPolling().catch(async (error) => {
+    console.error('فشل تشغيل البوت:', error);
+    await closeStore();
+    process.exit(1);
+  });
+}
