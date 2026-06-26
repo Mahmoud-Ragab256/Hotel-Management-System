@@ -11,6 +11,7 @@ import reviewRouter from './review/review.router.js';
 import notificationRouter from './notification/notification.router.js';
 import authRouter from './auth/auth.router.js'
 import { allowTo, protect } from '../../utils/auth.middleware.js';
+import { getDashboardStats } from './dashboard.controller.js';
 
 const router = express.Router();
 
@@ -33,5 +34,9 @@ router.use('/notifications', notificationRouter);
 // router.use(allowTo("Service"))
 router.use('/service-orders', serviceOrderRouter);
 router.use('/employees', employeeRouter);
+
+
+// Dashboard 
+router.get('/stats', getDashboardStats);
 
 export default router;

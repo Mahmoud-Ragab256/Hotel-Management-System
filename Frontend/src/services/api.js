@@ -2,7 +2,7 @@ import axios from 'axios';
 import { getAuthToken } from './auth.js';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://hotel-management-system-sigma-ruby.vercel.app/',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://hotel-management-system-sigma-ruby.vercel.app',
   timeout: 15000
 });
 
@@ -222,6 +222,10 @@ export const dashboardApi = {
     const response = await api.delete(`/dashboard/invoices/${id}`);
     return response.data;
   },
+  async getDashboardStats() {
+    const response = await api.get('/dashboard/stats');
+    return response?.data?.data || null;
+  }
 
 };
 

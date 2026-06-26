@@ -1,4 +1,5 @@
 import {
+  faChartPie,
   faCalendarCheck,
   faBed,
   faLayerGroup,
@@ -12,6 +13,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 
 export const sidebarItems = [
+  { id: 'dashboard', label: 'Dashboard', icon: faChartPie, path: '/dashboard', implemented: true }, 
   { id: 'bookings', label: 'Bookings', icon: faCalendarCheck, path: '/bookings', implemented: true },
   { id: 'rooms', label: 'Rooms', icon: faBed, path: '/rooms', implemented: true },
   { id: 'room-categories', label: 'Room Categories', icon: faLayerGroup, path: '/room-categories', implemented: true },
