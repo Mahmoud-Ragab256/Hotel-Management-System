@@ -7,6 +7,7 @@ import RoomsPage from './pages/RoomsPage.jsx';
 import RoomCategoriesPage from './pages/RoomCategoriesPage.jsx';
 import GuestsPage from './pages/GuestsPage.jsx';
 import EmployeesPage from './pages/EmployeesPage.jsx';
+import InvoicesPage from './pages/InvoicesPage.jsx';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
           <Route path="room-categories" element={<RoomCategoriesPage />} />
           <Route path="guests" element={<GuestsPage />} />
           <Route path="employees" element={<EmployeesPage />} />
+          <Route path="invoices" element={<InvoicesPage />} />
           <Route path="*" element={<Navigate to="/bookings" replace />} />
         </Route>
       </Route>

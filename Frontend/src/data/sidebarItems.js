@@ -17,7 +17,7 @@ export const sidebarItems = [
   { id: 'room-categories', label: 'Room Categories', icon: faLayerGroup, path: '/room-categories', implemented: true },
   { id: 'guests', label: 'Guests', icon: faUsers, path: '/guests', implemented: true },
   { id: 'employees', label: 'Employees', icon: faUserTie, path: '/employees', implemented: true },
-  { id: 'invoices', label: 'Invoices', icon: faFileInvoiceDollar, path: '#', implemented: false },
+  { id: 'invoices', label: 'Invoices', icon: faFileInvoiceDollar, path: '/invoices', implemented: true },
   { id: 'services', label: 'Services', icon: faBellConcierge, path: '#', implemented: false },
   { id: 'service-orders', label: 'Service Orders', icon: faClipboardList, path: '#', implemented: false },
   { id: 'reviews', label: 'Reviews', icon: faStar, path: '#', implemented: false },

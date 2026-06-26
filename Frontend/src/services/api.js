@@ -2,7 +2,7 @@ import axios from 'axios';
 import { getAuthToken } from './auth.js';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://hotel-management-system-sigma-ruby.vercel.app/',
   timeout: 15000
 });
 
@@ -201,7 +201,28 @@ export const dashboardApi = {
   async deleteEmployee(id) {
     const response = await api.delete(`/dashboard/employees/${id}`);
     return response.data;
-  }
+  },
+
+  async getInvoices() {
+    const response = await api.get('/dashboard/invoices');
+    return readArray(response, 'invoices');
+  },
+
+  async getInvoice(id) {
+    const response = await api.get(`/dashboard/invoices/${id}`);
+    return readObject(response, 'invoice');
+  },
+
+  async updateInvoice(id, payload) {
+    const response = await api.put(`/dashboard/invoices/${id}`, payload);
+    return readObject(response, 'invoice');
+  },
+
+  async deleteInvoice(id) {
+    const response = await api.delete(`/dashboard/invoices/${id}`);
+    return response.data;
+  },
+
 };
 
 export default api;
