@@ -1,0 +1,19 @@
+{
+  "name": "telegram-hotel-bot-mongodb",
+  "version": "4.1.0",
+  "description": "بوت تيليجرام عربي للفندق متصل بنفس MongoDB الخاصة بالباك مع Auto Seed مرة واحدة فقط عند عدم وجود بيانات.",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "doctor": "node src/doctor.js"
+  },
+  "dependencies": {
+    "axios": "^1.7.9",
+    "dotenv": "^16.4.7",
+    "pdfkit": "^0.15.2",
+    "telegraf": "^4.16.3",
+    "mongodb": "^6.12.0"
+  }
+}
