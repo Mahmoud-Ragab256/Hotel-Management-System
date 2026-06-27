@@ -1,4 +1,5 @@
 import axios from 'axios';
+
 import { getAuthToken } from './auth.js';
 
 const api = axios.create({
@@ -222,7 +223,23 @@ export const dashboardApi = {
     const response = await api.delete(`/dashboard/invoices/${id}`);
     return response.data;
   },
+async guestRegister(payload) {
+  const response = await api.post('/client/auth/register', payload);
 
+  return {
+    token: response?.data?.token || '',
+    user: response?.data?.data || null
+  };
+},
+
+async guestLogin(payload) {
+  const response = await api.post('/client/auth/login', payload);
+
+  return {
+    token: response?.data?.token || '',
+    user: response?.data?.data || null
+  };
+},
 };
 
 export default api;
