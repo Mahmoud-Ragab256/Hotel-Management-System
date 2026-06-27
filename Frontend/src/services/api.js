@@ -233,8 +233,7 @@ async guestRegister(payload) {
 },
 
 async guestLogin(payload) {
-  const response = await api.post('/client/auth/login', payload);
-
+  const response = await api.post('/client/auth/login', payload)
   return {
     token: response?.data?.token || '',
     user: response?.data?.data || null
