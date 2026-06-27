@@ -9,6 +9,7 @@ import GuestsPage from './pages/GuestsPage.jsx';
 import EmployeesPage from './pages/EmployeesPage.jsx';
 import InvoicesPage from './pages/InvoicesPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
+import LandingPage from './pages/LandingPage.jsx';
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
           <Route path="employees" element={<EmployeesPage />} />
           <Route path="invoices" element={<InvoicesPage />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/home" element={<LandingPage />} />
         </Route>
       </Route>
     </Routes>
