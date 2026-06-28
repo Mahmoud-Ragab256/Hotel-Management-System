@@ -264,6 +264,17 @@ async guestLogin(payload) {
     user: response?.data?.data || null
   };
 },
+
+async getLandingData() {
+  const response = await api.get('/client/landing');
+  return response?.data?.data || null;
+},
+
+async getLandingStatistics() {
+  const response = await api.get('/client/landing/statistics');
+  return response?.data?.data || null;
+},
 };
+
 
 export default api;
