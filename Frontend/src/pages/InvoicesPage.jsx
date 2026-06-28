@@ -11,14 +11,16 @@ import {
   Spinner,
   Table
 } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faFileInvoiceDollar,
   faEye,
-  faPenToSquare,
+  faBan,
   faRefresh,
   faTrash,
   faDollarSign,
+  faArrowUpRightFromSquare,
   faCircleCheck,
   faCircleExclamation,
   faTriangleExclamation,
@@ -26,14 +28,22 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { dashboardApi, getApiErrorMessage } from '../services/api.js';
 
+const getEmployeeFromToken = () => {
+  try {
+    const stored = localStorage.getItem('hotel_admin_user');
+    if (!stored) return null;
+    const user = JSON.parse(stored);
+    return {
+      id: user._id || user.id || null,
+      name: user.fullName || null
+    };
+  } catch {
+    return null;
+  }
+};
+
 const invoiceStatuses = ['Pending', 'Paid', 'Cancelled'];
 const paymentMethods = ['Cash', 'CreditCard', 'DebitCard', 'BankTransfer', 'Mobile'];
-
-const initialEditForm = {
-  status: 'Pending',
-  method: 'Cash',
-  paidAmount: ''
-};
 
 const statusVariant = (status = '') => {
   if (status === 'Paid') return 'success';
@@ -85,6 +95,8 @@ function FeedbackCard({ feedback, onClose }) {
 }
 
 function InvoicesPage() {
+  const navigate = useNavigate();
+
   const [invoices, setInvoices] = useState([]);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
@@ -92,15 +104,17 @@ function InvoicesPage() {
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState(null);
 
-  const [editModal, setEditModal] = useState(false);
   const [viewModal, setViewModal] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
+  const [cancelModal, setCancelModal] = useState(false);
   const [payModal, setPayModal] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
 
-  const [editForm, setEditForm] = useState(initialEditForm);
   const [payForm, setPayForm] = useState({ paidAmount: '', method: 'Cash' });
+  const [cancelReason, setCancelReason] = useState('');
+
+  const currentEmployee = useMemo(() => getEmployeeFromToken(), []);
 
   const showFeedback = (type, message) => setFeedback({ type, message });
 
@@ -139,20 +153,7 @@ function InvoicesPage() {
     try {
       const data = await dashboardApi.getInvoice(id);
       setSelectedInvoice(data || invoice);
-
-      if (mode === 'view') {
-        setViewModal(true);
-      }
-
-      if (mode === 'edit') {
-        const source = data || invoice;
-        setEditForm({
-          status: source.status || 'Pending',
-          method: source.method || 'Cash',
-          paidAmount: source.paidAmount ?? ''
-        });
-        setEditModal(true);
-      }
+      if (mode === 'view') setViewModal(true);
     } catch (error) {
       showFeedback('danger', `Could not load invoice details: ${getApiErrorMessage(error)}`);
     } finally {
@@ -160,20 +161,21 @@ function InvoicesPage() {
     }
   };
 
-  const handleUpdateInvoice = async (event) => {
+  const handleCancelInvoice = async (event) => {
     event.preventDefault();
     setSaving(true);
     try {
-      const payload = {
-        ...editForm,
-        paidAmount: Number(editForm.paidAmount)
-      };
-      await dashboardApi.updateInvoice(invoiceId(selectedInvoice), payload);
-      setEditModal(false);
-      showFeedback('success', 'Invoice updated successfully.');
+      await dashboardApi.updateInvoice(invoiceId(selectedInvoice), {
+        status: 'Cancelled',
+        cancelReason,
+        ...(currentEmployee?.id && { employeeId: currentEmployee.id })
+      });
+      setCancelModal(false);
+      setCancelReason('');
+      showFeedback('success', 'Invoice cancelled successfully.');
       await loadInvoices();
     } catch (error) {
-      showFeedback('danger', `Could not update invoice: ${getApiErrorMessage(error)}`);
+      showFeedback('danger', `Could not cancel invoice: ${getApiErrorMessage(error)}`);
     } finally {
       setSaving(false);
     }
@@ -186,7 +188,8 @@ function InvoicesPage() {
       await dashboardApi.updateInvoice(invoiceId(selectedInvoice), {
         status: 'Paid',
         paidAmount: Number(payForm.paidAmount),
-        method: payForm.method
+        method: payForm.method,
+        ...(currentEmployee?.id && { employeeId: currentEmployee.id })
       });
       setPayModal(false);
       showFeedback('success', 'Invoice marked as paid.');
@@ -361,11 +364,18 @@ function InvoicesPage() {
                           <FontAwesomeIcon icon={faEye} />
                         </Button>
                         <Button
-                          variant="outline-primary"
-                          onClick={() => loadInvoiceDetails(invoice, 'edit')}
-                          disabled={invoice.status === 'Cancelled'}
+                          variant="outline-warning"
+                          onClick={() => { setSelectedInvoice(invoice); setCancelReason(''); setCancelModal(true); }}
+                          disabled={invoice.status === 'Paid' || invoice.status === 'Cancelled'}
                         >
-                          <FontAwesomeIcon icon={faPenToSquare} />
+                          <FontAwesomeIcon icon={faBan} />
+                        </Button>
+                        <Button
+                          variant="outline-secondary"
+                          onClick={() => navigate('/bookings')}
+                          title="Go to Booking"
+                        >
+                          <FontAwesomeIcon icon={faArrowUpRightFromSquare} />
                         </Button>
                         <Button
                           variant="outline-success"
@@ -394,46 +404,25 @@ function InvoicesPage() {
         </Card.Body>
       </Card>
 
-      {/* Edit Modal */}
-      <Modal show={editModal} onHide={() => setEditModal(false)} centered size="lg">
-        <Form onSubmit={handleUpdateInvoice}>
-          <Modal.Header closeButton><Modal.Title>Edit Invoice</Modal.Title></Modal.Header>
+      {/* Cancel Modal */}
+      <Modal show={cancelModal} onHide={() => setCancelModal(false)} centered>
+        <Form onSubmit={handleCancelInvoice}>
+          <Modal.Header closeButton><Modal.Title>Cancel Invoice</Modal.Title></Modal.Header>
           <Modal.Body>
-            <Row className="g-3">
-              <Col md={6}>
-                <Form.Label>Status</Form.Label>
-                <Form.Select
-                  value={editForm.status}
-                  onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
-                >
-                  {invoiceStatuses.map((s) => <option key={s} value={s}>{s}</option>)}
-                </Form.Select>
-              </Col>
-              <Col md={6}>
-                <Form.Label>Payment Method</Form.Label>
-                <Form.Select
-                  value={editForm.method}
-                  onChange={(e) => setEditForm({ ...editForm, method: e.target.value })}
-                >
-                  {paymentMethods.map((m) => <option key={m} value={m}>{m}</option>)}
-                </Form.Select>
-              </Col>
-              <Col md={6}>
-                <Form.Label>Paid Amount</Form.Label>
-                <Form.Control
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={editForm.paidAmount}
-                  onChange={(e) => setEditForm({ ...editForm, paidAmount: e.target.value })}
-                />
-              </Col>
-            </Row>
+            <Form.Label>Cancel Reason</Form.Label>
+            <Form.Control
+              required
+              as="textarea"
+              rows={3}
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+              placeholder="Write the cancel reason"
+            />
           </Modal.Body>
           <Modal.Footer>
-            <Button variant="outline-secondary" onClick={() => setEditModal(false)}>Close</Button>
-            <Button type="submit" variant="primary" disabled={saving}>
-              {saving ? 'Saving...' : 'Save Changes'}
+            <Button variant="outline-secondary" onClick={() => setCancelModal(false)}>Close</Button>
+            <Button variant="warning" type="submit" disabled={saving}>
+              {saving ? 'Cancelling...' : 'Cancel Invoice'}
             </Button>
           </Modal.Footer>
         </Form>
@@ -487,6 +476,12 @@ function InvoicesPage() {
           <Modal.Header closeButton><Modal.Title>Process Payment</Modal.Title></Modal.Header>
           <Modal.Body>
             <Row className="g-3">
+              {currentEmployee?.name && (
+                <Col md={12}>
+                  <Form.Label>Processed By</Form.Label>
+                  <Form.Control readOnly value={currentEmployee.name} className="bg-light" />
+                </Col>
+              )}
               <Col md={12}>
                 <Form.Label>Payment Method</Form.Label>
                 <Form.Select

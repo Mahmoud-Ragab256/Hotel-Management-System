@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Button, Card, Col, Container, Form, InputGroup, Row, Spinner } from 'react-bootstrap';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faArrowRightToBracket,
@@ -9,8 +9,7 @@ import {
   faEyeSlash,
   faHotel,
   faLock,
-  faShieldHalved,
-  faUserTie
+  faUser
 } from '@fortawesome/free-solid-svg-icons';
 import FeedbackCard from '../components/FeedbackCard.jsx';
 import { dashboardApi, getApiErrorMessage } from '../services/api.js';
@@ -21,7 +20,7 @@ const initialForm = {
   password: ''
 };
 
-function LoginPage() {
+function GuestLoginPage() {
   const [form, setForm] = useState(initialForm);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -29,7 +28,7 @@ function LoginPage() {
 
   const navigate = useNavigate();
   const location = useLocation();
-  const redirectTo = location.state?.from?.pathname || '/dashboard';
+  const redirectTo = location.state?.from?.pathname || '/home ';
 
   const canSubmit = useMemo(() => {
     return form.email.trim() && form.password.trim() && !loading;
@@ -51,7 +50,7 @@ function LoginPage() {
 
     setLoading(true);
     try {
-      const session = await dashboardApi.login({
+      const session = await dashboardApi.guestLogin({
         email: form.email.trim(),
         password: form.password
       });
@@ -76,8 +75,8 @@ function LoginPage() {
                   <span className="login-brand-icon d-inline-flex align-items-center justify-content-center rounded-4 mb-3">
                     <FontAwesomeIcon icon={faHotel} />
                   </span>
-                  <h1 className="h3 fw-bold mb-1">Hotel Admin</h1>
-                  <p className="text-muted mb-0">Sign in to manage hotel operations</p>
+                  <h1 className="h3 fw-bold mb-1">Guest Login</h1>
+                  <p className="text-muted mb-0">Sign in to manage your stay</p>
                 </div>
 
                 {feedback && (
@@ -98,7 +97,7 @@ function LoginPage() {
                         name="email"
                         value={form.email}
                         onChange={handleChange}
-                        placeholder="admin@example.com"
+                        placeholder="guest@example.com"
                         autoComplete="email"
                         disabled={loading}
                       />
@@ -126,7 +125,6 @@ function LoginPage() {
                         className="border"
                         onClick={() => setShowPassword((current) => !current)}
                         disabled={loading}
-                        aria-label={showPassword ? 'Hide password' : 'Show password'}
                       >
                         <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
                       </Button>
@@ -137,28 +135,32 @@ function LoginPage() {
                     {loading ? <Spinner animation="border" size="sm" /> : <FontAwesomeIcon icon={faArrowRightToBracket} />}
                     {loading ? 'Signing in...' : 'Login'}
                   </Button>
+
+                  <div className="text-center mt-3">
+                    Don't have an account?{' '}
+                    <Link to="/signup">
+                      Sign Up
+                    </Link>
+                  </div>
                 </Form>
-              </Card.Body>f
+              </Card.Body>
             </Card>
           </Col>
 
+
           <Col lg={6} xl={5} className="d-none d-lg-block">
             <div className="text-white ps-xl-5">
-              <div className="d-inline-flex align-items-center gap-2 rounded-pill px-3 py-2 mb-4 login-pill">
-                <FontAwesomeIcon icon={faShieldHalved} />
-                Secure dashboard access
-              </div>
-              <h2 className="display-6 fw-bold mb-3">Manage bookings, rooms, guests and employees from one clean dashboard.</h2>
+              <h2 className="display-6 fw-bold mb-3">Welcome to your Guest Portal</h2>
               <p className="lead text-white-75 mb-4">
-                This login uses the dashboard authentication endpoint already available in the backend.
+                Log in to view your bookings, invoices, and manage your hotel stay.
               </p>
               <div className="d-flex align-items-center gap-3">
                 <span className="login-feature-icon rounded-3 d-inline-flex align-items-center justify-content-center">
-                  <FontAwesomeIcon icon={faUserTie} />
+                  <FontAwesomeIcon icon={faUser} />
                 </span>
                 <div>
-                  <div className="fw-semibold">Employee account access</div>
-                  <small className="text-white-75">Use an existing employee email and password.</small>
+                  <div className="fw-semibold">Guest access only</div>
+                  <small className="text-white-75">Use your personal guest account info.</small>
                 </div>
               </div>
             </div>
@@ -169,4 +171,4 @@ function LoginPage() {
   );
 }
 
-export default LoginPage;
+export default GuestLoginPage;
