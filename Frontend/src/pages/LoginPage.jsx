@@ -29,7 +29,7 @@ function LoginPage() {
 
   const navigate = useNavigate();
   const location = useLocation();
-  const redirectTo = location.state?.from?.pathname || '/bookings';
+  const redirectTo = location.state?.from?.pathname || '/dashboard';
 
   const canSubmit = useMemo(() => {
     return form.email.trim() && form.password.trim() && !loading;
