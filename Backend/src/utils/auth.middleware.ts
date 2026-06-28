@@ -44,8 +44,8 @@ export const protect = async (
     };
     let currentUser: IEmployee | IGuest | null;
     const { EmployeeId, guestId, iat } = jwt.verify(token, process.env.SECRET as string) as { EmployeeId: string, guestId: string, iat: number };
-    if (guestId) currentUser = await Guest.findById(guestId);
-    else if (EmployeeId) currentUser = await Employee.findById(guestId);
+    if (guestId) currentUser = await Guest.findById(guestId).select('-password');
+    else if (EmployeeId) currentUser = await Employee.findById(EmployeeId).select('-password');
     else currentUser = null;
 
     if (!currentUser) {

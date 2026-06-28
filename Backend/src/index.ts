@@ -26,7 +26,7 @@ app.set('trust proxy', 1);
 
 const limiter = {
   windowMs: 15 * 60 * 1000, // 15 minutes
-  limit: 100,
+  limit: 500,
   message: "Too much requests try again later",
   standardHeaders: "draft-7" as const,
   legacyHeaders: false,

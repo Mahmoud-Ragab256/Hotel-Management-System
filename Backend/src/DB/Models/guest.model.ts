@@ -69,7 +69,7 @@ const guestSchema = new Schema<IGuest>(
     },
     avatar: {
       type: String,
-      default: '',
+      default: 'https://res.cloudinary.com/dqssohz9k/image/upload/v1782656034/rooms/1782656032950-blank-profile-picture-973460_960_720.webp.webp',
     },
     images: {
       type: [String],

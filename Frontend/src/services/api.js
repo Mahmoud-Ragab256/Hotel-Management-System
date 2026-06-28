@@ -3,7 +3,7 @@ import axios from 'axios';
 import { getAuthToken } from './auth.js';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://hotel-management-system-sigma-ruby.vercel.app',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000',
   timeout: 15000
 });
 
@@ -264,6 +264,48 @@ async guestLogin(payload) {
     user: response?.data?.data || null
   };
 },
+
+  async getMe() {
+    const response = await api.get(`client/me`);
+    return readObject(response, 'guest');
+  },
+
+  async updateMe(payload) {
+    const response = await api.put(`client/me`, payload);
+    return readObject(response, 'guest');
+  },
+
+  async getMyBookings() {
+    const response = await api.get(`client/me/bookings`);
+    return readObject(response, 'bookings');
+  },
+
+  async getMyReviews() {
+    const response = await api.get(`client/me/reviews`);
+    return readObject(response, 'reviews');
+  },
+
+  async getProfileImage() {
+    const response = await api.get(`client/me/avatar`);
+    return readObject(response, 'avatar');
+  },
+
+  async updateProfileImage(formData) {
+    const response = await api.put(`client/me/avatar`, formData, {headers: { 'Content-Type': 'multipart/form-data' }});
+    return readObject(response, 'avatar');
+  },
+  
+  async removeProfileImage() {
+    const response = await api.delete(`client/me/avatar`);
+    return readObject(response, 'avatar');
+  },
+
+  async changePassword({ currentPassword, newPassword , confirmPassword }) {
+    const response = await api.put(`client/me/change-password`, { currentPassword, newPassword, confirmPassword });
+    return readObject(response, 'password');
+  },
+
+
 };
 
 export default api;
