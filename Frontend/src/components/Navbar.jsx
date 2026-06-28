@@ -60,6 +60,10 @@ export default function Navbar({
             >
               Reviews
             </button>
+          </div>
+
+          {/* Desktop Call To Action / Auth (Right) */}
+          <div className="d-none d-md-flex align-items-center gap-3">
             {loggedInUser ? (
               <div className="d-flex align-items-center gap-2 bg-gold-50 px-3 py-1 border border-gold-100 rounded-full">
                 <span className="small fw-bold text-gold-700 d-flex align-items-center gap-1">
@@ -75,24 +79,22 @@ export default function Navbar({
                 </button>
               </div>
             ) : (
-              <button
-                onClick={onLoginClick}
-                className="btn btn-link p-0 text-decoration-none text-secondary hover-text-gold-500 fw-semibold small transition-colors cursor-pointer border-0 bg-transparent"
-              >
-                Login
-              </button>
+              <div className="d-flex align-items-center gap-3">
+                <button
+                  onClick={onLoginClick}
+                  className="btn btn-link p-0 text-decoration-none text-secondary hover-text-gold-500 fw-semibold small transition-colors cursor-pointer border-0 bg-transparent"
+                >
+                  Log In
+                </button>
+                <span className="text-secondary opacity-40">|</span>
+                <button
+                  onClick={() => {}}
+                  className="btn btn-link p-0 text-decoration-none text-secondary hover-text-gold-500 fw-semibold small transition-colors cursor-pointer border-0 bg-transparent"
+                >
+                  Sign In
+                </button>
+              </div>
             )}
-          </div>
-
-          {/* Desktop Call To Action (Right) */}
-          <div className="d-none d-md-block">
-            <button
-              onClick={onBookNowClick}
-              className="btn btn-gold rounded-full px-4 py-2 fw-semibold shadow-gold-100 transition-all cursor-pointer nav-book-btn"
-              id="desktop-book-now"
-            >
-              Book Now
-            </button>
           </div>
 
           {/* Mobile Menu Trigger */}
@@ -166,15 +168,25 @@ export default function Navbar({
                 Logout ({loggedInUser})
               </button>
             ) : (
-              <button
-                onClick={() => {
-                  onLoginClick();
-                  setIsOpen(false);
-                }}
-                className="btn btn-light text-start w-full px-3 py-2 border-0 text-dark bg-transparent hover-text-gold-500 transition-all rounded-lg"
-              >
-                Login
-              </button>
+              <div className="d-flex flex-column gap-1">
+                <button
+                  onClick={() => {
+                    onLoginClick();
+                    setIsOpen(false);
+                  }}
+                  className="btn btn-light text-start w-full px-3 py-2 border-0 text-dark bg-transparent hover-text-gold-500 transition-all rounded-lg"
+                >
+                  Log In
+                </button>
+                <button
+                  onClick={() => {
+                    setIsOpen(false);
+                  }}
+                  className="btn btn-light text-start w-full px-3 py-2 border-0 text-dark bg-transparent hover-text-gold-500 transition-all rounded-lg"
+                >
+                  Sign In
+                </button>
+              </div>
             )}
             <div className="pt-2">
               <button

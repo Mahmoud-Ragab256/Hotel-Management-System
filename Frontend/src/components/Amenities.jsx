@@ -1,7 +1,6 @@
 import React from "react";
 import { Wifi, Waves, ConciergeBell, Car } from "lucide-react";
 import { AMENITIES } from "../data/landingData";
-
 const iconMap = {
   Wifi,
   Waves,
