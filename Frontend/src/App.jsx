@@ -1,7 +1,11 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
+
+import SignupPage from './pages/SignupPage.jsx';
+import LoginPage from './pages/LoginPage.jsx';
+import GuestLoginPage from './pages/GuestLoginPage.jsx';
+
 import AdminLayout from './layouts/AdminLayout.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
-import LoginPage from './pages/LoginPage.jsx';
 import BookingsPage from './pages/BookingsPage.jsx';
 import RoomsPage from './pages/RoomsPage.jsx';
 import RoomCategoriesPage from './pages/RoomCategoriesPage.jsx';
@@ -16,6 +20,9 @@ function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/guest-login" element={<GuestLoginPage />} />
+      <Route path="/signup" element={<SignupPage />} />
+
       <Route element={<ProtectedRoute />}>
         <Route path="/" element={<AdminLayout />}>
           <Route index element={<Navigate to="/dashboard" replace />} />
@@ -33,7 +40,10 @@ function App() {
       </Route>
     </Routes>
   );
-}
+} 
 
 
 export default App;
+
+
+
