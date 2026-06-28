@@ -228,12 +228,29 @@ export const dashboardApi = {
     return response?.data?.data || null;
   },
 
+  async getServices() {
+    const response = await api.get('/dashboard/services');
+    return readArray(response, 'services');
+  },
+  async getService(id) {
+    const response = await api.get(`/dashboard/services/${id}`);
+    return readObject(response, 'service');
+  },
+  async createService(payload) {
+    const response = await api.post('/dashboard/services', payload);
+    return readObject(response, 'service');
+  },
+  async updateService(id, payload) {
+    const response = await api.put(`/dashboard/services/${id}`, payload);
+    return readObject(response, 'service');
+  },
+  async deleteService(id) {
+    const response = await api.delete(`/dashboard/services/${id}`);
+    return response.data;
+  },
+
 async guestRegister(payload) {
   const response = await api.post('/client/auth/register', payload);
-
-  
-
-
   return {
     token: response?.data?.token || '',
     user: response?.data?.data || null
