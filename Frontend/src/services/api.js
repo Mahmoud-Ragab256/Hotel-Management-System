@@ -1,10 +1,12 @@
-import axios from 'axios';
+import axios from "axios";
 
-import { getAuthToken } from './auth.js';
+import { getAuthToken } from "./auth.js";
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://hotel-management-system-sigma-ruby.vercel.app',
-  timeout: 15000
+  baseURL:
+    import.meta.env.VITE_API_BASE_URL ||
+    "https://hotel-management-system-sigma-ruby.vercel.app",
+  timeout: 15000,
 });
 
 api.interceptors.request.use((config) => {
@@ -22,42 +24,44 @@ export const getApiErrorMessage = (error) => {
   return (
     error?.response?.data?.message ||
     error?.message ||
-    'Unexpected error while connecting to the backend.'
+    "Unexpected error while connecting to the backend."
   );
 };
 
 export const dashboardApi = {
   async login(payload) {
-    const response = await api.post('/dashboard/auth/login', payload);
+    const response = await api.post("/dashboard/auth/login", payload);
     return {
-      token: response?.data?.token || '',
-      user: response?.data?.data || null
+      token: response?.data?.token || "",
+      user: response?.data?.data || null,
     };
   },
 
   async getBookings() {
-    const response = await api.get('/dashboard/bookings');
-    return readArray(response, 'bookings');
+    const response = await api.get("/dashboard/bookings");
+    return readArray(response, "bookings");
   },
 
   async getBooking(id) {
     const response = await api.get(`/dashboard/bookings/${id}`);
-    return readObject(response, 'booking');
+    return readObject(response, "booking");
   },
 
   async createBooking(payload) {
-    const response = await api.post('/dashboard/bookings', payload);
-    return readObject(response, 'booking');
+    const response = await api.post("/dashboard/bookings", payload);
+    return readObject(response, "booking");
   },
 
   async updateBooking(id, payload) {
     const response = await api.put(`/dashboard/bookings/${id}`, payload);
-    return readObject(response, 'booking');
+    return readObject(response, "booking");
   },
 
   async cancelBooking(id, cancelReason) {
-    const response = await api.put(`/dashboard/bookings/${id}/cancel`, { cancelReason });
-    return readObject(response, 'booking');
+    const response = await api.put(`/dashboard/bookings/${id}/cancel`, {
+      cancelReason,
+    });
+    return readObject(response, "booking");
   },
 
   async deleteBooking(id) {
@@ -66,36 +70,36 @@ export const dashboardApi = {
   },
 
   async getRooms() {
-    const response = await api.get('/dashboard/rooms');
-    return readArray(response, 'rooms');
+    const response = await api.get("/dashboard/rooms");
+    return readArray(response, "rooms");
   },
 
   async getAvailableRooms() {
-    const response = await api.get('/dashboard/rooms/available');
-    return readArray(response, 'rooms');
+    const response = await api.get("/dashboard/rooms/available");
+    return readArray(response, "rooms");
   },
 
   async getRoom(id) {
     const response = await api.get(`/dashboard/rooms/${id}`);
-    return readObject(response, 'room');
+    return readObject(response, "room");
   },
 
   async createRoom(payload) {
-    const response = await api.post('/dashboard/rooms', payload);
-    return readObject(response, 'room');
+    const response = await api.post("/dashboard/rooms", payload);
+    return readObject(response, "room");
   },
 
   async updateRoom(id, payload) {
     const response = await api.put(`/dashboard/rooms/${id}`, payload);
-    return readObject(response, 'room');
+    return readObject(response, "room");
   },
 
   async uploadRoomImages(id, files) {
     const formData = new FormData();
-    Array.from(files).forEach((file) => formData.append('images', file));
+    Array.from(files).forEach((file) => formData.append("images", file));
 
     const response = await api.put(`/dashboard/rooms/${id}/images`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
+      headers: { "Content-Type": "multipart/form-data" },
     });
 
     return response.data;
@@ -112,23 +116,23 @@ export const dashboardApi = {
   },
 
   async getRoomCategories() {
-    const response = await api.get('/dashboard/room-categories');
-    return readArray(response, 'categories');
+    const response = await api.get("/dashboard/room-categories");
+    return readArray(response, "categories");
   },
 
   async getRoomCategory(id) {
     const response = await api.get(`/dashboard/room-categories/${id}`);
-    return readObject(response, 'category');
+    return readObject(response, "category");
   },
 
   async createRoomCategory(payload) {
-    const response = await api.post('/dashboard/room-categories', payload);
-    return readObject(response, 'category');
+    const response = await api.post("/dashboard/room-categories", payload);
+    return readObject(response, "category");
   },
 
   async updateRoomCategory(id, payload) {
     const response = await api.put(`/dashboard/room-categories/${id}`, payload);
-    return readObject(response, 'category');
+    return readObject(response, "category");
   },
 
   async deleteRoomCategory(id) {
@@ -137,23 +141,23 @@ export const dashboardApi = {
   },
 
   async getGuests() {
-    const response = await api.get('/dashboard/guests');
-    return readArray(response, 'guests');
+    const response = await api.get("/dashboard/guests");
+    return readArray(response, "guests");
   },
 
   async getGuest(id) {
     const response = await api.get(`/dashboard/guests/${id}`);
-    return readObject(response, 'guest');
+    return readObject(response, "guest");
   },
 
   async createGuest(payload) {
-    const response = await api.post('/dashboard/guests/register', payload);
+    const response = await api.post("/dashboard/guests/register", payload);
     return response?.data?.data?.guest || null;
   },
 
   async updateGuest(id, payload) {
     const response = await api.put(`/dashboard/guests/${id}`, payload);
-    return readObject(response, 'guest');
+    return readObject(response, "guest");
   },
 
   async deleteGuest(id) {
@@ -162,17 +166,17 @@ export const dashboardApi = {
   },
 
   async getEmployees() {
-    const response = await api.get('/dashboard/employees');
-    return readArray(response, 'employees');
+    const response = await api.get("/dashboard/employees");
+    return readArray(response, "employees");
   },
 
   async getEmployee(id) {
     const response = await api.get(`/dashboard/employees/${id}`);
-    return readObject(response, 'employee');
+    return readObject(response, "employee");
   },
 
   async createEmployee(payload) {
-    const response = await api.post('/dashboard/employees/register', payload);
+    const response = await api.post("/dashboard/employees/register", payload);
     return response?.data?.data || null;
   },
 
@@ -180,18 +184,19 @@ export const dashboardApi = {
     if (avatarFile) {
       const formData = new FormData();
       Object.entries(payload).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== '') formData.append(key, value);
+        if (value !== undefined && value !== null && value !== "")
+          formData.append(key, value);
       });
-      formData.append('avatar', avatarFile);
+      formData.append("avatar", avatarFile);
 
       const response = await api.put(`/dashboard/employees/${id}`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+        headers: { "Content-Type": "multipart/form-data" },
       });
-      return readObject(response, 'employee');
+      return readObject(response, "employee");
     }
 
     const response = await api.put(`/dashboard/employees/${id}`, payload);
-    return readObject(response, 'employee');
+    return readObject(response, "employee");
   },
 
   async getEmployeeAvatar(id) {
@@ -205,18 +210,18 @@ export const dashboardApi = {
   },
 
   async getInvoices() {
-    const response = await api.get('/dashboard/invoices');
-    return readArray(response, 'invoices');
+    const response = await api.get("/dashboard/invoices");
+    return readArray(response, "invoices");
   },
 
   async getInvoice(id) {
     const response = await api.get(`/dashboard/invoices/${id}`);
-    return readObject(response, 'invoice');
+    return readObject(response, "invoice");
   },
 
   async updateInvoice(id, payload) {
     const response = await api.put(`/dashboard/invoices/${id}`, payload);
-    return readObject(response, 'invoice');
+    return readObject(response, "invoice");
   },
 
   async deleteInvoice(id) {
@@ -224,57 +229,122 @@ export const dashboardApi = {
     return response.data;
   },
   async getDashboardStats() {
-    const response = await api.get('/dashboard/stats');
+    const response = await api.get("/dashboard/stats");
     return response?.data?.data || null;
   },
 
   async getServices() {
-    const response = await api.get('/dashboard/services');
-    return readArray(response, 'services');
+    const response = await api.get("/dashboard/services");
+    return readArray(response, "services");
   },
   async getService(id) {
     const response = await api.get(`/dashboard/services/${id}`);
-    return readObject(response, 'service');
+    return readObject(response, "service");
   },
   async createService(payload) {
-    const response = await api.post('/dashboard/services', payload);
-    return readObject(response, 'service');
+    const response = await api.post("/dashboard/services", payload);
+    return readObject(response, "service");
   },
   async updateService(id, payload) {
     const response = await api.put(`/dashboard/services/${id}`, payload);
-    return readObject(response, 'service');
+    return readObject(response, "service");
   },
   async deleteService(id) {
     const response = await api.delete(`/dashboard/services/${id}`);
     return response.data;
   },
 
-async guestRegister(payload) {
-  const response = await api.post('/client/auth/register', payload);
-  return {
-    token: response?.data?.token || '',
-    user: response?.data?.data || null
-  };
-},
+  async guestRegister(payload) {
+    const response = await api.post("/client/auth/register", payload);
+    return {
+      token: response?.data?.token || "",
+      user: response?.data?.data || null,
+    };
+  },
 
-async guestLogin(payload) {
-  const response = await api.post('/client/auth/login', payload)
-  return {
-    token: response?.data?.token || '',
-    user: response?.data?.data || null
-  };
-},
+  async guestLogin(payload) {
+    const response = await api.post("/client/auth/login", payload);
+    return {
+      token: response?.data?.token || "",
+      user: response?.data?.data || null,
+    };
+  },
 
-async getLandingData() {
-  const response = await api.get('/client/landing');
-  return response?.data?.data || null;
-},
+  async getLandingData() {
+    const response = await api.get("/client/landing");
+    return response?.data?.data || null;
+  },
 
-async getLandingStatistics() {
-  const response = await api.get('/client/landing/statistics');
-  return response?.data?.data || null;
-},
+  async getLandingStatistics() {
+    const response = await api.get("/client/landing/statistics");
+    return response?.data?.data || null;
+  },
+  async getMe() {
+    const response = await api.get(`client/me`);
+    return readObject(response, "guest");
+  },
+
+  async updateMe(payload) {
+    const response = await api.put(`client/me`, payload);
+    return readObject(response, "guest");
+  },
+
+  async getMyBookings() {
+    const response = await api.get(`client/me/bookings`);
+    return readObject(response, "bookings");
+  },
+
+  async getMyReviews() {
+    const response = await api.get(`client/me/reviews`);
+    return readObject(response, "reviews");
+  },
+
+  async getProfileImage() {
+    const response = await api.get(`client/me/avatar`);
+    return readObject(response, "avatar");
+  },
+
+  async updateProfileImage(formData) {
+    const response = await api.put(`client/me/avatar`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return readObject(response, "avatar");
+  },
+
+  async removeProfileImage() {
+    const response = await api.delete(`client/me/avatar`);
+    return readObject(response, "avatar");
+  },
+
+  async changePassword({ currentPassword, newPassword, confirmPassword }) {
+    const response = await api.put(`client/me/change-password`, {
+      currentPassword,
+      newPassword,
+      confirmPassword,
+    });
+    return readObject(response, "password");
+  },
+
+  async getAllReviews() {
+    const response = await api.get("/dashboard/reviews");
+    return readArray(response, "reviews");
+  },
+  async getReviewById(id) {
+    const response = await api.get(`/dashboard/reviews/${id}`);
+    return readObject(response, "review");
+  },
+  async updateReview(id, payload) {
+    const response = await api.put(`/dashboard/reviews/${id}`, payload);
+    return readObject(response, "review");
+  },
+  async approveReview(id) {
+    const response = await api.put(`/dashboard/reviews/${id}/approve`);
+    return readObject(response, "review");
+  },
+  async deleteReview(id) {
+    const response = await api.delete(`/dashboard/reviews/${id}`);
+    return response.data;
+  },
 };
-
 
 export default api;

@@ -138,7 +138,7 @@ function LoginPage() {
                     {loading ? 'Signing in...' : 'Login'}
                   </Button>
                 </Form>
-              </Card.Body>f
+              </Card.Body>
             </Card>
           </Col>
 
