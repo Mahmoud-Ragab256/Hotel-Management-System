@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
-
+import ClientRoomsPage from './pages/ClientRoomsPage.jsx';
+import RoomDetailsPage from './pages/RoomDetailsPage.jsx';
 import SignupPage from './pages/SignupPage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import GuestLoginPage from './pages/GuestLoginPage.jsx';
@@ -25,7 +26,8 @@ function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/guest-login" element={<GuestLoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
-
+      <Route path="/rooms" element={<ClientRoomsPage />} />
+      <Route path="/rooms/:id" element={<RoomDetailsPage />} />
       <Route element={<ProtectedRoute />}>
         <Route path="/" element={<AdminLayout />}>
           <Route index element={<Navigate to="/dashboard" replace />} />
