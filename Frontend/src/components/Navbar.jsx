@@ -7,6 +7,8 @@ export default function Navbar({
   loggedInUser,
   onLogout,
   scrollToSection,
+  // 🆕 أضفنا بروب التوجيه لصفحة الـ Sign In (إنشاء حساب)
+  onSignupClick, 
 }) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -88,7 +90,7 @@ export default function Navbar({
                 </button>
                 <span className="text-secondary opacity-40">|</span>
                 <button
-                  onClick={() => {}}
+                  onClick={onSignupClick} // 🆕 تم ربط زرار الـ Sign In بالضغط والتوجيه لصفحة الـ signup
                   className="btn btn-link p-0 text-decoration-none text-secondary hover-text-gold-500 fw-semibold small transition-colors cursor-pointer border-0 bg-transparent"
                 >
                   Sign In
@@ -180,6 +182,7 @@ export default function Navbar({
                 </button>
                 <button
                   onClick={() => {
+                    onSignupClick(); // 🆕 تم ربط زرار الـ Sign In في القائمة الجانبية للموبايل أيضاً
                     setIsOpen(false);
                   }}
                   className="btn btn-light text-start w-full px-3 py-2 border-0 text-dark bg-transparent hover-text-gold-500 transition-all rounded-lg"

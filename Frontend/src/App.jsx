@@ -30,6 +30,11 @@ function App() {
       <Route path="/guest-login" element={<GuestLoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
 
+      {/* 🆕 الزيادة الخاصة بكِ: Client/Guest Protected Routes */}
+      <Route element={<ProtectedRoute />}>
+        <Route path="/my-profile" element={<ProfilePage />} />
+      </Route>
+
       {/* Protected Dashboard Routes */}
       <Route element={<ProtectedRoute />}>
         <Route path="/dashboard" element={<AdminLayout />}>
@@ -54,6 +59,5 @@ function App() {
     </Routes>
   );
 }
-
 
 export default App;

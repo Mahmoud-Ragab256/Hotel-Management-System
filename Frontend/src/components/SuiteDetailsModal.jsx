@@ -8,6 +8,7 @@ import {
   BedDouble,
   Sparkles,
 } from "lucide-react";
+
 export default function SuiteDetailsModal({
   isOpen,
   suite,
@@ -56,7 +57,6 @@ export default function SuiteDetailsModal({
             referrerPolicy="no-referrer"
             className="position-absolute top-0 start-0 w-100 h-100 object-cover opacity-75 z-0"
           />
-          {/* Subtle gradient overlay */}
           <div
             className="position-absolute top-0 start-0 w-100 h-100 z-1"
             style={{
@@ -80,7 +80,7 @@ export default function SuiteDetailsModal({
               {suite.name}
             </h2>
             <p className="text-gold-300 font-display h5 fw-semibold mb-0">
-              ${suite.price}{" "}
+              ${suite.price}
               <span
                 className="small font-sans text-uppercase text-light opacity-75"
                 style={{ fontSize: "11px", letterSpacing: "1px" }}
@@ -142,16 +142,12 @@ export default function SuiteDetailsModal({
                   className="fw-bold text-dark"
                   style={{ fontSize: "12px" }}
                 >
-                  {suite.id === "ocean-view-suite"
-                    ? "California King"
-                    : suite.id === "deluxe-suite"
-                      ? "King Bed"
-                      : "Queen Bed"}
+                  {suite.id === "ocean-view-suite" ? "California King" : "King Bed"}
                 </span>
               </div>
             </div>
 
-            {/* Description */}
+            {/* Description / Overview */}
             <div className="mb-4 d-flex flex-column gap-1">
               <h4
                 className="text-muted text-uppercase fw-bold"
@@ -173,7 +169,7 @@ export default function SuiteDetailsModal({
                 Suite Amenities
               </h4>
               <div className="row g-2">
-                {suite.features.map((feature, index) => (
+                {suite.features && suite.features.map((feature, index) => (
                   <div
                     key={index}
                     className="col-12 col-sm-6 d-flex align-items-start gap-2 text-muted"
@@ -221,17 +217,19 @@ export default function SuiteDetailsModal({
               </span>
             </div>
 
-            <button
-              onClick={() => {
-                onBookNow(suite.id);
-                onClose();
-              }}
-              className="btn btn-gold rounded-full px-4 py-2.5 fw-bold cursor-pointer"
-              id={`book-from-details-${suite.id}`}
-              style={{ fontSize: "14px" }}
-            >
-              Book This Suite
-            </button>
+            {onBookNow && (
+              <button
+                onClick={() => {
+                  onBookNow(suite);
+                  onClose();
+                }}
+                className="btn btn-gold rounded-full px-4 py-2.5 fw-bold cursor-pointer"
+                id={`book-from-details-${suite.id}`}
+                style={{ fontSize: "14px" }}
+              >
+                Book This Suite
+              </button>
+            )}
           </div>
         </div>
       </div>

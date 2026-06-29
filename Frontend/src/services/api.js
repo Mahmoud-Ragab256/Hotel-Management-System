@@ -279,6 +279,25 @@ export const dashboardApi = {
     const response = await api.get("/client/landing/statistics");
     return response?.data?.data || null;
   },
+
+  async getFeaturedCategories() {
+    const response = await api.get('/client/featured-categories');
+    return response.data.data;
+  },
+
+  /**
+   * Fetch available suites dynamically based on search criteria after clicking "Check Availability"
+   * Endpoint: POST /client/rooms/available (Maps according to the project context client routes layout)
+   */
+  async fetchAvailableSuites(bookingDetails) {
+    const response = await api.post("/client/rooms/available", {
+      checkIn: bookingDetails.checkIn,
+      checkOut: bookingDetails.checkOut,
+      guests: Number(bookingDetails.guests),
+    });
+    return response?.data?.data || [];
+  },
+  
   async getMe() {
     const response = await api.get(`client/me`);
     return readObject(response, "guest");
