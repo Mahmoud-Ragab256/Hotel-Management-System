@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
+import GuestLayout from './layouts/GuestLayout.jsx';
 import ClientRoomsPage from './pages/ClientRoomsPage.jsx';
 import RoomDetailsPage from './pages/RoomDetailsPage.jsx';
 import SignupPage from './pages/SignupPage.jsx';
@@ -23,15 +24,23 @@ import ReviewDetailsPage from './pages/ReviewDetailsPage.jsx';
 function App() {
   return (
     <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/guest-login" element={<GuestLoginPage />} />
+
+      <Route path="dashboard/login" element={<LoginPage />} />
+      <Route path="/login" element={<GuestLoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
-      <Route path="/rooms" element={<ClientRoomsPage />} />
-      <Route path="/rooms/:id" element={<RoomDetailsPage />} />
+
       <Route element={<ProtectedRoute />}>
-        <Route path="/" element={<AdminLayout />}>
-          <Route index element={<Navigate to="/dashboard" replace />} />
-          <Route path="dashboard" element={<DashboardPage />} />
+        <Route path="/" element={<GuestLayout />}>
+          <Route index element={<ClientRoomsPage />} />
+          <Route path="rooms" element={<ClientRoomsPage />} />
+          <Route path="rooms/:id" element={<RoomDetailsPage />} />
+        </Route>
+      </Route>
+
+
+      <Route element={<ProtectedRoute />}>
+        <Route path="/dashboard" element={<AdminLayout />}>
+          <Route index element={<DashboardPage />} />
           <Route path="bookings" element={<BookingsPage />} />
           <Route path="rooms" element={<RoomsPage />} />
           <Route path="room-categories" element={<RoomCategoriesPage />} />
@@ -40,16 +49,15 @@ function App() {
           <Route path="invoices" element={<InvoicesPage />} />
           <Route path="services" element={<ServicesPage />} />
           <Route path="services/add" element={<AddServicePage />} />
-          <Route path="dashboard/reviews" element={<ReviewsPage />} />
-          <Route path="dashboard/reviews/:id" element={<ReviewDetailsPage />} />
-          <Route path="profile" element={<ProfilePage />} />
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Route>
       </Route>
+
+
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   );
 }
-
 
 export default App;
 
