@@ -204,6 +204,11 @@ export const dashboardApi = {
     return response.data;
   },
 
+  async createInvoice() {
+    const response = await api.post('/dashboard/invoices');
+    return readArray(response, 'invoice');
+  },
+
   async getInvoices() {
     const response = await api.get('/dashboard/invoices');
     return readArray(response, 'invoices');
@@ -245,6 +250,27 @@ export const dashboardApi = {
     return readObject(response, 'service');
   },
   async deleteService(id) {
+    const response = await api.delete(`/dashboard/services/${id}`);
+    return response.data;
+  },
+
+  async getServiceOrders() {
+    const response = await api.get('/dashboard/service-orders');
+    return readArray(response, 'orders');
+  },
+  async getServiceOrder(id) {
+    const response = await api.get(`/dashboard/service-orders/${id}`);
+    return readObject(response, 'order');
+  },
+  async createServiceOrder(payload) {
+    const response = await api.post('/dashboard/service-orders', payload);
+    return readObject(response, 'order');
+  },
+  async updateServiceOrder(id, payload) {
+    const response = await api.put(`/dashboard/service-orders/${id}`, payload);
+    return readObject(response, 'order');
+  },
+  async deleteServiceOrder(id) {
     const response = await api.delete(`/dashboard/services/${id}`);
     return response.data;
   },
