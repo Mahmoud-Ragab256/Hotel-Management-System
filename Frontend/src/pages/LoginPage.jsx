@@ -127,7 +127,7 @@ function LoginPage() {
                         onClick={() => setShowPassword((current) => !current)}
                         disabled={loading}
                         aria-label={showPassword ? 'Hide password' : 'Show password'}
-                      >
+                      >[]
                         <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
                       </Button>
                     </InputGroup>

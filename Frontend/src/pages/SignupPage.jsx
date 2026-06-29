@@ -92,13 +92,14 @@ function SignupPage() {
         phone: form.phone,
         nationalId: form.nationalId
       });
+      
 
       saveAuthSession({
         token: session.token,
         user: session.user
       });
 
-      navigate('/');
+      navigate('/guest-login');
     } catch (error) {
       setFeedback({
         type: 'danger',
