@@ -305,6 +305,27 @@ async guestLogin(payload) {
     return readObject(response, 'password');
   },
 
+  async getAllReviews() {
+    const response = await api.get('/dashboard/reviews');
+    return readArray(response, 'reviews');
+  },
+  async getReviewById(id) {
+    const response = await api.get(`/dashboard/reviews/${id}`);
+    return readObject(response, 'review');
+  },
+  async updateReview(id, payload) {
+    const response = await api.put(`/dashboard/reviews/${id}`, payload);
+    return readObject(response, 'review');
+  },
+  async approveReview(id) {
+    const response = await api.put(`/dashboard/reviews/${id}/approve`);
+    return readObject(response, 'review');
+  },
+  async deleteReview(id) {
+    const response = await api.delete(`/dashboard/reviews/${id}`);
+    return response.data;
+  }
+
 
 };
 

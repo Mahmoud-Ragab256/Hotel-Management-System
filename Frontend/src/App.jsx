@@ -16,6 +16,8 @@ import InvoicesPage from './pages/InvoicesPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
 import ServicesPage from './pages/ServicesPage.jsx';
 import AddServicePage from './pages/AddServicePage.jsx';
+import ReviewsPage from './pages/ReviewsPage.jsx';
+import ReviewDetailsPage from './pages/ReviewDetailsPage.jsx';
 
 function App() {
   return (
@@ -36,6 +38,8 @@ function App() {
           <Route path="invoices" element={<InvoicesPage />} />
           <Route path="services" element={<ServicesPage />} />
           <Route path="services/add" element={<AddServicePage />} />
+          <Route path="dashboard/reviews" element={<ReviewsPage />} />
+          <Route path="dashboard/reviews/:id" element={<ReviewDetailsPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Route>
