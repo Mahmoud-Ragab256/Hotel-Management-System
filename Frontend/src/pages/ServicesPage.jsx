@@ -130,7 +130,7 @@ function ServicesPage() {
               <Button variant="outline-secondary" className="me-2" onClick={loadServices} disabled={loading}>
                 <FontAwesomeIcon icon={faRefresh} className="me-2" />Refresh
               </Button>
-              <Button onClick={() => navigate('/services/add')}>
+              <Button onClick={() => navigate('/dashboard/services/add')}>
                 <FontAwesomeIcon icon={faPlus} className="me-2" />Add New Service
               </Button>
             </Col>

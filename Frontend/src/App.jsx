@@ -6,6 +6,7 @@ import SignupPage from './pages/SignupPage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import GuestLoginPage from './pages/GuestLoginPage.jsx';
 import ProfilePage from './pages/ProfilePage.jsx';
+import ServiceOrdersPage from './pages/ServiceOrdersPage.jsx';
 
 import AdminLayout from './layouts/AdminLayout.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
@@ -25,13 +26,14 @@ function App() {
   return (
     <Routes>
 
-      <Route path="dashboard/login" element={<LoginPage />} />
+      <Route path="/dashboard/login" element={<LoginPage />} />
       <Route path="/login" element={<GuestLoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
 
       <Route element={<ProtectedRoute />}>
         <Route path="/" element={<GuestLayout />}>
           <Route index element={<ClientRoomsPage />} />
+          <Route path="profile" element={<ProfilePage />} />
           <Route path="rooms" element={<ClientRoomsPage />} />
           <Route path="rooms/:id" element={<RoomDetailsPage />} />
         </Route>
@@ -49,12 +51,14 @@ function App() {
           <Route path="invoices" element={<InvoicesPage />} />
           <Route path="services" element={<ServicesPage />} />
           <Route path="services/add" element={<AddServicePage />} />
+          <Route path="service-orders" element={<ServiceOrdersPage />} />
+          <Route path="reviews" element={<ReviewsPage />} />
+          <Route path="reviews/:id" element={<ReviewDetailsPage />} />
         </Route>
       </Route>
 
 
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }

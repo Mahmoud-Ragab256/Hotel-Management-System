@@ -40,9 +40,9 @@ function AddServicePage() {
 
       await dashboardApi.createService(payload);
       showFeedback('success', 'Service created successfully! Redirecting...');
-      
+
       setTimeout(() => {
-        navigate('/services');
+        navigate('/dashboard/services');
       }, 2000);
     } catch (error) {
       showFeedback('danger', `Could not create service: ${getApiErrorMessage(error)}`);
@@ -62,7 +62,7 @@ function AddServicePage() {
           <p className="text-muted mb-0">Configure a new operational service for hotel guests.</p>
         </div>
         <div className="d-flex gap-2">
-          <Button variant="outline-secondary" className="bg-white" onClick={() => navigate('/services')} disabled={saving}>
+          <Button variant="outline-secondary" className="bg-white" onClick={() => navigate('/dashboard/services')} disabled={saving}>
             Cancel
           </Button>
           <Button variant="primary" onClick={handleSubmit} disabled={saving}>
@@ -75,7 +75,7 @@ function AddServicePage() {
 
       <Form onSubmit={handleSubmit}>
         <div className="d-flex flex-column gap-4">
-          
+
           {/* Card 1: Basic Details */}
           <Card className="border-0 shadow-sm rounded-3">
             <Card.Header className="bg-white border-0 p-4 pb-0">
@@ -179,7 +179,7 @@ function AddServicePage() {
 
           {/* Bottom Actions Row */}
           <div className="d-flex justify-content-end gap-2 mt-2">
-            <Button variant="outline-secondary" className="bg-white" onClick={() => navigate('/services')} disabled={saving}>
+            <Button variant="outline-secondary" className="bg-white" onClick={() => navigate('/dashboard/services')} disabled={saving}>
               Discard Draft
             </Button>
             <Button type="submit" variant="primary" disabled={saving}>
