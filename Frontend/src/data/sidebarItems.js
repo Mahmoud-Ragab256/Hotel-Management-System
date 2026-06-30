@@ -23,5 +23,5 @@ export const sidebarItems = [
   { id: 'services', label: 'Services', icon: faBellConcierge, path: '/dashboard/services', implemented: true },
   { id: 'service-orders', label: 'Service Orders', icon: faClipboardList, path: '/dashboard/service-orders', implemented: true },
   { id: 'reviews', label: 'Reviews', icon: faStar, path: '/dashboard/reviews', implemented: true },
-  { id: 'notifications', label: 'Notifications', icon: faBell, path: '/dashboard/notifications', implemented: false }
+  { id: 'notifications', label: 'Notifications', icon: faBell, path: '/dashboard/notifications', implemented: true }
 ];
