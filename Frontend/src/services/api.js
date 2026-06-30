@@ -350,9 +350,28 @@ async guestLogin(payload) {
   async deleteReview(id) {
     const response = await api.delete(`/dashboard/reviews/${id}`);
     return response.data;
-  }
+  },
+
+    async getMyNotifications(id) {
+    const response = await api.get(`/dashboard/notifications/recipient/${id}`);
+    return readObject(response, 'notifications');
+  },
+  async readAllMineNotifications(id) {
+    const response = await api.put(`/dashboard/notifications/recipient/${id}/read-all`);
+    return readObject(response, 'review');
+  },
+
+  async readNotificationById(id) {
+    const response = await api.put(`/dashboard/notifications/${id}/read`);
+    return readObject(response, 'review');
+  },
 
 
 };
 
 export default api;
+
+// notifications
+// router.put('/recipient/:recipientId/read-all', notificationController.markAllAsRead);
+// router.get('/recipient/:recipientId', notificationController.getNotificationsByRecipient);
+// router.put('/:id/read', notificationController.markAsRead);

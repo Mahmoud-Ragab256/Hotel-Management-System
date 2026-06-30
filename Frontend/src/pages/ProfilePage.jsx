@@ -7,7 +7,8 @@ import {
   Form,
   Modal,
   Row,
-  Spinner
+  Spinner,
+  Table
 } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -139,13 +140,11 @@ function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState(null);
 
-  // Edit modal
   const [editModal, setEditModal] = useState(false);
   const [editForm, setEditForm] = useState({
     fullName: '', email: '', phone: '', nationalId: ''
   });
 
-  // Password modal
   const [passwordModal, setPasswordModal] = useState(false);
   const [passwordForm, setPasswordForm] = useState({ current: '', next: '', confirm: '' });
   const [passwordError, setPasswordError] = useState('');
@@ -153,19 +152,18 @@ function ProfilePage() {
   const showFeedback = (type, message) => setFeedback({ type, message });
 
   useEffect(() => {
-    // 1. عرض البيانات من localStorage فوراً
     try {
       const stored = localStorage.getItem('hotel_admin_user');
       if (stored) setProfile(JSON.parse(stored));
-    } catch { /* ignore */ }
+    } catch { }
 
-    // 2. جيب من الـ backend في الـ background وحدّث
     dashboardApi.getMe()
       .then((data) => {
         setProfile(data);
         localStorage.setItem('hotel_admin_user', JSON.stringify(data));
+        window.dispatchEvent(new Event('hotel_admin_user_updated'));
       })
-      .catch(() => { /* localStorage data is still shown */ })
+      .catch(() => { })
       .finally(() => setLoading(false));
   }, []);
 
@@ -187,6 +185,7 @@ function ProfilePage() {
       const merged = { ...profile, ...updated };
       setProfile(merged);
       localStorage.setItem('hotel_admin_user', JSON.stringify(merged));
+      window.dispatchEvent(new Event('hotel_admin_user_updated'));
       setEditModal(false);
       showFeedback('success', 'Profile updated successfully.');
     } catch (error) {
@@ -234,6 +233,7 @@ function ProfilePage() {
       const merged = { ...profile, avatar: updated ? `${updated}?t=${Date.now()}` : null };
       setProfile(merged);
       localStorage.setItem('hotel_admin_user', JSON.stringify(merged));
+      window.dispatchEvent(new Event('hotel_admin_user_updated'));
       showFeedback('success', 'Photo updated.');
     } catch (error) {
       showFeedback('danger', `Could not upload photo: ${getApiErrorMessage(error)}`);
@@ -246,6 +246,7 @@ function ProfilePage() {
       const merged = { ...profile, avatar: updated ? `${updated}?t=${Date.now()}` : null };
       setProfile(merged);
       localStorage.setItem('hotel_admin_user', JSON.stringify(merged));
+      window.dispatchEvent(new Event('hotel_admin_user_updated'));
       showFeedback('success', 'Photo removed.');
     } catch (error) {
       showFeedback('danger', `Could not remove photo: ${getApiErrorMessage(error)}`);
@@ -275,7 +276,6 @@ function ProfilePage() {
 
   return (
     <div className="d-flex flex-column gap-4">
-      {/* Header */}
       <Card className="border-0 shadow-sm">
         <Card.Body className="p-4">
           <div className="d-flex align-items-center gap-3">
@@ -299,11 +299,9 @@ function ProfilePage() {
         <div className="text-center py-5"><Spinner /></div>
       ) : (
         <>
-          {/* Avatar card */}
           <Card className="border-0 shadow-sm">
             <Card.Body className="p-4">
               <div className="d-flex flex-wrap align-items-center gap-4">
-                {/* Avatar */}
                 <div className="position-relative flex-shrink-0">
                   {profile?.avatar ? (
                     <img
@@ -321,7 +319,6 @@ function ProfilePage() {
                   )}
                 </div>
 
-                {/* Name + role */}
                 <div className="flex-grow-1">
                   <div className="d-flex flex-wrap align-items-center gap-2 mb-1">
                     <h2 className="h4 fw-bold mb-0" style={{ color: PRIMARY }}>{profile?.fullName || 'No Name'}</h2>
@@ -335,7 +332,6 @@ function ProfilePage() {
                     <FontAwesomeIcon icon={faEnvelope} size="xs" />
                     {profile?.email || '—'}
                   </div>
-                  {/* Photo actions */}
                   <div className="d-flex gap-2 mt-3">
                     <input ref={fileRef} type="file" accept="image/*" className="d-none" onChange={handlePhotoChange} />
                     <Button
@@ -359,7 +355,6 @@ function ProfilePage() {
             </Card.Body>
           </Card>
 
-          {/* Personal Information */}
           <Card className="border-0 shadow-sm">
             <Card.Header className="bg-white border-0 p-4 pb-3">
               <div className="d-flex align-items-start justify-content-between gap-3">
@@ -393,7 +388,6 @@ function ProfilePage() {
             </Card.Body>
           </Card>
 
-          {/* Security */}
           <Card className="border-0 shadow-sm">
             <Card.Header className="bg-white border-0 p-4 pb-3">
               <h2 className="h5 fw-bold mb-1">Security & Privacy</h2>
@@ -434,7 +428,7 @@ function ProfilePage() {
               </div>
             </Card.Body>
           </Card>
-          {/* My Bookings */}
+
           <Card className="border-0 shadow-sm">
             <Card.Header className="bg-white border-0 p-4 pb-3">
               <div className="d-flex align-items-center gap-3">
@@ -496,7 +490,6 @@ function ProfilePage() {
             </Card.Body>
           </Card>
 
-          {/* My Reviews */}
           <Card className="border-0 shadow-sm">
             <Card.Header className="bg-white border-0 p-4 pb-3">
               <div className="d-flex align-items-center gap-3">
@@ -559,7 +552,6 @@ function ProfilePage() {
         </>
       )}
 
-      {/* Edit Profile Modal */}
       <Modal show={editModal} onHide={() => setEditModal(false)} centered size="lg">
         <Form onSubmit={handleSaveProfile}>
           <Modal.Header closeButton>
@@ -624,7 +616,6 @@ function ProfilePage() {
         </Form>
       </Modal>
 
-      {/* Change Password Modal */}
       <Modal show={passwordModal} onHide={() => setPasswordModal(false)} centered>
         <Form onSubmit={handleChangePassword}>
           <Modal.Header closeButton>
