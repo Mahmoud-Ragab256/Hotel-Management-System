@@ -239,17 +239,37 @@ function NotificationsPage() {
                     </div>
                   </td>
                   <td className="px-3 py-3">
-                    <Badge 
-                      pill
-                      className="fw-semibold px-2.5 py-1.5"
-                      style={{
-                        fontSize: '12px',
-                        backgroundColor: notif.type === 'Booking' || notif.type === 'booking' ? '#e6fffa' : notif.type === 'System' || notif.type === 'system' ? '#e0f2fe' : '#fef3c7',
-                        color: notif.type === 'Booking' || notif.type === 'booking' ? '#038695' : notif.type === 'System' || notif.type === 'system' ? '#047cbd' : '#c26721'
-                      }}
-                    >
-                      {notif.type}
-                    </Badge>
+                  {(() => {
+                        const typeLower = notif.type ? notif.type.toLowerCase() : '';
+                        
+                        let bgColor = '#e8f0fe'; 
+                        let textColor = '#4c6cb3';
+                        
+                        if (typeLower === 'booking') {
+                        bgColor = '#e6f7ed';   
+                        textColor = '#1e5a3e'; 
+                        } else if (typeLower === 'system') {
+                        bgColor = '#e8f0fe';   
+                        textColor = '#4c6cb3'; 
+                        } else if (typeLower === 'service') {
+                        bgColor = '#fef3c7';   
+                        textColor = '#92400e'; 
+                        }
+
+                        return (
+                        <span 
+                            className="fw-medium px-3 py-1.5 d-inline-block"
+                            style={{
+                            fontSize: '13px',
+                            borderRadius: '50px',
+                            backgroundColor: bgColor,
+                            color: textColor
+                            }}
+                        >
+                            {typeLower ? typeLower.charAt(0).toUpperCase() + typeLower.slice(1) : ''}
+                        </span>
+                        );
+                   })()}
                   </td>
                   <td className="px-3 py-3 fw-medium text-dark-emphasis small">
                     {notif.recipientType}
