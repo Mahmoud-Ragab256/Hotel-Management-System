@@ -1,8 +1,9 @@
 import axios from 'axios';
+
 import { getAuthToken } from './auth.js';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://hotel-management-system-sigma-ruby.vercel.app/',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://hotel-management-system-sigma-ruby.vercel.app',
   timeout: 15000
 });
 
@@ -203,6 +204,11 @@ export const dashboardApi = {
     return response.data;
   },
 
+  async createInvoice() {
+    const response = await api.post('/dashboard/invoices');
+    return readArray(response, 'invoice');
+  },
+
   async getInvoices() {
     const response = await api.get('/dashboard/invoices');
     return readArray(response, 'invoices');
@@ -222,7 +228,150 @@ export const dashboardApi = {
     const response = await api.delete(`/dashboard/invoices/${id}`);
     return response.data;
   },
+  async getDashboardStats() {
+    const response = await api.get('/dashboard/stats');
+    return response?.data?.data || null;
+  },
+
+  async getServices() {
+    const response = await api.get('/dashboard/services');
+    return readArray(response, 'services');
+  },
+  async getService(id) {
+    const response = await api.get(`/dashboard/services/${id}`);
+    return readObject(response, 'service');
+  },
+  async createService(payload) {
+    const response = await api.post('/dashboard/services', payload);
+    return readObject(response, 'service');
+  },
+  async updateService(id, payload) {
+    const response = await api.put(`/dashboard/services/${id}`, payload);
+    return readObject(response, 'service');
+  },
+  async deleteService(id) {
+    const response = await api.delete(`/dashboard/services/${id}`);
+    return response.data;
+  },
+
+  async getServiceOrders() {
+    const response = await api.get('/dashboard/service-orders');
+    return readArray(response, 'orders');
+  },
+  async getServiceOrder(id) {
+    const response = await api.get(`/dashboard/service-orders/${id}`);
+    return readObject(response, 'order');
+  },
+  async createServiceOrder(payload) {
+    const response = await api.post('/dashboard/service-orders', payload);
+    return readObject(response, 'order');
+  },
+  async updateServiceOrder(id, payload) {
+    const response = await api.put(`/dashboard/service-orders/${id}`, payload);
+    return readObject(response, 'order');
+  },
+  async deleteServiceOrder(id) {
+    const response = await api.delete(`/dashboard/services/${id}`);
+    return response.data;
+  },
+
+async guestRegister(payload) {
+  const response = await api.post('/client/auth/register', payload);
+  return {
+    token: response?.data?.token || '',
+    user: response?.data?.data || null
+  };
+},
+
+async guestLogin(payload) {
+  const response = await api.post('/client/auth/login', payload)
+  return {
+    token: response?.data?.token || '',
+    user: response?.data?.data || null
+  };
+},
+
+  async getMe() {
+    const response = await api.get(`client/me`);
+    return readObject(response, 'guest');
+  },
+
+  async updateMe(payload) {
+    const response = await api.put(`client/me`, payload);
+    return readObject(response, 'guest');
+  },
+
+  async getMyBookings() {
+    const response = await api.get(`client/me/bookings`);
+    return readObject(response, 'bookings');
+  },
+
+  async getMyReviews() {
+    const response = await api.get(`client/me/reviews`);
+    return readObject(response, 'reviews');
+  },
+
+  async getProfileImage() {
+    const response = await api.get(`client/me/avatar`);
+    return readObject(response, 'avatar');
+  },
+
+  async updateProfileImage(formData) {
+    const response = await api.put(`client/me/avatar`, formData, {headers: { 'Content-Type': 'multipart/form-data' }});
+    return readObject(response, 'avatar');
+  },
+  
+  async removeProfileImage() {
+    const response = await api.delete(`client/me/avatar`);
+    return readObject(response, 'avatar');
+  },
+
+  async changePassword({ currentPassword, newPassword , confirmPassword }) {
+    const response = await api.put(`client/me/change-password`, { currentPassword, newPassword, confirmPassword });
+    return readObject(response, 'password');
+  },
+
+  async getAllReviews() {
+    const response = await api.get('/dashboard/reviews');
+    return readArray(response, 'reviews');
+  },
+  async getReviewById(id) {
+    const response = await api.get(`/dashboard/reviews/${id}`);
+    return readObject(response, 'review');
+  },
+  async updateReview(id, payload) {
+    const response = await api.put(`/dashboard/reviews/${id}`, payload);
+    return readObject(response, 'review');
+  },
+  async approveReview(id) {
+    const response = await api.put(`/dashboard/reviews/${id}/approve`);
+    return readObject(response, 'review');
+  },
+  async deleteReview(id) {
+    const response = await api.delete(`/dashboard/reviews/${id}`);
+    return response.data;
+  },
+
+    async getMyNotifications(id) {
+    const response = await api.get(`/dashboard/notifications/recipient/${id}`);
+    return readObject(response, 'notifications');
+  },
+  async readAllMineNotifications(id) {
+    const response = await api.put(`/dashboard/notifications/recipient/${id}/read-all`);
+    return readObject(response, 'review');
+  },
+
+  async readNotificationById(id) {
+    const response = await api.put(`/dashboard/notifications/${id}/read`);
+    return readObject(response, 'review');
+  },
+
 
 };
 
 export default api;
+
+// notifications
+// router.put('/recipient/:recipientId/read-all', notificationController.markAllAsRead);
+// router.get('/recipient/:recipientId', notificationController.getNotificationsByRecipient);
+// router.put('/:id/read', notificationController.markAsRead);

@@ -15,7 +15,7 @@ function Topbar() {
 
   const handleLogout = () => {
     clearAuthSession();
-    navigate('/login', { replace: true });
+    navigate('/dashboard/login', { replace: true });
   };
 
   return (

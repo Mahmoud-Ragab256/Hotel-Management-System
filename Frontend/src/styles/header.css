@@ -1,0 +1,49 @@
+.header-navbar {
+  padding-top: 18px;
+  padding-bottom: 18px;
+}
+
+.header-btn-dark,
+.header-btn-dark:hover,
+.header-btn-dark:focus,
+.header-btn-dark:active {
+  background-color: #212529 !important;
+  border-color: #212529 !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+
+.header-btn-outline,
+.header-btn-outline:hover,
+.header-btn-outline:focus,
+.header-btn-outline:active {
+  background-color: transparent !important;
+  border-color: #212529 !important;
+  color: #212529 !important;
+  box-shadow: none !important;
+}
+
+.header-nav-link {
+  color: #212529;
+  position: relative;
+  display: inline-block;
+  transition: transform 0.15s ease;
+}
+
+.header-nav-link:hover {
+  transform: scale(1.08);
+}
+
+.header-nav-link.active {
+  font-weight: 600;
+}
+
+.header-nav-link.active::after {
+  content: "";
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: -6px;
+  height: 2px;
+  background-color: #212529;
+}

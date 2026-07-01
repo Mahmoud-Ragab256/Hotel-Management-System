@@ -1,0 +1,30 @@
+.account-menu-toggle {
+  background-color: #fff !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.account-menu-toggle:hover,
+.account-menu-toggle:focus,
+.account-menu-toggle:active {
+  background-color: #fff !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.account-menu-dropdown .dropdown-item {
+  margin-top: 7px;
+  margin-bottom: 7px;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+.account-menu-dropdown .dropdown-item:hover,
+.account-menu-dropdown .dropdown-item:focus {
+  background-color: #212529 !important;
+  color: #fff !important;
+}
+
+.account-menu-dropdown .dropdown-item:hover svg,
+.account-menu-dropdown .dropdown-item:focus svg {
+  color: #fff !important;
+}

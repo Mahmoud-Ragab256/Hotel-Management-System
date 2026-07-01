@@ -14,6 +14,6 @@ router.use('/landing', landingRouter);
 router.use(protect) // guests need to login first
 router.use('/rooms', roomsRouter);
 router.use('/booking', bookingRouter);
-router.use('/profile', profileRouter);
+router.use('/me', profileRouter);
 
 export default router;
