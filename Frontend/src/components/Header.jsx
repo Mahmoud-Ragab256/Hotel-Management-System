@@ -1,19 +1,19 @@
-import React from 'react';
-import { Navbar, Nav, Container, Button } from 'react-bootstrap';
-import { Link, NavLink as RouterNavLink, useNavigate } from 'react-router-dom';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHotel } from '@fortawesome/free-solid-svg-icons';
-import { isClientAuthenticated } from '../services/auth.js';
-import AccountMenu from './AccountMenu.jsx';
-import navLinks from '../data/navbarItems.js';
-import '../styles/header.css';
+import React from "react";
+import { Navbar, Nav, Container, Button } from "react-bootstrap";
+import { Link, NavLink as RouterNavLink, useNavigate } from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faHotel, faCircleQuestion } from "@fortawesome/free-solid-svg-icons";
+import { isAuthenticated } from "../services/auth.js";
+import AccountMenu from "./AccountMenu";
+import NotificationBell from "./NotificationsBell.jsx";
+import navLinks from "../data/navbarItems.js";
+import "../styles/header.css";
+
+
 
 const Header = () => {
   const navigate = useNavigate();
-  const loggedIn = isClientAuthenticated();
-  const visibleLinks = loggedIn
-    ? [...navLinks, { label: 'My Bookings', path: '/my-bookings' }]
-    : navLinks;
+  const loggedIn = isAuthenticated();
 
   return (
     <Navbar bg="white" expand="lg" className="border-bottom px-4 header-navbar">
@@ -32,12 +32,12 @@ const Header = () => {
 
         <Navbar.Collapse id="main-navbar-nav" className="justify-content-between">
           <Nav className="mx-auto gap-2">
-            {visibleLinks.map((link) => (
+            {navLinks.map((link) => (
               <Nav.Link
                 key={link.path}
                 as={RouterNavLink}
                 to={link.path}
-                end={link.path === '/'}
+                end={link.path === "/"}
                 className="header-nav-link px-2 d-flex align-items-center gap-1"
               >
                 {link.icon && <FontAwesomeIcon icon={link.icon} />}
@@ -48,20 +48,23 @@ const Header = () => {
 
           <div className="d-flex align-items-center gap-2 mt-2 mt-lg-0">
             {loggedIn ? (
-              <AccountMenu />
+              <>
+                <NotificationBell />
+                <AccountMenu />
+              </>
             ) : (
               <>
                 <Button
                   variant="dark"
                   className="px-4 header-btn-dark"
-                  onClick={() => navigate('/login')}
+                  onClick={() => navigate("/login")}
                 >
                   Log in
                 </Button>
                 <Button
                   variant="outline-dark"
                   className="px-4 header-btn-outline"
-                  onClick={() => navigate('/signup')}
+                  onClick={() => navigate("/signup")}
                 >
                   Sign up
                 </Button>

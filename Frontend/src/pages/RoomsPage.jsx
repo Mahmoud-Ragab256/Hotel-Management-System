@@ -28,7 +28,7 @@ import {
   faCircleInfo
 } from '@fortawesome/free-solid-svg-icons';
 import { dashboardApi, getApiErrorMessage } from '../services/api.js';
-import { formatDateTime } from '../utils/date.js';
+import { formatDisplayDateTime } from '../utils/date.ts';
 
 const roomStatuses = ['Available', 'Occupied', 'Maintenance'];
 
@@ -462,7 +462,7 @@ function RoomsPage() {
               <div><strong>Floor:</strong> {selectedRoom.floor}</div>
               <div><strong>Status:</strong> <Badge bg={statusVariant(selectedRoom.status)}>{selectedRoom.status}</Badge></div>
               <div><strong>Images Count:</strong> {selectedRoom.images?.length || 0}</div>
-              <div><strong>Created At:</strong> {selectedRoom.createdAt ? formatDateTime(selectedRoom.createdAt) : 'N/A'}</div>
+              <div><strong>Created At:</strong> {formatDisplayDateTime(selectedRoom.createdAt)}</div>
             </div>
           )}
         </Modal.Body>

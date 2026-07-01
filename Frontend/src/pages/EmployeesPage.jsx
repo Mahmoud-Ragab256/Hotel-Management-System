@@ -27,7 +27,7 @@ import {
 import FeedbackCard from '../components/FeedbackCard.jsx';
 import StatCard from '../components/StatCard.jsx';
 import { dashboardApi, getApiErrorMessage } from '../services/api.js';
-import { formatDateTime } from '../utils/date.js';
+import { formatDisplayDateTime } from '../utils/date.ts';
 
 const roles = ['Admin', 'Manager', 'Receptionist', 'Service'];
 const shifts = ['Morning', 'Evening', 'Night'];
@@ -412,7 +412,7 @@ function EmployeesPage() {
               <div><strong>Salary:</strong> ${selectedEmployee.salary}</div>
               <div><strong>Status:</strong> {selectedEmployee.isActive !== false ? 'Active' : 'Inactive'}</div>
               <div><strong>Avatar:</strong> {selectedEmployee.avatar || '-'}</div>
-              <div><strong>Created At:</strong> {selectedEmployee.createdAt ? formatDateTime(selectedEmployee.createdAt) : 'N/A'}</div>
+              <div><strong>Created At:</strong> {formatDisplayDateTime(selectedEmployee.createdAt)}</div>
             </div>
           )}
         </Modal.Body>

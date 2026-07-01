@@ -24,7 +24,7 @@ import {
 import FeedbackCard from '../components/FeedbackCard.jsx';
 import StatCard from '../components/StatCard.jsx';
 import { dashboardApi, getApiErrorMessage } from '../services/api.js';
-import { formatDateTime } from '../utils/date.js';
+import { formatDisplayDateTime } from '../utils/date.ts';
 
 const vipLevels = ['Bronze', 'Silver', 'Gold', 'Platinum'];
 
@@ -347,7 +347,7 @@ function GuestsPage() {
               <div><strong>Phone:</strong> {selectedGuest.phone}</div>
               <div><strong>National ID:</strong> {selectedGuest.nationalId}</div>
               <div><strong>VIP Level:</strong> <Badge bg={vipVariant(selectedGuest.vipLevel)}>{selectedGuest.vipLevel}</Badge></div>
-              <div><strong>Created At:</strong> {selectedGuest.createdAt ? formatDateTime(selectedGuest.createdAt) : 'N/A'}</div>
+              <div><strong>Created At:</strong> {formatDisplayDateTime(selectedGuest.createdAt)}</div>
             </div>
           )}
         </Modal.Body>

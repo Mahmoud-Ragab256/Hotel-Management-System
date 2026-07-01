@@ -105,7 +105,7 @@ function LoginPage() {
                     </InputGroup>
                   </Form.Group>
 
-                  <Form.Group className="mb-3" controlId="loginPassword">
+                  <Form.Group className="mb-2" controlId="loginPassword">
                     <Form.Label className="fw-semibold">Password</Form.Label>
                     <InputGroup>
                       <InputGroup.Text className="bg-light">
@@ -133,8 +133,10 @@ function LoginPage() {
                     </InputGroup>
                   </Form.Group>
 
-                  <div className="d-flex justify-content-end mb-4">
-                    <Link to="/dashboard/forgot-password" className="small fw-semibold text-decoration-none">Forgot password?</Link>
+                  <div className="text-end mb-4">
+                    <Link to="/dashboard/forgot-password" className="small fw-semibold text-decoration-none">
+                      Forgot password?
+                    </Link>
                   </div>
 
                   <Button type="submit" variant="dark" size="lg" className="w-100 d-flex align-items-center justify-content-center gap-2" disabled={!canSubmit}>

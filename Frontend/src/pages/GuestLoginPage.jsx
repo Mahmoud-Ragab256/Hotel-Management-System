@@ -12,8 +12,8 @@ import {
   faUser
 } from '@fortawesome/free-solid-svg-icons';
 import FeedbackCard from '../components/FeedbackCard.jsx';
-import { clientApi, getApiErrorMessage } from '../services/api.js';
-import { saveClientSession } from '../services/auth.js';
+import { dashboardApi, getApiErrorMessage } from '../services/api.js';
+import { saveAuthSession } from '../services/auth.js';
 
 const initialForm = {
   email: '',
@@ -28,7 +28,7 @@ function GuestLoginPage() {
 
   const navigate = useNavigate();
   const location = useLocation();
-  const redirectTo = location.state?.from?.pathname || '/my-bookings';
+  const redirectTo = location.state?.from?.pathname || '/rooms';
 
   const canSubmit = useMemo(() => {
     return form.email.trim() && form.password.trim() && !loading;
@@ -50,12 +50,12 @@ function GuestLoginPage() {
 
     setLoading(true);
     try {
-      const session = await clientApi.login({
+      const session = await dashboardApi.guestLogin({
         email: form.email.trim(),
         password: form.password
       });
 
-      saveClientSession({ token: session.token, user: session.user });
+      saveAuthSession({ token: session.token, user: session.user });
       navigate(redirectTo, { replace: true });
     } catch (error) {
       setFeedback({ type: 'danger', message: getApiErrorMessage(error) });
@@ -104,7 +104,7 @@ function GuestLoginPage() {
                     </InputGroup>
                   </Form.Group>
 
-                  <Form.Group className="mb-3" controlId="loginPassword">
+                  <Form.Group className="mb-2" controlId="loginPassword">
                     <Form.Label className="fw-semibold">Password</Form.Label>
                     <InputGroup>
                       <InputGroup.Text className="bg-light">
@@ -131,8 +131,10 @@ function GuestLoginPage() {
                     </InputGroup>
                   </Form.Group>
 
-                  <div className="d-flex justify-content-end mb-4">
-                    <Link to="/forgot-password" className="small fw-semibold text-decoration-none">Forgot password?</Link>
+                  <div className="text-end mb-4">
+                    <Link to="/forgot-password" className="small fw-semibold text-decoration-none">
+                      Forgot password?
+                    </Link>
                   </div>
 
                   <Button type="submit" variant="dark" size="lg" className="w-100 d-flex align-items-center justify-content-center gap-2" disabled={!canSubmit}>
@@ -142,7 +144,7 @@ function GuestLoginPage() {
 
                   <div className="text-center mt-3">
                     Don't have an account?{' '}
-                    <Link to="/signup" state={location.state}>
+                    <Link to="/signup">
                       Sign Up
                     </Link>
                   </div>

@@ -7,8 +7,6 @@ export const createBookingValidation = Joi.object({
   checkOutDate: Joi.date().greater(Joi.ref('checkInDate')).required(),
   totalPrice: Joi.number().positive().required(),
   status: Joi.string().valid('Pending', 'Confirmed', 'CheckedIn', 'CheckedOut', 'Cancelled').default('Pending'),
-  paymentMethod: Joi.string().valid('Cash', 'CreditCard', 'DebitCard', 'BankTransfer', 'Mobile').default('Cash'),
-  paidAmount: Joi.number().min(0).default(0),
   specialRequests: Joi.string().max(500).optional()
 });
 

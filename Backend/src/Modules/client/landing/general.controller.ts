@@ -44,14 +44,14 @@ export const getLandingPageData = async (
     const availableRoomsCount: number = await Room.countDocuments({ status: 'Available' });
 
     const roomCategories: IRoomCategory[] = await RoomCategory.find()
-      .select('name description basePrice capacity amenities images')
+      .select('name description basePrice amenities')
       .limit(6);
 
     const services: IService[] = await Service.find({ isAvailable: true })
       .select('name description price category')
       .limit(8);
 
-    const reviews: IReview[] = await Review.find({ $or: [{ isApproved: true }, { status: 'Approved' }] })
+    const reviews: IReview[] = await Review.find({ isApproved: true })
       .populate('guestId', 'fullName')
       .select('rating comment createdAt')
       .sort({ createdAt: -1 })
@@ -107,7 +107,7 @@ export const getFeaturedCategories = async (
 ): Promise<void> => {
   try {
     const categories: IRoomCategory[] = await RoomCategory.find()
-      .select('name description basePrice capacity amenities images')
+      .select('name description basePrice amenities')
       .limit(3);
 
     res.status(200).json({

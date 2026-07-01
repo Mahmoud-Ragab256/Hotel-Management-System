@@ -5,8 +5,6 @@ export type BookingStatus = 'Pending' | 'Confirmed' | 'CheckedIn' | 'CheckedOut'
 
 export type PaymentStatus = 'Pending' | 'Paid' | 'Refunded';
 
-export type BookingSource = 'GuestPortal' | 'Dashboard';
-
 
 export interface IExtra {
   name: string;
@@ -23,8 +21,6 @@ export interface IBooking extends Document {
   status: BookingStatus;
   totalPrice: number;
   paymentStatus: PaymentStatus;
-  source: BookingSource;
-  lifecycleStage: string;
   extras: IExtra[];
   specialRequests: string;
   cancelledAt?: Date;
@@ -69,15 +65,6 @@ const bookingSchema = new Schema<IBooking>(
       type: String,
       enum: ['Pending', 'Paid', 'Refunded'] as PaymentStatus[],
       default: 'Pending' as PaymentStatus,
-    },
-    source: {
-      type: String,
-      enum: ['GuestPortal', 'Dashboard'] as BookingSource[],
-      default: 'Dashboard' as BookingSource,
-    },
-    lifecycleStage: {
-      type: String,
-      default: 'BookingCreated',
     },
     extras: {
       type: [Object],

@@ -3,6 +3,7 @@ import { Employee } from '../../../DB/Models/employee.model.js';
 import { IEmployee, EmployeeRole, EmployeeShift } from '../../../DB/Models/employee.model.js';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
+import { hashPassword, normalizeEmail, verifyPassword } from '../../../utils/password.js';
 
 dotenv.config()
 
@@ -120,7 +121,8 @@ export const createEmployee = async (
   res: Response<ApiResponse<CreateEmployeeData>>
 ): Promise<void> => {
   try {
-    const { fullName, email, password, role, shift, salary } = req.body;
+    const { fullName, password, role, shift, salary } = req.body;
+    const email = normalizeEmail(req.body.email);
 
     const existingEmployee: IEmployee | null = await Employee.findOne({ email });
     if (existingEmployee) {
@@ -131,7 +133,7 @@ export const createEmployee = async (
       return;
     }
 
-    const hashedPassword: string = await bcrypt.hash(`${password}${process.env.PEPPER}`, parseInt(process.env.SALT_ROUNDS as string));
+    const hashedPassword: string = await hashPassword(password);
 
     const employee: IEmployee = await Employee.create({
       fullName,
@@ -267,7 +269,8 @@ export const loginEmployee = async (
   res: Response<ApiResponse<LoginEmployeeData>>
 ): Promise<void> => {
   try {
-    const { email, password } = req.body;
+    const email = normalizeEmail(req.body.email);
+    const { password } = req.body;
 
     const employee: IEmployee | null = await Employee.findOne({ email });
     if (!employee) {
@@ -286,13 +289,18 @@ export const loginEmployee = async (
       return;
     }
 
-    const isMatch: boolean = await bcrypt.compare(`${password}${process.env.PEPPER}`, employee.password);
-    if (!isMatch) {
+    const { matched, needsRehash } = await verifyPassword(password, employee.password);
+    if (!matched) {
       res.status(401).json({
         success: false,
         message: 'Invalid credentials',
       });
       return;
+    }
+
+    if (needsRehash) {
+      employee.password = await hashPassword(password);
+      await employee.save();
     }
 
     res.status(200).json({

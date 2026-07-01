@@ -1,22 +1,13 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import GuestLayout from './layouts/GuestLayout.jsx';
-import LandingPage from './pages/LandingPage.jsx';
 import ClientRoomsPage from './pages/ClientRoomsPage.jsx';
-import ClientServicesPage from './pages/ClientServicesPage.jsx';
-import ClientReviewsPage from './pages/ClientReviewsPage.jsx';
-import ClientAddReviewPage from './pages/ClientAddReviewPage.jsx';
-import ClientBookingsPage from './pages/ClientBookingsPage.jsx';
-import ClientServiceOrderPage from './pages/ClientServiceOrderPage.jsx';
-import HelpCenterPage from './pages/HelpCenterPage.jsx';
-import AboutPage from './pages/AboutPage.jsx';
-import ContactPage from './pages/ContactPage.jsx';
 import RoomDetailsPage from './pages/RoomDetailsPage.jsx';
 import SignupPage from './pages/SignupPage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import GuestLoginPage from './pages/GuestLoginPage.jsx';
+import ResetPasswordPage from './pages/ResetPasswordPage.jsx';
 import ProfilePage from './pages/ProfilePage.jsx';
 import ServiceOrdersPage from './pages/ServiceOrdersPage.jsx';
-import PasswordResetPage from './pages/PasswordResetPage.jsx';
 
 import AdminLayout from './layouts/AdminLayout.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
@@ -36,35 +27,28 @@ function App() {
   return (
     <Routes>
       <Route path="/dashboard/login" element={<LoginPage />} />
-      <Route path="/dashboard/forgot-password" element={<PasswordResetPage accountType="employee" step="email" />} />
-      <Route path="/dashboard/reset-code" element={<PasswordResetPage accountType="employee" step="code" />} />
-      <Route path="/dashboard/reset-password" element={<PasswordResetPage accountType="employee" step="password" />} />
-
+      <Route path="/dashboard/forgot-password" element={<ResetPasswordPage accountType="employee" />} />
       <Route path="/login" element={<GuestLoginPage />} />
+      <Route path="/guest-login" element={<Navigate to="/login" replace />} />
+      <Route path="/forgot-password" element={<ResetPasswordPage accountType="guest" />} />
       <Route path="/signup" element={<SignupPage />} />
-      <Route path="/forgot-password" element={<PasswordResetPage accountType="guest" step="email" />} />
-      <Route path="/reset-code" element={<PasswordResetPage accountType="guest" step="code" />} />
-      <Route path="/reset-password" element={<PasswordResetPage accountType="guest" step="password" />} />
 
+      {/* Public guest website: localhost:6501/ stays on / and does not redirect to /login */}
       <Route path="/" element={<GuestLayout />}>
-        <Route index element={<LandingPage />} />
+        <Route index element={<ClientRoomsPage />} />
         <Route path="rooms" element={<ClientRoomsPage />} />
         <Route path="rooms/:id" element={<RoomDetailsPage />} />
-        <Route path="services" element={<ClientServicesPage />} />
-        <Route path="reviews" element={<ClientReviewsPage />} />
-        <Route path="about" element={<AboutPage />} />
-        <Route path="contact" element={<ContactPage />} />
-        <Route path="help-center" element={<HelpCenterPage />} />
+      </Route>
 
-        <Route element={<ProtectedRoute role="client" redirectTo="/login" />}>
-          <Route path="profile" element={<ProfilePage />} />
-          <Route path="my-bookings" element={<ClientBookingsPage />} />
-          <Route path="reviews/new" element={<ClientAddReviewPage />} />
-          <Route path="service-order" element={<ClientServiceOrderPage />} />
+      {/* Guest-only protected pages */}
+      <Route element={<ProtectedRoute redirectTo="/login" />}>
+        <Route path="/profile" element={<GuestLayout />}>
+          <Route index element={<ProfilePage />} />
         </Route>
       </Route>
 
-      <Route element={<ProtectedRoute role="admin" redirectTo="/dashboard/login" />}>
+      {/* Dashboard protected pages */}
+      <Route element={<ProtectedRoute redirectTo="/dashboard/login" />}>
         <Route path="/dashboard" element={<AdminLayout />}>
           <Route index element={<DashboardPage />} />
           <Route path="bookings" element={<BookingsPage />} />
