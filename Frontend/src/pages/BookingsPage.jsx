@@ -26,6 +26,7 @@ import {
   faCircleInfo
 } from '@fortawesome/free-solid-svg-icons';
 import { dashboardApi, getApiErrorMessage } from '../services/api.js';
+import { formatDate, getTodayInputValue, toDateInputValue } from '../utils/date.js';
 
 const bookingStatuses = ['Pending', 'Confirmed', 'CheckedIn', 'CheckedOut', 'Cancelled'];
 
@@ -54,16 +55,12 @@ const statusVariant = (status = '') => {
   return 'secondary';
 };
 
-const toDateInput = (value) => {
-  if (!value) return '';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '';
-  return date.toISOString().slice(0, 10);
-};
+const toDateInput = toDateInputValue;
 
 const bookingId = (booking) => booking?._id || booking?.id || '';
 const guestName = (booking) => booking?.guestId?.fullName || booking?.guestName || 'Unknown Guest';
 const roomNumber = (booking) => booking?.roomId?.roomNumber || booking?.roomNumber || 'N/A';
+const bookingSource = (booking) => booking?.source === 'GuestPortal' ? 'Guest Website' : 'Dashboard';
 
 const feedbackMeta = (type = 'info') => {
   if (type === 'success') return { title: 'Success', icon: faCircleCheck, tone: 'success' };
@@ -158,7 +155,7 @@ function BookingsPage() {
 
   const filteredBookings = useMemo(() => {
     return bookings.filter((booking) => {
-      const target = `${guestName(booking)} ${booking?.guestId?.email || ''} ${roomNumber(booking)} ${bookingId(booking)}`.toLowerCase();
+      const target = `${guestName(booking)} ${booking?.guestId?.email || ''} ${roomNumber(booking)} ${bookingId(booking)} ${bookingSource(booking)}`.toLowerCase();
       const matchesSearch = target.includes(search.toLowerCase());
       const matchesStatus = statusFilter === 'All' || booking.status === statusFilter;
       return matchesSearch && matchesStatus;
@@ -280,7 +277,8 @@ function BookingsPage() {
     total: bookings.length,
     pending: bookings.filter((booking) => booking.status === 'Pending').length,
     confirmed: bookings.filter((booking) => ['Confirmed', 'CheckedIn'].includes(booking.status)).length,
-    cancelled: bookings.filter((booking) => booking.status === 'Cancelled').length
+    cancelled: bookings.filter((booking) => booking.status === 'Cancelled').length,
+    website: bookings.filter((booking) => booking.source === 'GuestPortal').length
   }), [bookings]);
 
   return (
@@ -321,7 +319,7 @@ function BookingsPage() {
         <Col md={3}><Card className="border-0 shadow-sm h-100"><Card.Body><p className="text-muted mb-1">Total</p><h3 className="fw-bold mb-0">{stats.total}</h3></Card.Body></Card></Col>
         <Col md={3}><Card className="border-0 shadow-sm h-100"><Card.Body><p className="text-muted mb-1">Confirmed / Checked In</p><h3 className="fw-bold mb-0">{stats.confirmed}</h3></Card.Body></Card></Col>
         <Col md={3}><Card className="border-0 shadow-sm h-100"><Card.Body><p className="text-muted mb-1">Pending</p><h3 className="fw-bold mb-0">{stats.pending}</h3></Card.Body></Card></Col>
-        <Col md={3}><Card className="border-0 shadow-sm h-100"><Card.Body><p className="text-muted mb-1">Cancelled</p><h3 className="fw-bold mb-0">{stats.cancelled}</h3></Card.Body></Card></Col>
+        <Col md={3}><Card className="border-0 shadow-sm h-100"><Card.Body><p className="text-muted mb-1">From Website</p><h3 className="fw-bold mb-0">{stats.website}</h3></Card.Body></Card></Col>
       </Row>
 
       <Card className="border-0 shadow-sm">
@@ -357,17 +355,18 @@ function BookingsPage() {
                   <th>Check-in</th>
                   <th>Check-out</th>
                   <th>Status</th>
+                  <th>Source</th>
                   <th className="text-center">Total</th>
                   <th className="text-center">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {loading && (
-                  <tr><td colSpan="8" className="text-center py-4"><Spinner size="sm" className="me-2" />Loading bookings...</td></tr>
+                  <tr><td colSpan="9" className="text-center py-4"><Spinner size="sm" className="me-2" />Loading bookings...</td></tr>
                 )}
 
                 {!loading && filteredBookings.length === 0 && (
-                  <tr><td colSpan="8" className="text-center text-muted py-4">No bookings found.</td></tr>
+                  <tr><td colSpan="9" className="text-center text-muted py-4">No bookings found.</td></tr>
                 )}
 
                 {!loading && filteredBookings.map((booking) => (
@@ -378,9 +377,10 @@ function BookingsPage() {
                       <small className="text-muted">{booking?.guestId?.email || 'No email'}</small>
                     </td>
                     <td>{roomNumber(booking)}</td>
-                    <td>{toDateInput(booking.checkInDate) || 'N/A'}</td>
-                    <td>{toDateInput(booking.checkOutDate) || 'N/A'}</td>
+                    <td>{formatDate(booking.checkInDate)}</td>
+                    <td>{formatDate(booking.checkOutDate)}</td>
                     <td><Badge bg={statusVariant(booking.status)}>{booking.status || 'Pending'}</Badge></td>
+                    <td><Badge bg={booking.source === 'GuestPortal' ? 'info' : 'secondary'}>{bookingSource(booking)}</Badge></td>
                     <td className="text-center fw-semibold">${Number(booking.totalPrice || 0).toLocaleString()}</td>
                     <td className="text-center">
                       <ButtonGroup size="sm">
@@ -425,11 +425,11 @@ function BookingsPage() {
               </Col>
               <Col md={6}>
                 <Form.Label>Check-in Date</Form.Label>
-                <Form.Control required type="date" value={createForm.checkInDate} onChange={(event) => setCreateForm({ ...createForm, checkInDate: event.target.value })} />
+                <Form.Control required type="date" min={getTodayInputValue()} value={createForm.checkInDate} onChange={(event) => setCreateForm({ ...createForm, checkInDate: event.target.value })} />
               </Col>
               <Col md={6}>
                 <Form.Label>Check-out Date</Form.Label>
-                <Form.Control required type="date" value={createForm.checkOutDate} onChange={(event) => setCreateForm({ ...createForm, checkOutDate: event.target.value })} />
+                <Form.Control required type="date" min={createForm.checkInDate || getTodayInputValue()} value={createForm.checkOutDate} onChange={(event) => setCreateForm({ ...createForm, checkOutDate: event.target.value })} />
               </Col>
               <Col md={6}>
                 <Form.Label>Total Price</Form.Label>
@@ -455,11 +455,11 @@ function BookingsPage() {
             <Row className="g-3">
               <Col md={6}>
                 <Form.Label>Check-in Date</Form.Label>
-                <Form.Control type="date" value={editForm.checkInDate} onChange={(event) => setEditForm({ ...editForm, checkInDate: event.target.value })} />
+                <Form.Control type="date" min={getTodayInputValue()} value={editForm.checkInDate} onChange={(event) => setEditForm({ ...editForm, checkInDate: event.target.value })} />
               </Col>
               <Col md={6}>
                 <Form.Label>Check-out Date</Form.Label>
-                <Form.Control type="date" value={editForm.checkOutDate} onChange={(event) => setEditForm({ ...editForm, checkOutDate: event.target.value })} />
+                <Form.Control type="date" min={editForm.checkInDate || getTodayInputValue()} value={editForm.checkOutDate} onChange={(event) => setEditForm({ ...editForm, checkOutDate: event.target.value })} />
               </Col>
               <Col md={6}>
                 <Form.Label>Status</Form.Label>
@@ -492,11 +492,12 @@ function BookingsPage() {
               <div><strong>ID:</strong> {bookingId(selectedBooking)}</div>
               <div><strong>Guest:</strong> {selectedBooking?.guestId?.fullName || 'N/A'}</div>
               <div><strong>Room:</strong> {selectedBooking?.roomId?.roomNumber || 'N/A'}</div>
-              <div><strong>Check-in:</strong> {toDateInput(selectedBooking.checkInDate)}</div>
-              <div><strong>Check-out:</strong> {toDateInput(selectedBooking.checkOutDate)}</div>
+              <div><strong>Check-in:</strong> {formatDate(selectedBooking.checkInDate)}</div>
+              <div><strong>Check-out:</strong> {formatDate(selectedBooking.checkOutDate)}</div>
               <div><strong>Status:</strong> <Badge bg={statusVariant(selectedBooking.status)}>{selectedBooking.status}</Badge></div>
               <div><strong>Total:</strong> ${Number(selectedBooking.totalPrice || 0).toLocaleString()}</div>
               <div><strong>Payment:</strong> {selectedBooking.paymentStatus || 'N/A'}</div>
+              <div><strong>Source:</strong> {bookingSource(selectedBooking)}</div>
               <div><strong>Special Requests:</strong> {selectedBooking.specialRequests || 'N/A'}</div>
               {selectedBooking.cancelReason && <div><strong>Cancel Reason:</strong> {selectedBooking.cancelReason}</div>}
             </div>

@@ -180,7 +180,6 @@ export const getProfileImage = async (
 ): Promise<void> => {
   try {
     const guest: IGuest | null = res.locals.user;
-    console.log(res.locals.user);
     if (!guest || !guest.avatar) {
       res.status(500).json({
         success: false,
@@ -246,7 +245,6 @@ export const removeProfileImage = async (
 ): Promise<void> => {
   try {
     const guest: IGuest | null = await Guest.findById(res.locals.user.id).select('avatar');
-    console.log(res.locals.user);
     if (!guest || !guest.avatar) {
       res.status(500).json({
         success: false,
@@ -275,7 +273,7 @@ export const getBookingHistory = async (
   res: Response<ApiResponse<BookingHistoryData>>
 ): Promise<void> => {
   try {
-    const bookings: IBooking[] = await Booking.find({ guestId: req.params.id })
+    const bookings: IBooking[] = await Booking.find({ guestId: res.locals.user._id })
       .populate('roomId')
       .sort({ createdAt: -1 });
 
@@ -298,7 +296,7 @@ export const getUserReviews = async (
   res: Response<ApiResponse<UserReviewsData>>
 ): Promise<void> => {
   try {
-    const reviews: IReview[] = await Review.find({ guestId: req.params.id })
+    const reviews: IReview[] = await Review.find({ guestId: res.locals.user._id })
       .populate('bookingId')
       .sort({ createdAt: -1 });
 

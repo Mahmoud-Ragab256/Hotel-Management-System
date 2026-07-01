@@ -27,6 +27,7 @@ import {
   faCircleInfo
 } from '@fortawesome/free-solid-svg-icons';
 import { dashboardApi, getApiErrorMessage } from '../services/api.js';
+import { formatDate } from '../utils/date.js';
 
 const getEmployeeFromToken = () => {
   try {
@@ -50,13 +51,6 @@ const statusVariant = (status = '') => {
   if (status === 'Pending') return 'warning';
   if (status === 'Cancelled') return 'danger';
   return 'secondary';
-};
-
-const formatDate = (value) => {
-  if (!value) return 'N/A';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return 'N/A';
-  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 };
 
 const invoiceId = (invoice) => invoice?._id || invoice?.id || '';

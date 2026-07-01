@@ -3,6 +3,7 @@ import { Booking } from '../../../DB/Models/booking.model.js';
 import { Room } from '../../../DB/Models/room.model.js';
 import { IBooking } from '../../../DB/Models/booking.model.js';
 import { IRoom } from '../../../DB/Models/room.model.js';
+import { Invoice, IInvoice, PaymentMethod } from '../../../DB/Models/invoice.model.js';
 
 
 interface CreateBookingBody {
@@ -12,6 +13,8 @@ interface CreateBookingBody {
   checkOutDate: string;
   totalPrice: number;
   specialRequests?: string;
+  paymentMethod?: PaymentMethod;
+  paidAmount?: number;
 }
 
 interface UpdateBookingBody {
@@ -33,6 +36,7 @@ interface BookingsData {
 
 interface BookingData {
   booking: IBooking;
+  invoice?: IInvoice | null;
 }
 
 
@@ -52,7 +56,8 @@ export const getAllBookings = async (
   try {
     const bookings: IBooking[] = await Booking.find()
       .populate('guestId', 'fullName email phone')
-      .populate('roomId', 'roomNumber status');
+      .populate('roomId', 'roomNumber status')
+      .sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
@@ -122,14 +127,42 @@ export const createBooking = async (
       return;
     }
 
-    const booking: IBooking = await Booking.create(req.body);
+    const checkIn = new Date(req.body.checkInDate);
+    const checkOut = new Date(req.body.checkOutDate);
+
+    if (Number.isNaN(checkIn.getTime()) || Number.isNaN(checkOut.getTime()) || checkOut <= checkIn) {
+      res.status(400).json({
+        success: false,
+        message: 'Check-out date must be after check-in date',
+      });
+      return;
+    }
+
+    const { paymentMethod = 'Cash', paidAmount = 0, ...bookingPayload } = req.body;
+
+    const booking: IBooking = await Booking.create({
+      ...bookingPayload,
+      checkInDate: checkIn,
+      checkOutDate: checkOut,
+      source: 'Dashboard',
+      lifecycleStage: 'BookingCreated',
+    });
 
     await Room.findByIdAndUpdate(roomId, { status: 'Occupied' });
 
+    const invoice: IInvoice = await Invoice.create({
+      bookingId: booking._id,
+      employeeId: res.locals.user?._id,
+      totalAmount: booking.totalPrice,
+      paidAmount,
+      status: paidAmount >= booking.totalPrice && booking.totalPrice > 0 ? 'Paid' : 'Pending',
+      method: paymentMethod,
+    });
+
     res.status(201).json({
       success: true,
-      message: 'Booking created successfully',
-      data: { booking },
+      message: 'Booking and invoice created successfully',
+      data: { booking, invoice },
     });
   } catch (error) {
     res.status(500).json({
@@ -145,6 +178,16 @@ export const updateBooking = async (
   res: Response<ApiResponse<BookingData>>
 ): Promise<void> => {
   try {
+    const bookingBeforeUpdate: IBooking | null = await Booking.findById(req.params.id);
+
+    if (!bookingBeforeUpdate) {
+      res.status(404).json({
+        success: false,
+        message: 'Booking not found',
+      });
+      return;
+    }
+
     const booking: IBooking | null = await Booking.findByIdAndUpdate(
       req.params.id,
       req.body,
@@ -159,10 +202,37 @@ export const updateBooking = async (
       return;
     }
 
+    let invoice: IInvoice | null = null;
+
+    if (req.body.totalPrice !== undefined) {
+      invoice = await Invoice.findOneAndUpdate(
+        { bookingId: booking._id },
+        { totalAmount: req.body.totalPrice },
+        { new: true }
+      );
+    }
+
+    if (req.body.status && req.body.status !== bookingBeforeUpdate.status) {
+      booking.lifecycleStage = req.body.status;
+      await booking.save();
+    }
+
+    if (req.body.status === 'Cancelled' && bookingBeforeUpdate.status !== 'Cancelled') {
+      booking.cancelledAt = booking.cancelledAt || new Date();
+      booking.lifecycleStage = 'Cancelled';
+      await booking.save();
+      await Room.findByIdAndUpdate(booking.roomId, { status: 'Available' });
+      invoice = await Invoice.findOneAndUpdate(
+        { bookingId: booking._id },
+        { status: 'Cancelled' },
+        { new: true }
+      );
+    }
+
     res.status(200).json({
       success: true,
       message: 'Booking updated successfully',
-      data: { booking },
+      data: { booking, invoice },
     });
   } catch (error) {
     res.status(500).json({
@@ -186,6 +256,7 @@ export const cancelBooking = async (
         status: 'Cancelled',
         cancelledAt: new Date(),
         cancelReason,
+        lifecycleStage: 'Cancelled',
       },
       { new: true }
     );
@@ -200,10 +271,16 @@ export const cancelBooking = async (
 
     await Room.findByIdAndUpdate(booking.roomId, { status: 'Available' });
 
+    const invoice: IInvoice | null = await Invoice.findOneAndUpdate(
+      { bookingId: booking._id },
+      { status: 'Cancelled' },
+      { new: true }
+    );
+
     res.status(200).json({
       success: true,
-      message: 'Booking cancelled successfully',
-      data: { booking },
+      message: 'Booking and invoice cancelled successfully',
+      data: { booking, invoice },
     });
   } catch (error) {
     res.status(500).json({

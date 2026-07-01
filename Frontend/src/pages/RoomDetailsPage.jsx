@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { dashboardApi, getApiErrorMessage } from '../services/api.js';
-import { getCurrentUser, isAuthenticated } from '../services/auth.js';
+import { clientApi, getApiErrorMessage } from '../services/api.js';
+import { getClientUser, isClientAuthenticated } from '../services/auth.js';
+import { calculateNights, getTodayInputValue } from '../utils/date.js';
+import '../styles/clientPages.css';
 
 const BASE_URL =
   import.meta.env?.VITE_API_BASE_URL ||
-  'https://hotel-management-system-sigma-ruby.vercel.app';
+  'http://localhost:3000';
 
 const resolveImageUrl = (img) => {
   if (!img) return null;
@@ -31,16 +33,12 @@ function StatusPill({ status }) {
 
 function BookingForm({ room, onSuccess }) {
   const basePrice = room.categoryId?.basePrice || 0;
-  const today = new Date().toISOString().slice(0, 10);
+  const today = getTodayInputValue();
   const [form, setForm] = useState({ checkInDate: '', checkOutDate: '', specialRequests: '' });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
-  const nights = useMemo(() => {
-    if (!form.checkInDate || !form.checkOutDate) return 0;
-    const diff = new Date(form.checkOutDate) - new Date(form.checkInDate);
-    return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
-  }, [form.checkInDate, form.checkOutDate]);
+  const nights = useMemo(() => calculateNights(form.checkInDate, form.checkOutDate), [form.checkInDate, form.checkOutDate]);
 
   const totalPrice = nights * basePrice;
 
@@ -48,17 +46,16 @@ function BookingForm({ room, onSuccess }) {
     e.preventDefault();
     setError(null);
     if (nights <= 0) { setError('Check-out must be after check-in.'); return; }
-    const user = getCurrentUser();
-    const guestId = user?._id || user?.id;
-    if (!guestId) { setError('Could not find your account. Please login again.'); return; }
+    const user = getClientUser();
+    if (!user) { setError('Please login first to complete this booking.'); return; }
     setSaving(true);
     try {
-      await dashboardApi.createBooking({
-        guestId,
+      await clientApi.createBooking({
         roomId: room._id || room.id,
         checkInDate: form.checkInDate,
         checkOutDate: form.checkOutDate,
         totalPrice,
+        paymentMethod: 'Cash',
         specialRequests: form.specialRequests,
       });
       onSuccess();
@@ -136,14 +133,13 @@ export default function RoomDetailsPage() {
   const [bookingDone, setBookingDone] = useState(false);
 
   useEffect(() => {
-    if (!isAuthenticated()) { navigate('/guest-login'); return; }
     (async () => {
       setLoading(true);
       setError(null);
       try {
         const [roomData, imagesData] = await Promise.all([
-          dashboardApi.getRoom(id),
-          dashboardApi.getRoomImages(id),
+          clientApi.getRoom(id),
+          clientApi.getRoomImages(id),
         ]);
         console.log("Room:", roomData);
   console.log("Images:", imagesData);
@@ -188,13 +184,13 @@ export default function RoomDetailsPage() {
 
   if (bookingDone) return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Inter', system-ui, sans-serif", background: '#f8fafc', padding: 24 }}>
-      <div style={{ background: '#fff', borderRadius: 20, padding: '48px 40px', textAlign: 'center', maxWidth: 420, width: '100%', boxShadow: '0 8px 32px rgba(0,0,0,0.08)' }}>
+      <div style={{ background: '#fff', borderRadius: 20, padding: '48px 40px', textAlign: 'center', maxWidth: 620, width: '100%', boxShadow: '0 8px 32px rgba(0,0,0,0.08)' }}>
         <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#d1fae5', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
           <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="#059669" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
         </div>
         <div style={{ fontSize: 22, fontWeight: 800, color: '#0f172a', marginBottom: 10 }}>Booking Confirmed!</div>
-        <div style={{ fontSize: 14, color: '#64748b', lineHeight: 1.6, marginBottom: 28 }}>Room #{room.roomNumber} has been booked successfully.</div>
-        <button onClick={() => navigate('/rooms')} style={{ padding: '12px 32px', borderRadius: 10, border: 'none', background: '#0ea5e9', color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>← Back to Rooms</button>
+        <div style={{ fontSize: 14, color: '#64748b', lineHeight: 1.6, marginBottom: 28 }}>Room #{room.roomNumber} has been booked successfully. It is now visible in the admin dashboard bookings and invoices.</div>
+        <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}><button onClick={() => navigate('/my-bookings')} style={{ padding: '12px 24px', borderRadius: 10, border: 'none', background: '#0ea5e9', color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>View My Bookings</button><button onClick={() => navigate('/rooms')} style={{ padding: '12px 24px', borderRadius: 10, border: '1px solid #cbd5e1', background: '#fff', color: '#0f172a', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>Back to Rooms</button></div>
       </div>
     </div>
   );
@@ -293,9 +289,33 @@ export default function RoomDetailsPage() {
           <div style={{ position: 'sticky', top: 24 }}>
             <div style={{ background: '#fff', borderRadius: 16, padding: 28, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
               <div style={{ fontSize: 18, fontWeight: 800, color: '#0f172a', marginBottom: 4 }}>Book This Room</div>
-              <div style={{ fontSize: 13, color: '#94a3b8', marginBottom: 20 }}>Fill in your dates to confirm your stay.</div>
+              <div style={{ fontSize: 13, color: '#94a3b8', marginBottom: 14 }}>Fill in your dates to confirm your stay.</div>
               {room.status === 'Available' ? (
-                <BookingForm room={room} onSuccess={() => setBookingDone(true)} />
+                isClientAuthenticated() ? (
+                  <BookingForm room={room} onSuccess={() => setBookingDone(true)} />
+                ) : (
+                  <div style={{ background: '#f8fafc', borderRadius: 12, padding: 20 }}>
+                    <p style={{ fontSize: 14, color: '#475569', lineHeight: 1.7, margin: '0 0 16px' }}>
+                      You can view all room details without an account. Login or create a guest account only when you are ready to confirm your booking.
+                    </p>
+                    <div style={{ display: 'grid', gap: 10 }}>
+                      <button
+                        type="button"
+                        onClick={() => navigate('/login', { state: { from: { pathname: `/rooms/${id}` } } })}
+                        style={{ width: '100%', padding: '14px 0', borderRadius: 12, border: 'none', background: '#0ea5e9', color: '#fff', fontWeight: 700, fontSize: 15, cursor: 'pointer' }}
+                      >
+                        Login to Book
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => navigate('/signup', { state: { from: { pathname: `/rooms/${id}` } } })}
+                        style={{ width: '100%', padding: '13px 0', borderRadius: 12, border: '1px solid #cbd5e1', background: '#fff', color: '#0f172a', fontWeight: 700, fontSize: 15, cursor: 'pointer' }}
+                      >
+                        Create Account to Book
+                      </button>
+                    </div>
+                  </div>
+                )
               ) : (
                 <div style={{ background: '#f8fafc', borderRadius: 10, padding: '20px', textAlign: 'center' }}>
                   <StatusPill status={room.status} />

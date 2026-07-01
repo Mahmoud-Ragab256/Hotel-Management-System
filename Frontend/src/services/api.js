@@ -1,14 +1,16 @@
 import axios from 'axios';
 
-import { getAuthToken } from './auth.js';
+import { getTokenForRequest } from './auth.js';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://hotel-management-system-sigma-ruby.vercel.app',
+  baseURL: API_BASE_URL,
   timeout: 15000
 });
 
 api.interceptors.request.use((config) => {
-  const token = getAuthToken();
+  const token = getTokenForRequest(config.url);
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -26,6 +28,155 @@ export const getApiErrorMessage = (error) => {
   );
 };
 
+
+export const clientApi = {
+  async getLandingPageData() {
+    const response = await api.get('/client/landing');
+    return response?.data?.data || null;
+  },
+
+  async getStatistics() {
+    const response = await api.get('/client/landing/statistics');
+    return response?.data?.data || null;
+  },
+
+  async getFeaturedCategories() {
+    const response = await api.get('/client/landing/featured-categories');
+    return readArray(response, 'categories');
+  },
+
+  async getRooms() {
+    const response = await api.get('/client/rooms');
+    return readArray(response, 'rooms');
+  },
+
+  async getAvailableRooms() {
+    const response = await api.get('/client/rooms/available');
+    return readArray(response, 'rooms');
+  },
+
+  async getRoomCategories() {
+    const response = await api.get('/client/rooms/categories');
+    return readArray(response, 'categories');
+  },
+
+  async getRoom(id) {
+    const response = await api.get(`/client/rooms/${id}`);
+    return readObject(response, 'room');
+  },
+
+  async getRoomImages(id) {
+    const response = await api.get(`/client/rooms/${id}/images`);
+    return response?.data?.data || [];
+  },
+
+  async searchRooms(payload) {
+    const response = await api.post('/client/rooms/search', payload);
+    return readArray(response, 'rooms');
+  },
+
+  async getServices() {
+    const response = await api.get('/client/services');
+    return readArray(response, 'services');
+  },
+
+  async getReviews() {
+    const response = await api.get('/client/reviews');
+    return readArray(response, 'reviews');
+  },
+
+  async register(payload) {
+    const response = await api.post('/client/auth/register', payload);
+    return {
+      token: response?.data?.token || '',
+      user: response?.data?.data || null
+    };
+  },
+
+  async login(payload) {
+    const response = await api.post('/client/auth/login', payload);
+    return {
+      token: response?.data?.token || '',
+      user: response?.data?.data || null
+    };
+  },
+
+  async forgotPassword(payload) {
+    const response = await api.post('/client/auth/forgot-password', payload);
+    return response?.data || null;
+  },
+
+  async verifyResetCode(payload) {
+    const response = await api.post('/client/auth/reset-code', payload);
+    return response?.data || null;
+  },
+
+  async resetPassword(payload) {
+    const response = await api.post('/client/auth/reset-password', payload);
+    return response?.data || null;
+  },
+
+  async createBooking(payload) {
+    const response = await api.post('/client/booking', payload);
+    return response?.data?.data || null;
+  },
+
+  async getBooking(id) {
+    const response = await api.get(`/client/booking/${id}`);
+    return response?.data?.data || null;
+  },
+
+  async cancelBooking(id, cancelReason = '') {
+    const response = await api.put(`/client/booking/${id}/cancel`, { cancelReason });
+    return response.data;
+  },
+
+  async getMe() {
+    const response = await api.get('/client/me');
+    return readObject(response, 'guest');
+  },
+
+  async updateMe(payload) {
+    const response = await api.put('/client/me', payload);
+    return readObject(response, 'guest');
+  },
+
+  async getMyBookings() {
+    const response = await api.get('/client/me/bookings');
+    return readArray(response, 'bookings');
+  },
+
+  async getMyReviews() {
+    const response = await api.get('/client/me/reviews');
+    return readArray(response, 'reviews');
+  },
+
+  async updateProfileImage(formData) {
+    const response = await api.put('/client/me/avatar', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+    return readObject(response, 'avatar');
+  },
+
+  async removeProfileImage() {
+    const response = await api.delete('/client/me/avatar');
+    return readObject(response, 'avatar');
+  },
+
+  async changePassword({ currentPassword, newPassword, confirmPassword }) {
+    const response = await api.put('/client/me/change-password', { currentPassword, newPassword, confirmPassword });
+    return response?.data || null;
+  },
+
+  async createReview(payload) {
+    const response = await api.post('/client/reviews', payload);
+    return readObject(response, 'review');
+  },
+
+  async createServiceOrder(payload) {
+    const response = await api.post('/client/services/orders', payload);
+    return readObject(response, 'order');
+  }
+};
+
 export const dashboardApi = {
   async login(payload) {
     const response = await api.post('/dashboard/auth/login', payload);
@@ -33,6 +184,21 @@ export const dashboardApi = {
       token: response?.data?.token || '',
       user: response?.data?.data || null
     };
+  },
+
+  async forgotPassword(payload) {
+    const response = await api.post('/dashboard/auth/forgot-password', payload);
+    return response?.data || null;
+  },
+
+  async verifyResetCode(payload) {
+    const response = await api.post('/dashboard/auth/reset-code', payload);
+    return response?.data || null;
+  },
+
+  async resetPassword(payload) {
+    const response = await api.post('/dashboard/auth/reset-password', payload);
+    return response?.data || null;
   },
 
   async getBookings() {

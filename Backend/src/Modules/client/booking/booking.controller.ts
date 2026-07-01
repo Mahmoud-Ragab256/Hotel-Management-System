@@ -43,17 +43,35 @@ export const createBooking = async (
   res: Response<ApiResponse<CreateBookingData>>
 ): Promise<void> => {
   try {
+    const guest = res.locals.user;
     const {
-      guestId,
       roomId,
       checkInDate,
       checkOutDate,
       specialRequests,
-      totalPrice,
-      paymentMethod
-    } = req.body;
+      paymentMethod = 'Cash'
+    } = req.body as CreateBookingBody & { paymentMethod?: string };
 
-    const room = await Room.findById(roomId);
+    if (!guest?._id) {
+      res.status(401).json({ success: false, message: 'Please login again' });
+      return;
+    }
+
+    if (!roomId || !checkInDate || !checkOutDate) {
+      res.status(400).json({ success: false, message: 'Room, check-in, and check-out dates are required' });
+      return;
+    }
+
+    const checkIn = new Date(checkInDate);
+    const checkOut = new Date(checkOutDate);
+    const nights = Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
+
+    if (Number.isNaN(checkIn.getTime()) || Number.isNaN(checkOut.getTime()) || nights <= 0) {
+      res.status(400).json({ success: false, message: 'Check-out date must be after check-in date' });
+      return;
+    }
+
+    const room = await Room.findById(roomId).populate('categoryId');
     if (!room || room.status !== 'Available') {
       res.status(400).json({
         success: false,
@@ -62,13 +80,18 @@ export const createBooking = async (
       return;
     }
 
+    const basePrice = Number((room as any).categoryId?.basePrice || 0);
+    const totalPrice = basePrice > 0 ? basePrice * nights : Number(req.body.totalPrice || 0);
+
     const booking: IBooking = await Booking.create({
-      guestId,
+      guestId: guest._id,
       roomId,
-      checkInDate,
-      checkOutDate,
+      checkInDate: checkIn,
+      checkOutDate: checkOut,
       totalPrice,
       status: 'Pending',
+      source: 'GuestPortal',
+      lifecycleStage: 'BookingCreated',
       specialRequests,
     });
 
@@ -100,12 +123,12 @@ export const createBooking = async (
   }
 };
 
-
 export const getBookingDetails = async (
   req: Request<{ id: string }>,
   res: Response<ApiResponse<BookingDetailsData>>
 ): Promise<void> => {
   try {
+    const guest = res.locals.user;
     const booking = await Booking.findById(req.params.id)
       .populate('guestId', 'fullName email phone')
       .populate('roomId');
@@ -115,6 +138,11 @@ export const getBookingDetails = async (
         success: false,
         message: 'Booking not found',
       });
+      return;
+    }
+
+    if (String((booking as any).guestId?._id || (booking as any).guestId) !== String(guest._id)) {
+      res.status(403).json({ success: false, message: 'You do not have access to this booking' });
       return;
     }
 
@@ -141,7 +169,7 @@ export const getUserBookings = async (
   res: Response<ApiResponse<IBooking[]>>
 ): Promise<void> => {
   try {
-    const { guestId } = req.params;
+    const guestId = res.locals.user?._id || req.params.guestId;
 
     const bookings: IBooking[] = await Booking.find({ guestId })
       .populate('roomId')
@@ -166,6 +194,7 @@ export const cancelBooking = async (
   res: Response<ApiResponse>
 ): Promise<void> => {
   try {
+    const guest = res.locals.user;
     const booking: IBooking | null = await Booking.findById(req.params.id);
 
     if (!booking) {
@@ -173,6 +202,11 @@ export const cancelBooking = async (
         success: false,
         message: 'Booking not found',
       });
+      return;
+    }
+
+    if (String(booking.guestId) !== String(guest._id)) {
+      res.status(403).json({ success: false, message: 'You do not have access to this booking' });
       return;
     }
 
@@ -185,14 +219,23 @@ export const cancelBooking = async (
     }
 
     booking.status = 'Cancelled';
+    booking.lifecycleStage = 'Cancelled';
     booking.cancelledAt = new Date();
+    booking.cancelReason = req.body?.cancelReason || 'Cancelled by guest';
     await booking.save();
 
     await Room.findByIdAndUpdate(booking.roomId, { status: 'Available' });
 
+    const invoice = await Invoice.findOneAndUpdate(
+      { bookingId: booking._id },
+      { status: 'Cancelled' },
+      { new: true }
+    );
+
     res.status(200).json({
       success: true,
-      message: 'Booking cancelled successfully',
+      message: 'Booking and invoice cancelled successfully',
+      data: { booking, invoice },
     });
   } catch (error) {
     res.status(500).json({

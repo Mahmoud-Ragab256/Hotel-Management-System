@@ -23,6 +23,7 @@ import {
 import FeedbackCard from '../components/FeedbackCard.jsx';
 import StatCard from '../components/StatCard.jsx';
 import { dashboardApi, getApiErrorMessage } from '../services/api.js';
+import { formatDateTime } from '../utils/date.js';
 
 const serviceCategories = ['RoomService', 'Spa', 'Laundry', 'Restaurant', 'Transport', 'Other'];
 
@@ -220,7 +221,7 @@ function ServicesPage() {
               <div><strong>Price:</strong> ${selectedService.price}</div>
               <div><strong>Max Capacity:</strong> {selectedService.maxCapacity} Person</div>
               <div><strong>Status:</strong> <Badge bg={selectedService.isAvailable ? 'success' : 'danger'}>{selectedService.isAvailable ? 'Available' : 'Unavailable'}</Badge></div>
-              <div><strong>Created At:</strong> {selectedService.createdAt ? new Date(selectedService.createdAt).toLocaleString() : 'N/A'}</div>
+              <div><strong>Created At:</strong> {selectedService.createdAt ? formatDateTime(selectedService.createdAt) : 'N/A'}</div>
             </div>
           )}
         </Modal.Body>

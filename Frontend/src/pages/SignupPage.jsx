@@ -10,7 +10,7 @@ import {
   Spinner
 } from 'react-bootstrap';
 
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
@@ -27,8 +27,8 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 
 import FeedbackCard from '../components/FeedbackCard.jsx';
-import { dashboardApi, getApiErrorMessage } from '../services/api.js';
-import { saveAuthSession } from '../services/auth.js';
+import { clientApi, getApiErrorMessage } from '../services/api.js';
+import { saveClientSession } from '../services/auth.js';
 
 const initialForm = {
   fullName: '',
@@ -41,6 +41,8 @@ const initialForm = {
 
 function SignupPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const redirectTo = location.state?.from?.pathname || '/my-bookings';
 
   const [form, setForm] = useState(initialForm);
   const [loading, setLoading] = useState(false);
@@ -85,7 +87,7 @@ function SignupPage() {
     setLoading(true);
 
     try {
-      const session = await dashboardApi.guestRegister({
+      const session = await clientApi.register({
         fullName: form.fullName,
         email: form.email,
         password: form.password,
@@ -94,12 +96,12 @@ function SignupPage() {
       });
       
 
-      saveAuthSession({
+      saveClientSession({
         token: session.token,
         user: session.user
       });
 
-      navigate('/guest-login');
+      navigate(redirectTo, { replace: true });
     } catch (error) {
       setFeedback({
         type: 'danger',
@@ -274,7 +276,7 @@ function SignupPage() {
 
 <div className="text-center mt-3">
   Already have an account?{' '}
-  <Link to="/guest-login">
+  <Link to="/login" state={location.state}>
     Login
   </Link>
 </div>

@@ -1,13 +1,15 @@
  import React, { useEffect, useState } from 'react';
-import { Row, Col, Table, Card, Spinner, Alert } from 'react-bootstrap';
+import { Row, Col, Table, Card, Spinner, Alert, Badge } from 'react-bootstrap';
 import { dashboardApi, getApiErrorMessage } from '../services/api';
+import { formatDate } from '../utils/date';
 import StatCard from '../components/StatCard';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faBed, 
   faCalendarCheck, 
   faDollarSign, 
   faClipboardList, 
-  faTools 
+  faTools,
 } from '@fortawesome/free-solid-svg-icons';
 
 
@@ -124,6 +126,9 @@ function DashboardPage() {
     plugins: { legend: { display: false } }
   };
 
+  const guestPortal = stats.guestPortal || { total: stats.cards?.guestPortalBookings?.value || 0, pending: 0 };
+  const recentGuests = stats.recentGuests || [];
+
   return (
     <div className="dashboard-wrapper">
       <Row className="g-4 mb-4">
@@ -174,6 +179,79 @@ function DashboardPage() {
         </Col>
       </Row>
 
+      <Row className="g-4 mb-4">
+        <Col xs={12}>
+          <Card className="border-0 shadow-sm h-100 p-4">
+            <Card.Body>
+              <div className="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+                <div>
+                  <h5 className="fw-bold mb-1">Guest Website Activity</h5>
+                  <small className="text-muted">
+                    Website bookings, pending website bookings, and recent guest registrations in one place.
+                  </small>
+                </div>
+                <Badge bg="primary">Client Portal</Badge>
+              </div>
+
+              <Row className="g-3 mb-4">
+                <Col md={4}>
+                  <div className="border rounded-4 p-3 h-100 bg-light-subtle">
+                    <div className="text-muted small mb-2">Website bookings</div>
+                    <div className="d-flex align-items-center justify-content-between">
+                      <strong className="fs-3">{guestPortal.total}</strong>
+                      <Badge bg="info">Guest Website</Badge>
+                    </div>
+                  </div>
+                </Col>
+                <Col md={4}>
+                  <div className="border rounded-4 p-3 h-100 bg-light-subtle">
+                    <div className="text-muted small mb-2">Pending website bookings</div>
+                    <div className="d-flex align-items-center justify-content-between">
+                      <strong className="fs-3">{guestPortal.pending}</strong>
+                      <Badge bg="warning" text="dark">Pending</Badge>
+                    </div>
+                  </div>
+                </Col>
+                <Col md={4}>
+                  <div className="border rounded-4 p-3 h-100 bg-light-subtle">
+                    <div className="text-muted small mb-2">Recent guest registrations</div>
+                    <div className="d-flex align-items-center justify-content-between">
+                      <strong className="fs-3">{recentGuests.length}</strong>
+                      <Badge bg="secondary">Latest</Badge>
+                    </div>
+                  </div>
+                </Col>
+              </Row>
+
+              <Table responsive hover borderless className="align-middle mb-0">
+                <thead className="table-light text-muted">
+                  <tr>
+                    <th>Guest</th>
+                    <th>Phone</th>
+                    <th>VIP</th>
+                    <th>Registered</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentGuests.length === 0 ? (
+                    <tr><td colSpan="4" className="text-center text-muted py-3">No guest registrations yet.</td></tr>
+                  ) : recentGuests.map((guest) => (
+                    <tr key={guest._id}>
+                      <td>
+                        <div className="fw-semibold">{guest.fullName || 'Unknown Guest'}</div>
+                        <small className="text-muted">{guest.email || 'No email'}</small>
+                      </td>
+                      <td>{guest.phone || 'N/A'}</td>
+                      <td><Badge bg="secondary">{guest.vipLevel || 'Bronze'}</Badge></td>
+                      <td>{formatDate(guest.createdAt)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
 
       <Row className="g-4 mb-4">
         <Col lg={8}>
@@ -237,6 +315,7 @@ function DashboardPage() {
                     <th>Guest</th>
                     <th>Room</th>
                     <th>Status</th>
+                    <th>Source</th>
                     <th>Date</th>
                   </tr>
                 </thead>
@@ -244,7 +323,7 @@ function DashboardPage() {
                   {stats.recentBookings.map((booking) => (
                     <tr key={booking._id}>
                       <td>
-                        <div className="fw-semibold">{booking.guestId?.firstName} {booking.guestId?.lastName}</div>
+                        <div className="fw-semibold">{booking.guestId?.fullName || 'Unknown Guest'}</div>
                         <small className="text-muted">{booking.guestId?.email}</small>
                       </td>
                       <td>{booking.roomId?.roomNumber || 'N/A'}</td>
@@ -259,7 +338,12 @@ function DashboardPage() {
                           {booking.status}
                         </span>
                       </td>
-                      <td>{new Date(booking.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
+                      <td>
+                        <Badge bg={booking.source === 'GuestPortal' ? 'info' : 'secondary'}>
+                          {booking.source === 'GuestPortal' ? 'Guest Website' : 'Dashboard'}
+                        </Badge>
+                      </td>
+                      <td>{formatDate(booking.createdAt)}</td>
                     </tr>
                   ))}
                 </tbody>

@@ -1,13 +1,16 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
-import { isAuthenticated } from '../services/auth.js';
+import { isAdminAuthenticated, isClientAuthenticated } from '../services/auth.js';
 
-function ProtectedRoute() {
+function ProtectedRoute({ role = 'client', redirectTo }) {
   const location = useLocation();
+  const isAllowed = role === 'admin' ? isAdminAuthenticated() : isClientAuthenticated();
+  const loginPath = redirectTo || (role === 'admin' ? '/dashboard/login' : '/login');
 
-  if (!isAuthenticated()) {
-    return <Navigate to="/login" replace state={{ from: location }} />;
+  if (!isAllowed) {
+    return <Navigate to={loginPath} replace state={{ from: location }} />;
   }
 
   return <Outlet />;
 }
+
 export default ProtectedRoute;

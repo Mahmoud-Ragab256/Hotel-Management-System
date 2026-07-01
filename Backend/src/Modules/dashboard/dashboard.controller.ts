@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { Booking } from '../../DB/Models/booking.model.js';
 import { Room } from '../../DB/Models/room.model.js';
 import { ServiceOrder } from '../../DB/Models/serviceOrder.model.js';
+import { Guest } from '../../DB/Models/guest.model.js';
 
 
 export const getDashboardStats = async (req: Request, res: Response) => {
@@ -11,6 +12,9 @@ export const getDashboardStats = async (req: Request, res: Response) => {
     const occupancyRate = totalRooms > 0 ? (occupiedRooms / totalRooms) * 100 : 0;
 
     const totalBookings = await Booking.countDocuments();
+    const guestPortalBookings = await Booking.countDocuments({ source: 'GuestPortal' });
+    const pendingGuestPortalBookings = await Booking.countDocuments({ source: 'GuestPortal', status: 'Pending' });
+    const totalGuests = await Guest.countDocuments();
 
     const revenueData = await Booking.aggregate([
       { $match: { status: { $in: ['Confirmed', 'CheckedIn', 'CheckedOut'] } } },
@@ -45,7 +49,7 @@ export const getDashboardStats = async (req: Request, res: Response) => {
     const recentBookings = await Booking.find()
       .sort({ createdAt: -1 })
       .limit(5)
-      .populate('guestId', 'firstName lastName email') 
+      .populate('guestId', 'fullName email phone') 
       .populate('roomId', 'roomNumber'); 
 
     const serviceOrders = await ServiceOrder.find()
@@ -57,6 +61,12 @@ export const getDashboardStats = async (req: Request, res: Response) => {
       })
       .populate('serviceId', 'name')
       .populate('assignedEmployeeId', 'firstName lastName'); 
+
+    const recentGuests = await Guest.find()
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .select('fullName email phone createdAt vipLevel');
+
 
     const monthlyRevenue = await Booking.aggregate([
       { $match: { status: { $in: ['Confirmed', 'CheckedIn', 'CheckedOut'] } } },
@@ -86,11 +96,15 @@ export const getDashboardStats = async (req: Request, res: Response) => {
           totalBookings: { value: totalBookings, change: "12% vs last month" },
           revenue: { value: totalRevenue, change: "-2.1% decrease" },
           pendingOrders: { value: pendingOrders },
-          maintenanceRooms: { value: maintenanceRooms }
+          maintenanceRooms: { value: maintenanceRooms },
+          guestPortalBookings: { value: guestPortalBookings, change: `${pendingGuestPortalBookings} pending from website` },
+          totalGuests: { value: totalGuests, change: 'Registered guests' }
         },
         bookingStatusDistribution,
         revenueTrend,
         recentBookings,
+        recentGuests,
+        guestPortal: { total: guestPortalBookings, pending: pendingGuestPortalBookings },
         serviceOrders
       }
     });
