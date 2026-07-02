@@ -21,6 +21,7 @@ import ServicesPage from './pages/ServicesPage.jsx';
 import AddServicePage from './pages/AddServicePage.jsx';
 import ReviewsPage from './pages/ReviewsPage.jsx';
 import ReviewDetailsPage from './pages/ReviewDetailsPage.jsx';
+import NotificationsPage from './pages/NotificationsPage.jsx';
 
 function App() {
   return (
@@ -54,6 +55,7 @@ function App() {
           <Route path="service-orders" element={<ServiceOrdersPage />} />
           <Route path="reviews" element={<ReviewsPage />} />
           <Route path="reviews/:id" element={<ReviewDetailsPage />} />
+          <Route path="notifications" element={<NotificationsPage />} />
         </Route>
       </Route>
 

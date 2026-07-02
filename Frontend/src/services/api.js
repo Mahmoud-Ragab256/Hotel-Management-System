@@ -358,20 +358,33 @@ async guestLogin(payload) {
   },
   async readAllMineNotifications(id) {
     const response = await api.put(`/dashboard/notifications/recipient/${id}/read-all`);
-    return readObject(response, 'review');
+    return readObject(response, 'notifications');
   },
+
+  // ال2 واحد
 
   async readNotificationById(id) {
     const response = await api.put(`/dashboard/notifications/${id}/read`);
-    return readObject(response, 'review');
+    return readObject(response, 'notification');
+  },
+
+  async markNotificationAsRead(id) {
+    const response = await api.put(`/dashboard/notifications/${id}/read`);
+    return readObject(response, 'notification');
+  },
+
+  /////
+  
+  async getNotifications() {
+    const response = await api.get('/dashboard/notifications');
+    return readArray(response, 'notifications');
+  },
+  async createNotification(payload) {
+    const response = await api.post('/dashboard/notifications', payload);
+    return readObject(response, 'notification');
   },
 
 
 };
 
 export default api;
-
-// notifications
-// router.put('/recipient/:recipientId/read-all', notificationController.markAllAsRead);
-// router.get('/recipient/:recipientId', notificationController.getNotificationsByRecipient);
-// router.put('/:id/read', notificationController.markAsRead);
