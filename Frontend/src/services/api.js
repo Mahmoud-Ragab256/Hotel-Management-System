@@ -37,7 +37,6 @@ export const dashboardApi = {
     };
   },
 
-
   async forgotEmployeePassword(email) {
     const response = await api.post('/dashboard/auth/forgot-password', { email });
     return response.data;

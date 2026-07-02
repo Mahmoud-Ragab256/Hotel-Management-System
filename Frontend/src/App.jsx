@@ -3,6 +3,7 @@ import GuestLayout from './layouts/GuestLayout.jsx';
 import ClientRoomsPage from './pages/ClientRoomsPage.jsx';
 import RoomDetailsPage from './pages/RoomDetailsPage.jsx';
 import SignupPage from './pages/SignupPage.jsx';
+import ClientServicesPage from './pages/ClientServicesPage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import GuestLoginPage from './pages/GuestLoginPage.jsx';
 import ResetPasswordPage from './pages/ResetPasswordPage.jsx';
@@ -37,6 +38,7 @@ function App() {
       {/* Public guest website: localhost:6501/ stays on / and does not redirect to /login */}
       <Route path="/" element={<GuestLayout />}>
         <Route index element={<ClientRoomsPage />} />
+        <Route path="services" element={<ClientServicesPage />} />
         <Route path="rooms" element={<ClientRoomsPage />} />
         <Route path="rooms/:id" element={<RoomDetailsPage />} />
       </Route>
