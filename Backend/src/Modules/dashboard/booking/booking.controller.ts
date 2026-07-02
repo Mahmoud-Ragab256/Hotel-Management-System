@@ -1,9 +1,7 @@
 import { Request, Response } from 'express';
-import { Booking } from '../../../DB/Models/booking.model.js';
-import { Room } from '../../../DB/Models/room.model.js';
-import { IBooking } from '../../../DB/Models/booking.model.js';
-import { IRoom } from '../../../DB/Models/room.model.js';
-
+import { Booking, IBooking } from '../../../DB/Models/booking.model.js';
+import { Room, IRoom } from '../../../DB/Models/room.model.js';
+import { Invoice, IInvoice, PaymentMethod } from '../../../DB/Models/invoice.model.js';
 
 interface CreateBookingBody {
   guestId: string;
@@ -12,6 +10,9 @@ interface CreateBookingBody {
   checkOutDate: string;
   totalPrice: number;
   specialRequests?: string;
+  paymentMethod?: PaymentMethod;
+  method?: PaymentMethod;
+  employeeId?: string;
 }
 
 interface UpdateBookingBody {
@@ -26,15 +27,14 @@ interface CancelBookingBody {
   cancelReason: string;
 }
 
-
 interface BookingsData {
   bookings: IBooking[];
 }
 
 interface BookingData {
   booking: IBooking;
+  invoice?: IInvoice | null;
 }
-
 
 interface ApiResponse<T = null> {
   success: boolean;
@@ -43,8 +43,55 @@ interface ApiResponse<T = null> {
   count?: number;
 }
 
+const DAY_IN_MS = 24 * 60 * 60 * 1000;
 
-// Get all bookings
+const normalizeDateOnly = (value: string, endOfDay = false): Date => {
+  const datePart = typeof value === 'string' ? value.slice(0, 10) : value;
+  const [year, month, day] = datePart.split('-').map(Number);
+
+  if (!year || !month || !day) {
+    throw new Error('Invalid booking date');
+  }
+
+  const date = new Date(Date.UTC(year, month - 1, day));
+  if (Number.isNaN(date.getTime())) {
+    throw new Error('Invalid booking date');
+  }
+
+  if (endOfDay) {
+    date.setUTCHours(23, 59, 59, 999);
+  }
+
+  return date;
+};
+
+const normalizeBookingDates = <T extends { checkInDate?: string; checkOutDate?: string }>(payload: T) => {
+  const normalized: Record<string, unknown> = { ...payload };
+
+  if (payload.checkInDate) {
+    normalized.checkInDate = normalizeDateOnly(payload.checkInDate);
+  }
+
+  if (payload.checkOutDate) {
+    normalized.checkOutDate = normalizeDateOnly(payload.checkOutDate, true);
+  }
+
+  if (normalized.checkInDate && normalized.checkOutDate) {
+    const checkIn = normalized.checkInDate as Date;
+    const checkOut = normalized.checkOutDate as Date;
+
+    if (checkOut.getTime() - checkIn.getTime() < DAY_IN_MS) {
+      throw new Error('Check-out date must be after check-in date');
+    }
+  }
+
+  return normalized;
+};
+
+const getPaymentMethod = (body: CreateBookingBody): PaymentMethod => {
+  return body.paymentMethod || body.method || 'Cash';
+};
+
 export const getAllBookings = async (
   req: Request,
   res: Response<ApiResponse<BookingsData>>
@@ -52,7 +99,8 @@ export const getAllBookings = async (
   try {
     const bookings: IBooking[] = await Booking.find()
       .populate('guestId', 'fullName email phone')
-      .populate('roomId', 'roomNumber status');
+      .populate('roomId', 'roomNumber status')
+      .sort({ checkInDate: 1, createdAt: -1 });
 
     res.status(200).json({
       success: true,
@@ -66,7 +114,6 @@ export const getAllBookings = async (
     });
   }
 };
-
 
 export const getBookingById = async (
   req: Request<{ id: string }>,
@@ -85,9 +132,11 @@ export const getBookingById = async (
       return;
     }
 
+    const invoice = await Invoice.findOne({ bookingId: booking._id });
+
     res.status(200).json({
       success: true,
-      data: { booking },
+      data: { booking, invoice },
     });
   } catch (error) {
     res.status(500).json({
@@ -97,13 +146,12 @@ export const getBookingById = async (
   }
 };
 
-
 export const createBooking = async (
   req: Request<{}, ApiResponse<BookingData>, CreateBookingBody>,
   res: Response<ApiResponse<BookingData>>
 ): Promise<void> => {
   try {
-    const { roomId } = req.body;
+    const { roomId, totalPrice, employeeId } = req.body;
 
     const room: IRoom | null = await Room.findById(roomId);
     if (!room) {
@@ -122,14 +170,27 @@ export const createBooking = async (
       return;
     }
 
-    const booking: IBooking = await Booking.create(req.body);
+    const normalizedPayload = normalizeBookingDates(req.body);
+    const booking: IBooking = await Booking.create(normalizedPayload);
 
     await Room.findByIdAndUpdate(roomId, { status: 'Occupied' });
 
+    const invoicePayload: Record<string, unknown> = {
+      bookingId: booking._id,
+      totalAmount: Number(totalPrice || booking.totalPrice || 0),
+      paidAmount: 0,
+      status: 'Pending',
+      method: getPaymentMethod(req.body),
+    };
+
+    if (employeeId) invoicePayload.employeeId = employeeId;
+
+    const invoice: IInvoice = await Invoice.create(invoicePayload);
+
     res.status(201).json({
       success: true,
-      message: 'Booking created successfully',
-      data: { booking },
+      message: 'Booking and invoice created successfully',
+      data: { booking, invoice },
     });
   } catch (error) {
     res.status(500).json({
@@ -139,15 +200,41 @@ export const createBooking = async (
   }
 };
 
-
 export const updateBooking = async (
   req: Request<{ id: string }, ApiResponse<BookingData>, UpdateBookingBody>,
   res: Response<ApiResponse<BookingData>>
 ): Promise<void> => {
   try {
+    const currentBooking = await Booking.findById(req.params.id);
+    if (!currentBooking) {
+      res.status(404).json({
+        success: false,
+        message: 'Booking not found',
+      });
+      return;
+    }
+
+    const normalizedPayload = normalizeBookingDates(req.body);
+
+    if (normalizedPayload.checkInDate && !normalizedPayload.checkOutDate) {
+      const checkIn = normalizedPayload.checkInDate as Date;
+      if (currentBooking.checkOutDate.getTime() - checkIn.getTime() < DAY_IN_MS) {
+        res.status(400).json({ success: false, message: 'Check-out date must be after check-in date' });
+        return;
+      }
+    }
+
+    if (normalizedPayload.checkOutDate && !normalizedPayload.checkInDate) {
+      const checkOut = normalizedPayload.checkOutDate as Date;
+      if (checkOut.getTime() - currentBooking.checkInDate.getTime() < DAY_IN_MS) {
+        res.status(400).json({ success: false, message: 'Check-out date must be after check-in date' });
+        return;
+      }
+    }
+
     const booking: IBooking | null = await Booking.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      normalizedPayload,
       { new: true, runValidators: true }
     );
 
@@ -159,10 +246,26 @@ export const updateBooking = async (
       return;
     }
 
+    let invoice: IInvoice | null = await Invoice.findOne({ bookingId: booking._id });
+
+    if (req.body.totalPrice !== undefined && invoice) {
+      invoice.totalAmount = Number(req.body.totalPrice);
+      await invoice.save();
+    }
+
+    if (req.body.status === 'Cancelled') {
+      await Room.findByIdAndUpdate(booking.roomId, { status: 'Available' });
+      invoice = await Invoice.findOneAndUpdate(
+        { bookingId: booking._id },
+        { status: 'Cancelled' },
+        { new: true }
+      );
+    }
+
     res.status(200).json({
       success: true,
       message: 'Booking updated successfully',
-      data: { booking },
+      data: { booking, invoice },
     });
   } catch (error) {
     res.status(500).json({
@@ -171,7 +274,6 @@ export const updateBooking = async (
     });
   }
 };
-
 
 export const cancelBooking = async (
   req: Request<{ id: string }, ApiResponse<BookingData>, CancelBookingBody>,
@@ -186,6 +288,7 @@ export const cancelBooking = async (
         status: 'Cancelled',
         cancelledAt: new Date(),
         cancelReason,
+        paymentStatus: 'Refunded',
       },
       { new: true }
     );
@@ -200,10 +303,16 @@ export const cancelBooking = async (
 
     await Room.findByIdAndUpdate(booking.roomId, { status: 'Available' });
 
+    const invoice = await Invoice.findOneAndUpdate(
+      { bookingId: booking._id },
+      { status: 'Cancelled' },
+      { new: true }
+    );
+
     res.status(200).json({
       success: true,
-      message: 'Booking cancelled successfully',
-      data: { booking },
+      message: 'Booking and invoice cancelled successfully',
+      data: { booking, invoice },
     });
   } catch (error) {
     res.status(500).json({
@@ -212,7 +321,6 @@ export const cancelBooking = async (
     });
   }
 };
-
 
 export const deleteBooking = async (
   req: Request<{ id: string }>,
@@ -229,9 +337,12 @@ export const deleteBooking = async (
       return;
     }
 
+    await Room.findByIdAndUpdate(booking.roomId, { status: 'Available' });
+    await Invoice.findOneAndUpdate({ bookingId: booking._id }, { status: 'Cancelled' });
+
     res.status(200).json({
       success: true,
-      message: 'Booking deleted successfully',
+      message: 'Booking deleted and related invoice cancelled successfully',
     });
   } catch (error) {
     res.status(500).json({

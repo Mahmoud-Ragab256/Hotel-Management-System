@@ -1,0 +1,22 @@
+{
+  "name": "telegram-hotel-bot-mongodb",
+  "version": "4.4.0",
+  "description": "بوت تيليجرام عربي للفندق يدعم التشغيل المحلي Polling والرفع على Vercel Webhook مع MongoDB.",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "doctor": "node src/doctor.js",
+    "delete-webhook": "node scripts/delete-webhook.js",
+    "delete-webhook:drop": "node scripts/delete-webhook.js --drop",
+    "set-webhook": "node scripts/set-webhook.js"
+  },
+  "dependencies": {
+    "axios": "^1.7.9",
+    "dotenv": "^16.4.7",
+    "pdfkit": "^0.15.2",
+    "telegraf": "^4.16.3",
+    "mongodb": "^6.12.0"
+  }
+}

@@ -1,6 +1,7 @@
  import React, { useEffect, useState } from 'react';
 import { Row, Col, Table, Card, Spinner, Alert } from 'react-bootstrap';
 import { dashboardApi, getApiErrorMessage } from '../services/api';
+import { formatDisplayDate } from '../utils/date.ts';
 import StatCard from '../components/StatCard';
 import { 
   faBed, 
@@ -259,7 +260,7 @@ function DashboardPage() {
                           {booking.status}
                         </span>
                       </td>
-                      <td>{new Date(booking.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
+                      <td>{formatDisplayDate(booking.createdAt)}</td>
                     </tr>
                   ))}
                 </tbody>

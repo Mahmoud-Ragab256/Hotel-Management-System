@@ -26,6 +26,7 @@ import {
   faCircleInfo
 } from '@fortawesome/free-solid-svg-icons';
 import { dashboardApi, getApiErrorMessage } from '../services/api.js';
+import { formatDisplayDate, todayDateInputValue, toDateInputValue } from '../utils/date.ts';
 
 const bookingStatuses = ['Pending', 'Confirmed', 'CheckedIn', 'CheckedOut', 'Cancelled'];
 
@@ -54,12 +55,9 @@ const statusVariant = (status = '') => {
   return 'secondary';
 };
 
-const toDateInput = (value) => {
-  if (!value) return '';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '';
-  return date.toISOString().slice(0, 10);
-};
+const toDateInput = toDateInputValue;
+const displayDate = formatDisplayDate;
+const todayInput = todayDateInputValue();
 
 const bookingId = (booking) => booking?._id || booking?.id || '';
 const guestName = (booking) => booking?.guestId?.fullName || booking?.guestName || 'Unknown Guest';
@@ -378,8 +376,8 @@ function BookingsPage() {
                       <small className="text-muted">{booking?.guestId?.email || 'No email'}</small>
                     </td>
                     <td>{roomNumber(booking)}</td>
-                    <td>{toDateInput(booking.checkInDate) || 'N/A'}</td>
-                    <td>{toDateInput(booking.checkOutDate) || 'N/A'}</td>
+                    <td>{displayDate(booking.checkInDate)}</td>
+                    <td>{displayDate(booking.checkOutDate)}</td>
                     <td><Badge bg={statusVariant(booking.status)}>{booking.status || 'Pending'}</Badge></td>
                     <td className="text-center fw-semibold">${Number(booking.totalPrice || 0).toLocaleString()}</td>
                     <td className="text-center">
@@ -425,11 +423,11 @@ function BookingsPage() {
               </Col>
               <Col md={6}>
                 <Form.Label>Check-in Date</Form.Label>
-                <Form.Control required type="date" value={createForm.checkInDate} onChange={(event) => setCreateForm({ ...createForm, checkInDate: event.target.value })} />
+                <Form.Control required type="date" min={todayInput} value={createForm.checkInDate} onChange={(event) => setCreateForm({ ...createForm, checkInDate: event.target.value, checkOutDate: createForm.checkOutDate && createForm.checkOutDate <= event.target.value ? '' : createForm.checkOutDate })} />
               </Col>
               <Col md={6}>
                 <Form.Label>Check-out Date</Form.Label>
-                <Form.Control required type="date" value={createForm.checkOutDate} onChange={(event) => setCreateForm({ ...createForm, checkOutDate: event.target.value })} />
+                <Form.Control required type="date" min={createForm.checkInDate || todayInput} value={createForm.checkOutDate} onChange={(event) => setCreateForm({ ...createForm, checkOutDate: event.target.value })} />
               </Col>
               <Col md={6}>
                 <Form.Label>Total Price</Form.Label>
@@ -455,11 +453,11 @@ function BookingsPage() {
             <Row className="g-3">
               <Col md={6}>
                 <Form.Label>Check-in Date</Form.Label>
-                <Form.Control type="date" value={editForm.checkInDate} onChange={(event) => setEditForm({ ...editForm, checkInDate: event.target.value })} />
+                <Form.Control type="date" value={editForm.checkInDate} onChange={(event) => setEditForm({ ...editForm, checkInDate: event.target.value, checkOutDate: editForm.checkOutDate && editForm.checkOutDate <= event.target.value ? '' : editForm.checkOutDate })} />
               </Col>
               <Col md={6}>
                 <Form.Label>Check-out Date</Form.Label>
-                <Form.Control type="date" value={editForm.checkOutDate} onChange={(event) => setEditForm({ ...editForm, checkOutDate: event.target.value })} />
+                <Form.Control type="date" min={editForm.checkInDate || undefined} value={editForm.checkOutDate} onChange={(event) => setEditForm({ ...editForm, checkOutDate: event.target.value })} />
               </Col>
               <Col md={6}>
                 <Form.Label>Status</Form.Label>
@@ -492,8 +490,8 @@ function BookingsPage() {
               <div><strong>ID:</strong> {bookingId(selectedBooking)}</div>
               <div><strong>Guest:</strong> {selectedBooking?.guestId?.fullName || 'N/A'}</div>
               <div><strong>Room:</strong> {selectedBooking?.roomId?.roomNumber || 'N/A'}</div>
-              <div><strong>Check-in:</strong> {toDateInput(selectedBooking.checkInDate)}</div>
-              <div><strong>Check-out:</strong> {toDateInput(selectedBooking.checkOutDate)}</div>
+              <div><strong>Check-in:</strong> {displayDate(selectedBooking.checkInDate)}</div>
+              <div><strong>Check-out:</strong> {displayDate(selectedBooking.checkOutDate)}</div>
               <div><strong>Status:</strong> <Badge bg={statusVariant(selectedBooking.status)}>{selectedBooking.status}</Badge></div>
               <div><strong>Total:</strong> ${Number(selectedBooking.totalPrice || 0).toLocaleString()}</div>
               <div><strong>Payment:</strong> {selectedBooking.paymentStatus || 'N/A'}</div>

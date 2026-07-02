@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBell } from "@fortawesome/free-solid-svg-icons";
 import { dashboardApi } from "../services/api.js";
-import "../styles/NotificationsBell.css";
+import { formatDisplayDate } from "../utils/date.ts";
+import "../styles/notificationsBell.css";
 
 const USER_KEY = "hotel_admin_user";
 
@@ -105,9 +106,7 @@ const NotificationBell = () => {
                   <div className="notification-title">{n.title}</div>
                   <div className="notification-message">{n.message}</div>
                   <div className="notification-date">
-                    {new Date(n.createdAt).toLocaleDateString("en-US", {
-                      month: "short", day: "numeric", year: "numeric"
-                    })}
+                    {formatDisplayDate(n.createdAt)}
                   </div>
                 </div>
               ))

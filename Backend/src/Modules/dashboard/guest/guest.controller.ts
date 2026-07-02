@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { Guest } from '../../../DB/Models/guest.model.js';
 import { IGuest, VipLevel } from '../../../DB/Models/guest.model.js';
 import bcrypt from 'bcrypt';
+import { hashPassword, normalizeEmail, verifyPassword } from '../../../utils/password.js';
 
 
 interface CreateGuestBody {
@@ -120,7 +121,8 @@ export const createGuest = async (
   res: Response<ApiResponse<CreateGuestData>>
 ): Promise<void> => {
   try {
-    const { fullName, email, password, phone, nationalId, vipLevel, preferences } = req.body;
+    const { fullName, password, phone, nationalId, vipLevel, preferences } = req.body;
+    const email = normalizeEmail(req.body.email);
 
     const existingGuest: IGuest | null = await Guest.findOne({ email });
     if (existingGuest) {
@@ -131,7 +133,7 @@ export const createGuest = async (
       return;
     }
 
-    const hashedPassword: string = await bcrypt.hash(`${password}${process.env.PEPPER}`, parseInt(process.env.SALT_ROUNDS as string));
+    const hashedPassword: string = await hashPassword(password);
 
     const guest: IGuest = await Guest.create({
       fullName,
@@ -233,7 +235,8 @@ export const loginGuest = async (
   res: Response<ApiResponse<LoginGuestData>>
 ): Promise<void> => {
   try {
-    const { email, password } = req.body;
+    const email = normalizeEmail(req.body.email);
+    const { password } = req.body;
 
     const guest: IGuest | null = await Guest.findOne({ email });
     if (!guest) {
@@ -244,13 +247,18 @@ export const loginGuest = async (
       return;
     }
 
-    const isMatch: boolean = await bcrypt.compare(`${password}${process.env.PEPPER}`, guest.password);
-    if (!isMatch) {
+    const { matched, needsRehash } = await verifyPassword(password, guest.password);
+    if (!matched) {
       res.status(401).json({
         success: false,
         message: 'Invalid credentials',
       });
       return;
+    }
+
+    if (needsRehash) {
+      guest.password = await hashPassword(password);
+      await guest.save();
     }
 
     res.status(200).json({

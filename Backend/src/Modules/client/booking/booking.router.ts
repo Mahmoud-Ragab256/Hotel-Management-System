@@ -4,11 +4,8 @@ import { createBooking, getBookingDetails, getUserBookings, cancelBooking } from
 const router = express.Router();
 
 router.post('/', createBooking);
-
-router.get('/:id', getBookingDetails);
-
 router.get('/user/:guestId', getUserBookings);
-
+router.get('/:id', getBookingDetails);
 router.put('/:id/cancel', cancelBooking);
 
 export default router;

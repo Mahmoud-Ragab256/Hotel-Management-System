@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Button, Card, Col, Container, Form, InputGroup, Row, Spinner } from 'react-bootstrap';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faArrowRightToBracket,
@@ -105,7 +105,7 @@ function LoginPage() {
                     </InputGroup>
                   </Form.Group>
 
-                  <Form.Group className="mb-4" controlId="loginPassword">
+                  <Form.Group className="mb-2" controlId="loginPassword">
                     <Form.Label className="fw-semibold">Password</Form.Label>
                     <InputGroup>
                       <InputGroup.Text className="bg-light">
@@ -127,11 +127,17 @@ function LoginPage() {
                         onClick={() => setShowPassword((current) => !current)}
                         disabled={loading}
                         aria-label={showPassword ? 'Hide password' : 'Show password'}
-                      >[]
+                      >
                         <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
                       </Button>
                     </InputGroup>
                   </Form.Group>
+
+                  <div className="text-end mb-4">
+                    <Link to="/dashboard/forgot-password" className="small fw-semibold text-decoration-none">
+                      Forgot password?
+                    </Link>
+                  </div>
 
                   <Button type="submit" variant="dark" size="lg" className="w-100 d-flex align-items-center justify-content-center gap-2" disabled={!canSubmit}>
                     {loading ? <Spinner animation="border" size="sm" /> : <FontAwesomeIcon icon={faArrowRightToBracket} />}

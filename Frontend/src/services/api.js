@@ -2,8 +2,10 @@ import axios from 'axios';
 
 import { getAuthToken } from './auth.js';
 
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://hotel-management-system-sigma-ruby.vercel.app',
+  baseURL: API_BASE_URL,
   timeout: 15000
 });
 
@@ -35,6 +37,37 @@ export const dashboardApi = {
     };
   },
 
+
+  async forgotEmployeePassword(email) {
+    const response = await api.post('/dashboard/auth/forgot-password', { email });
+    return response.data;
+  },
+
+  async verifyEmployeeResetCode(email, resetCode) {
+    const response = await api.post('/dashboard/auth/reset-code', { email, resetCode });
+    return response.data;
+  },
+
+  async resetEmployeePassword(email, newPassword) {
+    const response = await api.post('/dashboard/auth/reset-password', { email, newPassword });
+    return response.data;
+  },
+
+  async forgotGuestPassword(email) {
+    const response = await api.post('/client/auth/forgot-password', { email });
+    return response.data;
+  },
+
+  async verifyGuestResetCode(email, resetCode) {
+    const response = await api.post('/client/auth/reset-code', { email, resetCode });
+    return response.data;
+  },
+
+  async resetGuestPassword(email, newPassword) {
+    const response = await api.post('/client/auth/reset-password', { email, newPassword });
+    return response.data;
+  },
+
   async getBookings() {
     const response = await api.get('/dashboard/bookings');
     return readArray(response, 'bookings');
@@ -48,6 +81,11 @@ export const dashboardApi = {
   async createBooking(payload) {
     const response = await api.post('/dashboard/bookings', payload);
     return readObject(response, 'booking');
+  },
+
+  async createClientBooking(payload) {
+    const response = await api.post('/client/booking', payload);
+    return response?.data?.data || null;
   },
 
   async updateBooking(id, payload) {
@@ -303,7 +341,7 @@ async guestLogin(payload) {
 
   async getMyBookings() {
     const response = await api.get(`client/me/bookings`);
-    return readObject(response, 'bookings');
+    return readArray(response, 'bookings');
   },
 
   async getMyReviews() {

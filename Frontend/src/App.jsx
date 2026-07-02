@@ -5,6 +5,7 @@ import RoomDetailsPage from './pages/RoomDetailsPage.jsx';
 import SignupPage from './pages/SignupPage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import GuestLoginPage from './pages/GuestLoginPage.jsx';
+import ResetPasswordPage from './pages/ResetPasswordPage.jsx';
 import ProfilePage from './pages/ProfilePage.jsx';
 import ServiceOrdersPage from './pages/ServiceOrdersPage.jsx';
 
@@ -26,22 +27,29 @@ import NotificationsPage from './pages/NotificationsPage.jsx';
 function App() {
   return (
     <Routes>
-
       <Route path="/dashboard/login" element={<LoginPage />} />
+      <Route path="/dashboard/forgot-password" element={<ResetPasswordPage accountType="employee" />} />
       <Route path="/login" element={<GuestLoginPage />} />
+      <Route path="/guest-login" element={<Navigate to="/login" replace />} />
+      <Route path="/forgot-password" element={<ResetPasswordPage accountType="guest" />} />
       <Route path="/signup" element={<SignupPage />} />
 
-      <Route element={<ProtectedRoute />}>
-        <Route path="/" element={<GuestLayout />}>
-          <Route index element={<ClientRoomsPage />} />
-          <Route path="profile" element={<ProfilePage />} />
-          <Route path="rooms" element={<ClientRoomsPage />} />
-          <Route path="rooms/:id" element={<RoomDetailsPage />} />
+      {/* Public guest website: localhost:6501/ stays on / and does not redirect to /login */}
+      <Route path="/" element={<GuestLayout />}>
+        <Route index element={<ClientRoomsPage />} />
+        <Route path="rooms" element={<ClientRoomsPage />} />
+        <Route path="rooms/:id" element={<RoomDetailsPage />} />
+      </Route>
+
+      {/* Guest-only protected pages */}
+      <Route element={<ProtectedRoute redirectTo="/login" />}>
+        <Route path="/profile" element={<GuestLayout />}>
+          <Route index element={<ProfilePage />} />
         </Route>
       </Route>
 
-
-      <Route element={<ProtectedRoute />}>
+      {/* Dashboard protected pages */}
+      <Route element={<ProtectedRoute redirectTo="/dashboard/login" />}>
         <Route path="/dashboard" element={<AdminLayout />}>
           <Route index element={<DashboardPage />} />
           <Route path="bookings" element={<BookingsPage />} />
@@ -59,13 +67,9 @@ function App() {
         </Route>
       </Route>
 
-
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
 
 export default App;
-
-
-
