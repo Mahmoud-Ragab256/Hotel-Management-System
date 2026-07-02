@@ -34,6 +34,10 @@ export const dashboardApi = {
       user: response?.data?.data || null
     };
   },
+  async createServiceOrder(payload) {
+  const response = await api.post('/dashboard/service-orders', payload);
+  return response?.data?.data || null;
+},
 
   async getBookings() {
     const response = await api.get('/dashboard/bookings');

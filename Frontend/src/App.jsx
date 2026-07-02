@@ -3,6 +3,7 @@ import GuestLayout from './layouts/GuestLayout.jsx';
 import ClientRoomsPage from './pages/ClientRoomsPage.jsx';
 import RoomDetailsPage from './pages/RoomDetailsPage.jsx';
 import SignupPage from './pages/SignupPage.jsx';
+import ClientServicesPage from './pages/ClientServicesPage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import GuestLoginPage from './pages/GuestLoginPage.jsx';
 import ProfilePage from './pages/ProfilePage.jsx';
@@ -35,6 +36,7 @@ function App() {
           <Route index element={<ClientRoomsPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="rooms" element={<ClientRoomsPage />} />
+          <Route path="/our-services" element={<ClientServicesPage />} />
           <Route path="rooms/:id" element={<RoomDetailsPage />} />
         </Route>
       </Route>
