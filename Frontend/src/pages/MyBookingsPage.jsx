@@ -1,41 +1,81 @@
 import React, { useState, useEffect } from "react";
-import { Table, Badge, Spinner, Alert, Card } from "react-bootstrap";
+import { Table, Badge, Spinner, Alert, Card, Button } from "react-bootstrap";
 import { dashboardApi, getApiErrorMessage } from "../services/api.js";
 
 const MyBookingsPage = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState("");
   const [userEmail, setUserEmail] = useState("");
 
-  useEffect(() => {
-    const initializePage = async () => {
-      try {
-        const currentUser = await dashboardApi.getMe();
-        const email = currentUser?.email || "";
-        setUserEmail(email);
+  const loadPageData = async () => {
+    try {
+      setError("");
+      // 1. جلب بيانات المستخدم الحالي
+      const currentUser = await dashboardApi.getMe();
+      const email = currentUser?.email || "";
+      setUserEmail(email);
 
-        if (!email) {
-          setError("Could not identify the logged-in user.");
-          setLoading(false);
-          return;
-        }
-
-        const allBookings = await dashboardApi.getBookings();
-        const userBookings = (allBookings || []).filter(
-          (b) => b?.guestId?.email?.toLowerCase() === email.toLowerCase()
-        );
-        
-        setBookings(userBookings);
-      } catch (err) {
-        setError(getApiErrorMessage(err));
-      } finally {
+      if (!email) {
+        setError("Could not identify the logged-in user.");
         setLoading(false);
+        return;
       }
-    };
 
-    initializePage();
+      // 2. جلب كافة الحجوزات وفلترتها
+      const allBookings = await dashboardApi.getBookings();
+      const userBookings = (allBookings || []).filter(
+        (b) => b?.guestId?.email?.toLowerCase() === email.toLowerCase()
+      );
+      
+      setBookings(userBookings);
+    } catch (err) {
+      setError(getApiErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadPageData();
   }, []);
+
+  // دالة لتأكيد الحجز
+  const handleConfirm = async (bookingId) => {
+    if (!window.confirm("Are you sure you want to confirm this booking?")) return;
+    setActionLoading(true);
+    try {
+      // نرسل الحالة الجديدة "Confirmed" للباكيند
+      await dashboardApi.updateBooking(bookingId, { status: "Confirmed" });
+      await loadPageData(); // إعادة تحميل البيانات لتحديث الجدول
+    } catch (err) {
+      setError(getApiErrorMessage(err));
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // دالة لإلغاء الحجز
+  const handleCancel = async (bookingId) => {
+    const reason = window.prompt("Please enter the reason for cancellation:");
+    if (reason === null) return; // إذا ضغط إلغاء في النافذة المنبثقة
+    if (!reason.trim()) {
+      alert("Cancellation reason is required.");
+      return;
+    }
+
+    setActionLoading(true);
+    try {
+      // نستخدم دالة إلغاء الحجز المخصصة في الـ API
+      await dashboardApi.cancelBooking(bookingId, reason);
+      await loadPageData(); // إعادة تحميل البيانات
+    } catch (err) {
+      setError(getApiErrorMessage(err));
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
   const getStatusBadge = (status) => {
     const currentStatus = status?.trim();
@@ -72,7 +112,7 @@ const MyBookingsPage = () => {
         <p className="text-muted m-0">Manage and track your entire hotel reservation history</p>
       </div>
 
-      {error && <Alert variant="danger">{error}</Alert>}
+      {error && <Alert variant="danger" dismissible onClose={() => setError("")}>{error}</Alert>}
 
       {!loading && bookings.length === 0 && (
         <Alert variant="info" className="text-center py-4">
@@ -91,13 +131,15 @@ const MyBookingsPage = () => {
                   <th className="py-3">Check-In</th>
                   <th className="py-3">Check-Out</th>
                   <th className="py-3">Total Paid</th>
-                  <th className="px-4 py-3 text-end">Status</th>
+                  <th className="py-3 text-center">Status</th>
+                  <th className="px-4 py-3 text-end">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {bookings.map((booking) => {
                   const id = booking._id || booking.id || "";
                   const roomNum = booking.roomId?.roomNumber || booking.roomNumber || "N/A";
+                  const isPending = booking.status?.trim() === "Pending";
                   
                   return (
                     <tr key={id}>
@@ -116,8 +158,32 @@ const MyBookingsPage = () => {
                       <td className="py-3 fw-bold text-primary">
                         ${booking.totalPrice || 0}
                       </td>
-                      <td className="px-4 py-3 text-end">
+                      <td className="py-3 text-center">
                         {getStatusBadge(booking.status)}
+                      </td>
+                      <td className="px-4 py-3 text-end">
+                        {isPending ? (
+                          <div className="d-flex justify-content-end gap-2">
+                            <Button 
+                              variant="success" 
+                              size="sm" 
+                              disabled={actionLoading}
+                              onClick={() => handleConfirm(id)}
+                            >
+                              Confirm
+                            </Button>
+                            <Button 
+                              variant="outline-danger" 
+                              size="sm" 
+                              disabled={actionLoading}
+                              onClick={() => handleCancel(id)}
+                            >
+                              Cancel
+                            </Button>
+                          </div>
+                        ) : (
+                          <span className="text-muted small">-</span>
+                        )}
                       </td>
                     </tr>
                   );
