@@ -27,6 +27,7 @@ import ReviewsPage from './pages/ReviewsPage.jsx';
 import ReviewDetailsPage from './pages/ReviewDetailsPage.jsx';
 import NotificationsPage from './pages/NotificationsPage.jsx';
 import MyBookingsPage from './pages/MyBookingsPage.jsx';
+import MyInvoicesPage from './pages/MyInvoicesPage.jsx';
 
 function App() {
   return (
@@ -56,6 +57,10 @@ function App() {
 
        <Route path="/my-bookings" element={<GuestLayout />}>
           <Route index element={<MyBookingsPage />} />
+        </Route>
+
+        <Route path="/my-invoices" element={<GuestLayout />}>
+          <Route index element={<MyInvoicesPage />} />
         </Route>
       </Route>
 
