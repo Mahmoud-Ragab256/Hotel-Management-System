@@ -10,13 +10,31 @@ const MyRoomsPage = () => {
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
-    dashboardApi.getMyBookings()
-      .then((bookings) => {
+    const fetchUserRooms = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        const currentUser = await dashboardApi.getMe();
+        const email = currentUser?.email || "";
+
+        if (!email) {
+          setError("Could not identify the logged-in user.");
+          setLoading(false);
+          return;
+        }
+
+        const bookings = await dashboardApi.getBookings();
+        
         const activeRooms = [];
         const seenRoomIds = new Set();
 
-        bookings.forEach((booking) => {
-          if (booking.roomId && !seenRoomIds.has(booking.roomId._id)) {
+        (bookings || []).forEach((booking) => {
+          if (
+            booking.roomId && 
+            booking?.guestId?.email?.toLowerCase() === email.toLowerCase() &&
+            !seenRoomIds.has(booking.roomId._id)
+          ) {
             if (booking.status !== "Cancelled") {
               seenRoomIds.add(booking.roomId._id);
               activeRooms.push({
@@ -24,19 +42,22 @@ const MyRoomsPage = () => {
                 bookingStatus: booking.status,
                 checkInDate: booking.checkInDate,
                 checkOutDate: booking.checkOutDate,
-                totalPrice: booking.totalPrice
+                totalPrice: booking.totalPrice,
+                bookingId: booking._id || booking.id
               });
             }
           }
         });
 
         setRooms(activeRooms);
-        setLoading(false);
-      })
-      .catch((err) => {
+      } catch (err) {
         setError(getApiErrorMessage(err));
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+
+    fetchUserRooms();
   }, []);
 
   const handleOpenModal = (room) => {
@@ -47,6 +68,23 @@ const MyRoomsPage = () => {
   const handleCloseModal = () => {
     setSelectedRoom(null);
     setShowModal(false);
+  };
+
+  const getStatusBadgeClass = (status) => {
+    switch (status?.trim()) {
+      case "Confirmed":
+        return "bg-success";
+      case "CheckedIn":
+      case "Checked In":
+        return "bg-info text-dark";
+      case "CheckedOut":
+      case "Checked Out":
+        return "bg-secondary";
+      case "Pending":
+        return "bg-warning text-dark";
+      default:
+        return "bg-primary";
+    }
   };
 
   if (loading) {
@@ -70,7 +108,7 @@ const MyRoomsPage = () => {
 
       {!loading && rooms.length === 0 && (
         <Alert variant="info" className="text-center py-4">
-          You don't have any booked rooms at the moment.
+          You don't have any active booked rooms at the moment.
         </Alert>
       )}
 
@@ -85,14 +123,14 @@ const MyRoomsPage = () => {
                 <Card.Img
                   variant="top"
                   src={room.images?.[0] || "https://placehold.co/600x400?text=No+Room+Image"}
-                  alt={room.roomNumber}
+                  alt={`Room ${room.roomNumber}`}
                   style={{ width: "100%", height: "100%", objectFit: "cover" }}
                 />
               </div>
-              <Card.Body className="d-flex flex-column">
+              <Card.Body className="d-flex flex-column text-dark">
                 <div className="d-flex justify-content-between align-items-center mb-2">
                   <h5 className="fw-bold mb-0">Room #{room.roomNumber}</h5>
-                  <span className={`badge ${room.bookingStatus === 'CheckedIn' ? 'bg-success' : 'bg-primary'}`}>
+                  <span className={`badge ${getStatusBadgeClass(room.bookingStatus)}`}>
                     {room.bookingStatus}
                   </span>
                 </div>
@@ -103,7 +141,7 @@ const MyRoomsPage = () => {
                 <Button 
                   variant="outline-primary" 
                   size="sm" 
-                  className="w-100"
+                  className="w-100 fw-semibold"
                   onClick={() => handleOpenModal(room)}
                 >
                   View Details
@@ -116,46 +154,56 @@ const MyRoomsPage = () => {
 
       {selectedRoom && (
         <Modal show={showModal} onHide={handleCloseModal} size="lg" centered>
-          <Modal.Header closeButton>
+          <Modal.Header closeButton className="text-dark">
             <Modal.Title className="fw-bold">Room #{selectedRoom.roomNumber} Details</Modal.Title>
           </Modal.Header>
-          <Modal.Body>
+          <Modal.Body className="text-dark">
             <Row className="g-4">
               <Col md={6}>
                 <img
                   src={selectedRoom.images?.[0] || "https://placehold.co/600x400?text=No+Room+Image"}
-                  alt={selectedRoom.roomNumber}
+                  alt={`Room ${selectedRoom.roomNumber}`}
                   className="img-fluid rounded shadow-sm w-100"
                   style={{ maxHeight: "300px", objectFit: "cover" }}
                 />
               </Col>
               <Col md={6}>
                 <h4 className="fw-bold text-primary mb-3">Specifications</h4>
-                <table className="table table-borderless sm__table text-dark">
+                <table className="table table-borderless sm__table text-dark mb-0">
                   <tbody>
                     <tr>
-                      <td className="fw-semibold px-0 py-1">Room Number:</td>
-                      <td className="text-muted py-1">{selectedRoom.roomNumber}</td>
+                      <td className="fw-semibold px-0 py-2">Room Number:</td>
+                      <td className="text-muted py-2">{selectedRoom.roomNumber}</td>
                     </tr>
                     <tr>
-                      <td className="fw-semibold px-0 py-1">Room Type:</td>
-                      <td className="text-muted py-1">{selectedRoom.type || "Standard"}</td>
+                      <td className="fw-semibold px-0 py-2">Room Type:</td>
+                      <td className="text-muted py-2">{selectedRoom.type || "Standard"}</td>
                     </tr>
                     <tr>
-                      <td className="fw-semibold px-0 py-1">Floor Level:</td>
-                      <td className="text-muted py-1">{selectedRoom.floor || "N/A"}</td>
+                      <td className="fw-semibold px-0 py-2">Floor Level:</td>
+                      <td className="text-muted py-2">{selectedRoom.floor || "N/A"}</td>
                     </tr>
                     <tr>
-                      <td className="fw-semibold px-0 py-1">Price Paid:</td>
-                      <td className="text-muted py-1">${selectedRoom.totalPrice}</td>
+                      <td className="fw-semibold px-0 py-2">Booking ID:</td>
+                      <td className="text-muted py-2 fw-mono small">
+                        #{selectedRoom.bookingId ? selectedRoom.bookingId.substring(0, 8) : "N/A"}...
+                      </td>
                     </tr>
                     <tr>
-                      <td className="fw-semibold px-0 py-1">Check-In Date:</td>
-                      <td className="text-muted py-1">{new Date(selectedRoom.checkInDate).toLocaleDateString()}</td>
+                      <td className="fw-semibold px-0 py-2">Total Price:</td>
+                      <td className="text-primary fw-bold py-2">${selectedRoom.totalPrice || 0}</td>
                     </tr>
                     <tr>
-                      <td className="fw-semibold px-0 py-1">Check-Out Date:</td>
-                      <td className="text-muted py-1">{new Date(selectedRoom.checkOutDate).toLocaleDateString()}</td>
+                      <td className="fw-semibold px-0 py-2">Check-In Date:</td>
+                      <td className="text-muted py-2">
+                        {selectedRoom.checkInDate ? new Date(selectedRoom.checkInDate).toLocaleDateString() : "N/A"}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="fw-semibold px-0 py-2">Check-Out Date:</td>
+                      <td className="text-muted py-2">
+                        {selectedRoom.checkOutDate ? new Date(selectedRoom.checkOutDate).toLocaleDateString() : "N/A"}
+                      </td>
                     </tr>
                   </tbody>
                 </table>
@@ -174,3 +222,4 @@ const MyRoomsPage = () => {
 };
 
 export default MyRoomsPage;
+
