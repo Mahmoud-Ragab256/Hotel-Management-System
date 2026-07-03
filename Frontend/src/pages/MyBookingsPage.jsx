@@ -12,7 +12,7 @@ const MyBookingsPage = () => {
   const loadPageData = async () => {
     try {
       setError("");
-      // 1. جلب بيانات المستخدم الحالي
+
       const currentUser = await dashboardApi.getMe();
       const email = currentUser?.email || "";
       setUserEmail(email);
@@ -23,7 +23,7 @@ const MyBookingsPage = () => {
         return;
       }
 
-      // 2. جلب كافة الحجوزات وفلترتها
+
       const allBookings = await dashboardApi.getBookings();
       const userBookings = (allBookings || []).filter(
         (b) => b?.guestId?.email?.toLowerCase() === email.toLowerCase()
@@ -41,14 +41,14 @@ const MyBookingsPage = () => {
     loadPageData();
   }, []);
 
-  // دالة لتأكيد الحجز
+
   const handleConfirm = async (bookingId) => {
     if (!window.confirm("Are you sure you want to confirm this booking?")) return;
     setActionLoading(true);
     try {
-      // نرسل الحالة الجديدة "Confirmed" للباكيند
+
       await dashboardApi.updateBooking(bookingId, { status: "Confirmed" });
-      await loadPageData(); // إعادة تحميل البيانات لتحديث الجدول
+      await loadPageData(); 
     } catch (err) {
       setError(getApiErrorMessage(err));
     } finally {
@@ -56,10 +56,10 @@ const MyBookingsPage = () => {
     }
   };
 
-  // دالة لإلغاء الحجز
+
   const handleCancel = async (bookingId) => {
     const reason = window.prompt("Please enter the reason for cancellation:");
-    if (reason === null) return; // إذا ضغط إلغاء في النافذة المنبثقة
+    if (reason === null) return; 
     if (!reason.trim()) {
       alert("Cancellation reason is required.");
       return;
@@ -67,9 +67,9 @@ const MyBookingsPage = () => {
 
     setActionLoading(true);
     try {
-      // نستخدم دالة إلغاء الحجز المخصصة في الـ API
+      
       await dashboardApi.cancelBooking(bookingId, reason);
-      await loadPageData(); // إعادة تحميل البيانات
+      await loadPageData(); 
     } catch (err) {
       setError(getApiErrorMessage(err));
     } finally {
