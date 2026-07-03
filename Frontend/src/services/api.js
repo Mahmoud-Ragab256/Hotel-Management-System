@@ -241,8 +241,8 @@ export const dashboardApi = {
     return response.data;
   },
 
-  async createInvoice() {
-    const response = await api.post('/dashboard/invoices');
+  async createInvoice(payload) {
+    const response = await api.post('/dashboard/invoices', payload);
     return readArray(response, 'invoice');
   },
 
