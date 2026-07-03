@@ -29,7 +29,7 @@ const AccountMenu = ({ user: userProp }) => {
 
     window.addEventListener("storage", handleUserUpdate);
     window.addEventListener("hotel_admin_user_updated", handleUserUpdate);
-
+    
     dashboardApi.getProfileImage()
       .then((avatar) => {
         const current = getStoredUser();
@@ -97,7 +97,7 @@ const AccountMenu = ({ user: userProp }) => {
         ))}
 
         <Dropdown.Divider />
-
+        
         <Dropdown.Item
           onClick={handleLogout}
           className="d-flex align-items-center gap-2 text-danger"

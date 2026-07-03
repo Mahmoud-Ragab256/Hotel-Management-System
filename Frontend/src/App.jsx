@@ -24,9 +24,13 @@ import ReviewsPage from './pages/ReviewsPage.jsx';
 import ReviewDetailsPage from './pages/ReviewDetailsPage.jsx';
 import NotificationsPage from './pages/NotificationsPage.jsx';
 
+
+import MyRoomsPage from './pages/MyRoomsPage.jsx';
+
 function App() {
   return (
     <Routes>
+      
       <Route path="/dashboard/login" element={<LoginPage />} />
       <Route path="/dashboard/forgot-password" element={<ResetPasswordPage accountType="employee" />} />
       <Route path="/login" element={<GuestLoginPage />} />
@@ -34,21 +38,25 @@ function App() {
       <Route path="/forgot-password" element={<ResetPasswordPage accountType="guest" />} />
       <Route path="/signup" element={<SignupPage />} />
 
-      {/* Public guest website: localhost:6501/ stays on / and does not redirect to /login */}
+
       <Route path="/" element={<GuestLayout />}>
         <Route index element={<ClientRoomsPage />} />
         <Route path="rooms" element={<ClientRoomsPage />} />
         <Route path="rooms/:id" element={<RoomDetailsPage />} />
       </Route>
 
-      {/* Guest-only protected pages */}
+
       <Route element={<ProtectedRoute redirectTo="/login" />}>
         <Route path="/profile" element={<GuestLayout />}>
           <Route index element={<ProfilePage />} />
         </Route>
+
+        <Route path="/my-rooms" element={<GuestLayout />}>
+          <Route index element={<MyRoomsPage />} />
+        </Route>
       </Route>
 
-      {/* Dashboard protected pages */}
+
       <Route element={<ProtectedRoute redirectTo="/dashboard/login" />}>
         <Route path="/dashboard" element={<AdminLayout />}>
           <Route index element={<DashboardPage />} />
