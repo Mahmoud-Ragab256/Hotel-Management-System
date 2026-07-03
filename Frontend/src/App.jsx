@@ -9,6 +9,8 @@ import GuestLoginPage from './pages/GuestLoginPage.jsx';
 import ResetPasswordPage from './pages/ResetPasswordPage.jsx';
 import ProfilePage from './pages/ProfilePage.jsx';
 import ServiceOrdersPage from './pages/ServiceOrdersPage.jsx';
+import HelpCenterPage from './pages/HelpCenterPage.jsx';
+import GuestsReviewsPage from './pages/GuestsReviewsPage.jsx';
 
 import AdminLayout from './layouts/AdminLayout.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
@@ -39,6 +41,8 @@ function App() {
       <Route path="/" element={<GuestLayout />}>
         <Route index element={<ClientRoomsPage />} />
         <Route path="services" element={<ClientServicesPage />} />
+        <Route path="help-center" element={<HelpCenterPage />} />
+        <Route path="reviews" element={<GuestsReviewsPage />} />
         <Route path="rooms" element={<ClientRoomsPage />} />
         <Route path="rooms/:id" element={<RoomDetailsPage />} />
       </Route>
