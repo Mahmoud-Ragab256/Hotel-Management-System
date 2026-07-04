@@ -11,8 +11,10 @@ const USER_KEY = "hotel_admin_user";
 const getStoredUserId = () => {
   try {
     const user = JSON.parse(localStorage.getItem(USER_KEY));
-    return user?._id || null;
+    return user?.id || user?._id || null;
   } catch {
+    console.log("userId:", userId);
+    console.log("user:", localStorage.getItem(USER_KEY));
     return null;
   }
 };
