@@ -32,6 +32,7 @@ import {
   faBed
 } from '@fortawesome/free-solid-svg-icons';
 import { dashboardApi, getApiErrorMessage } from '../services/api.js';
+import { formatDisplayDate } from '../utils/date.ts';
 
 const PRIMARY = '#111827';
 
@@ -43,12 +44,7 @@ const vipLevelStyle = (level = '') => {
   return { background: '#f8fafc', color: '#64748b', border: '1px solid #e2e8f0' };
 };
 
-const toDateInput = (value) => {
-  if (!value) return 'N/A';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return 'N/A';
-  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-};
+const toDateInput = formatDisplayDate;
 
 const bookingStatusVariant = (status = '') => {
   if (status === 'Confirmed' || status === 'CheckedIn') return 'success';
@@ -409,7 +405,7 @@ function ProfilePage() {
                     <div className="fw-semibold" style={{ color: PRIMARY }}>Password Authentication</div>
                     {profile?.passwordUpdatedAt ? (
                       <div className="text-muted small">
-                        Last updated {new Date(profile.passwordUpdatedAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}.
+                        Last updated {formatDisplayDate(profile.passwordUpdatedAt, { month: 'long', year: 'numeric' })}.
                         {' '}We recommend changing it every 6 months.
                       </div>
                     ) : (

@@ -2,10 +2,11 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { dashboardApi, getApiErrorMessage } from '../services/api.js';
 import { getCurrentUser, isAuthenticated } from '../services/auth.js';
+import { daysBetweenDateInputs, todayDateInputValue } from '../utils/date.ts';
 
 const BASE_URL =
   import.meta.env?.VITE_API_BASE_URL ||
-  'https://hotel-management-system-sigma-ruby.vercel.app';
+  'http://localhost:3000';
 
 const resolveImageUrl = (img) => {
   if (!img) return null;
@@ -31,15 +32,14 @@ function StatusPill({ status }) {
 
 function BookingForm({ room, onSuccess }) {
   const basePrice = room.categoryId?.basePrice || 0;
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayDateInputValue();
   const [form, setForm] = useState({ checkInDate: '', checkOutDate: '', specialRequests: '' });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
   const nights = useMemo(() => {
     if (!form.checkInDate || !form.checkOutDate) return 0;
-    const diff = new Date(form.checkOutDate) - new Date(form.checkInDate);
-    return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
+    return Math.max(0, daysBetweenDateInputs(form.checkInDate, form.checkOutDate));
   }, [form.checkInDate, form.checkOutDate]);
 
   const totalPrice = nights * basePrice;
@@ -53,13 +53,14 @@ function BookingForm({ room, onSuccess }) {
     if (!guestId) { setError('Could not find your account. Please login again.'); return; }
     setSaving(true);
     try {
-      await dashboardApi.createBooking({
+      await dashboardApi.createClientBooking({
         guestId,
         roomId: room._id || room.id,
         checkInDate: form.checkInDate,
         checkOutDate: form.checkOutDate,
         totalPrice,
         specialRequests: form.specialRequests,
+        paymentMethod: 'Cash',
       });
       onSuccess();
     } catch (err) {
@@ -136,7 +137,7 @@ export default function RoomDetailsPage() {
   const [bookingDone, setBookingDone] = useState(false);
 
   useEffect(() => {
-    if (!isAuthenticated()) { navigate('/guest-login'); return; }
+    if (!isAuthenticated()) { navigate('/login'); return; }
     (async () => {
       setLoading(true);
       setError(null);

@@ -1,23 +1,21 @@
 import { Request, Response } from 'express';
-import { Booking } from '../../../DB/Models/booking.model.js';
+import { Booking, IBooking } from '../../../DB/Models/booking.model.js';
 import { Room } from '../../../DB/Models/room.model.js';
-import { IInvoice, Invoice } from '../../../DB/Models/invoice.model.js';
-import { IBooking } from '../../../DB/Models/booking.model.js';
+import { IInvoice, Invoice, PaymentMethod } from '../../../DB/Models/invoice.model.js';
 import { Types } from 'mongoose';
-
 
 interface CreateBookingBody {
   guestId: Types.ObjectId;
   roomId: Types.ObjectId;
-  checkInDate: Date;
-  checkOutDate: Date;
-  adults: number;
-  children: number;
+  checkInDate: string;
+  checkOutDate: string;
+  adults?: number;
+  children?: number;
   specialRequests?: string;
   totalPrice: number;
-  paymentMethod: string;
+  paymentMethod?: PaymentMethod;
+  method?: PaymentMethod;
 }
-
 
 interface ApiResponse<T = null> {
   success: boolean;
@@ -37,6 +35,31 @@ interface BookingDetailsData {
   invoice: IInvoice | null;
 }
 
+const DAY_IN_MS = 24 * 60 * 60 * 1000;
+
+const normalizeDateOnly = (value: string, endOfDay = false): Date => {
+  const datePart = value.slice(0, 10);
+  const [year, month, day] = datePart.split('-').map(Number);
+
+  if (!year || !month || !day) {
+    throw new Error('Invalid booking date');
+  }
+
+  const date = new Date(Date.UTC(year, month - 1, day));
+  if (Number.isNaN(date.getTime())) {
+    throw new Error('Invalid booking date');
+  }
+
+  if (endOfDay) {
+    date.setUTCHours(23, 59, 59, 999);
+  }
+
+  return date;
+};
+
+const getPaymentMethod = (body: CreateBookingBody): PaymentMethod => {
+  return body.paymentMethod || body.method || 'Cash';
+};
 
 export const createBooking = async (
   req: Request<{}, ApiResponse<CreateBookingData>, CreateBookingBody>,
@@ -50,8 +73,18 @@ export const createBooking = async (
       checkOutDate,
       specialRequests,
       totalPrice,
-      paymentMethod
     } = req.body;
+
+    const normalizedCheckIn = normalizeDateOnly(checkInDate);
+    const normalizedCheckOut = normalizeDateOnly(checkOutDate, true);
+
+    if (normalizedCheckOut.getTime() - normalizedCheckIn.getTime() < DAY_IN_MS) {
+      res.status(400).json({
+        success: false,
+        message: 'Check-out date must be after check-in date',
+      });
+      return;
+    }
 
     const room = await Room.findById(roomId);
     if (!room || room.status !== 'Available') {
@@ -65,8 +98,8 @@ export const createBooking = async (
     const booking: IBooking = await Booking.create({
       guestId,
       roomId,
-      checkInDate,
-      checkOutDate,
+      checkInDate: normalizedCheckIn,
+      checkOutDate: normalizedCheckOut,
       totalPrice,
       status: 'Pending',
       specialRequests,
@@ -80,16 +113,16 @@ export const createBooking = async (
       totalAmount: totalPrice,
       paidAmount: 0,
       status: 'Pending',
-      method: paymentMethod
+      method: getPaymentMethod(req.body),
     });
 
     res.status(201).json({
       success: true,
-      message: 'Booking created successfully',
+      message: 'Booking and invoice created successfully',
       data: {
         booking,
         invoice,
-        bookingId: booking._id,
+        bookingId: booking._id as Types.ObjectId,
       },
     });
   } catch (error) {
@@ -99,7 +132,6 @@ export const createBooking = async (
     });
   }
 };
-
 
 export const getBookingDetails = async (
   req: Request<{ id: string }>,
@@ -135,10 +167,9 @@ export const getBookingDetails = async (
   }
 };
 
-
 export const getUserBookings = async (
   req: Request<{ guestId: string }>,
-  res: Response<ApiResponse<IBooking[]>>
+  res: Response<ApiResponse<{ bookings: IBooking[] }>>
 ): Promise<void> => {
   try {
     const { guestId } = req.params;
@@ -150,7 +181,7 @@ export const getUserBookings = async (
     res.status(200).json({
       success: true,
       count: bookings.length,
-      data: bookings,
+      data: { bookings },
     });
   } catch (error) {
     res.status(500).json({
@@ -160,10 +191,9 @@ export const getUserBookings = async (
   }
 };
 
-
 export const cancelBooking = async (
   req: Request<{ id: string }>,
-  res: Response<ApiResponse>
+  res: Response<ApiResponse<BookingDetailsData>>
 ): Promise<void> => {
   try {
     const booking: IBooking | null = await Booking.findById(req.params.id);
@@ -186,13 +216,21 @@ export const cancelBooking = async (
 
     booking.status = 'Cancelled';
     booking.cancelledAt = new Date();
+    booking.paymentStatus = 'Refunded';
     await booking.save();
 
     await Room.findByIdAndUpdate(booking.roomId, { status: 'Available' });
 
+    const invoice = await Invoice.findOneAndUpdate(
+      { bookingId: booking._id },
+      { status: 'Cancelled' },
+      { new: true }
+    );
+
     res.status(200).json({
       success: true,
-      message: 'Booking cancelled successfully',
+      message: 'Booking and invoice cancelled successfully',
+      data: { booking, invoice },
     });
   } catch (error) {
     res.status(500).json({

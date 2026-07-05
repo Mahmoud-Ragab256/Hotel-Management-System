@@ -6,8 +6,10 @@ import SignupPage from './pages/SignupPage.jsx';
 import ClientServicesPage from './pages/ClientServicesPage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import GuestLoginPage from './pages/GuestLoginPage.jsx';
+import ResetPasswordPage from './pages/ResetPasswordPage.jsx';
 import ProfilePage from './pages/ProfilePage.jsx';
 import ServiceOrdersPage from './pages/ServiceOrdersPage.jsx';
+import ClientReviewsPage from './pages/ClientReviewsPage.jsx';
 
 import AdminLayout from './layouts/AdminLayout.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
@@ -22,27 +24,39 @@ import ServicesPage from './pages/ServicesPage.jsx';
 import AddServicePage from './pages/AddServicePage.jsx';
 import ReviewsPage from './pages/ReviewsPage.jsx';
 import ReviewDetailsPage from './pages/ReviewDetailsPage.jsx';
+import NotificationsPage from './pages/NotificationsPage.jsx';
 
 function App() {
   return (
     <Routes>
-
       <Route path="/dashboard/login" element={<LoginPage />} />
+      <Route path="/dashboard/forgot-password" element={<ResetPasswordPage accountType="employee" />} />
       <Route path="/login" element={<GuestLoginPage />} />
+      <Route path="/guest-login" element={<Navigate to="/login" replace />} />
+      <Route path="/forgot-password" element={<ResetPasswordPage accountType="guest" />} />
       <Route path="/signup" element={<SignupPage />} />
 
-      <Route element={<ProtectedRoute />}>
-        <Route path="/" element={<GuestLayout />}>
-          <Route index element={<ClientRoomsPage />} />
-          <Route path="profile" element={<ProfilePage />} />
-          <Route path="rooms" element={<ClientRoomsPage />} />
-          <Route path="/our-services" element={<ClientServicesPage />} />
-          <Route path="rooms/:id" element={<RoomDetailsPage />} />
+      {/* Public pages */}
+      <Route path="/our-services" element={<ClientServicesPage />} />
+      <Route path="/reviews" element={<ClientReviewsPage />} />
+
+      {/* Public guest website */}
+      <Route path="/" element={<GuestLayout />}>
+        <Route index element={<ClientRoomsPage />} />
+        <Route path="rooms" element={<ClientRoomsPage />} />
+        <Route path="rooms/:id" element={<RoomDetailsPage />} />
+      </Route>
+
+      {/* Guest-only protected pages */}
+      <Route element={<ProtectedRoute redirectTo="/login" />}>
+        <Route path="/profile" element={<GuestLayout />}>
+          <Route index element={<ProfilePage />} />
+          <Route path="service-orders" element={<ServiceOrdersPage />} />
         </Route>
       </Route>
 
-
-      <Route element={<ProtectedRoute />}>
+      {/* Dashboard protected pages */}
+      <Route element={<ProtectedRoute redirectTo="/dashboard/login" />}>
         <Route path="/dashboard" element={<AdminLayout />}>
           <Route index element={<DashboardPage />} />
           <Route path="bookings" element={<BookingsPage />} />
@@ -56,9 +70,9 @@ function App() {
           <Route path="service-orders" element={<ServiceOrdersPage />} />
           <Route path="reviews" element={<ReviewsPage />} />
           <Route path="reviews/:id" element={<ReviewDetailsPage />} />
+          <Route path="notifications" element={<NotificationsPage />} />
         </Route>
       </Route>
-
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
@@ -66,6 +80,3 @@ function App() {
 }
 
 export default App;
-
-
-

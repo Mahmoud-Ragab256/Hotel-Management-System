@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import crypto from 'crypto';
 import sendResetPassEmail from '../../../utils/sendEmail.js';
+import { hashPassword, normalizeEmail, verifyPassword } from '../../../utils/password.js';
 
 dotenv.config()
 
@@ -51,7 +52,8 @@ export const login: RequestHandler = async (
   res: Response<ApiResponse<Partial<IEmployee>>>
 ): Promise<void> => {
   try {
-    const { email, password } = req.body;
+    const email = normalizeEmail(req.body.email);
+    const { password } = req.body;
 
     const employee: IEmployee | null = await Employee.findOne({ email });
     if (!employee) {
@@ -61,15 +63,26 @@ export const login: RequestHandler = async (
       });
       return;
     }
-    console.log(password)
-    console.log(employee.password)
-    const isMatch: boolean = await bcrypt.compare(`${password}${process.env.PEPPER}`, employee.password);
-    if (!isMatch) {
+    if (employee.isActive === false) {
+      res.status(401).json({
+        success: false,
+        message: 'Account is inactive',
+      });
+      return;
+    }
+
+    const { matched, needsRehash } = await verifyPassword(password, employee.password);
+    if (!matched) {
       res.status(401).json({
         success: false,
         message: 'Invalid email or password',
       });
       return;
+    }
+
+    if (needsRehash) {
+      employee.password = await hashPassword(password);
+      await employee.save();
     }
 
     const EmployeeId: string = employee._id.toString();
@@ -101,7 +114,7 @@ export const forgotPassword = async (
   res: Response<ApiResponse>
 ): Promise<void> => {
   try {
-    const { email } = req.body;
+    const email = normalizeEmail(req.body.email);
 
     const employee: IEmployee | null = await Employee.findOne({ email });
     if (!employee) {
@@ -143,7 +156,8 @@ export const resetPassCode = async (
   res: Response<ApiResponse>
 ): Promise<void> => {
   try {
-    const { email, resetCode } = req.body;
+    const email = normalizeEmail(req.body.email);
+    const { resetCode } = req.body;
 
     const hashedResetCode = crypto.createHash('sha256').update(resetCode).digest('hex');
 
@@ -182,7 +196,8 @@ export const resetPassword = async (
   res: Response<ApiResponse>
 ): Promise<void> => {
   try {
-    const { email, newPassword } = req.body;
+    const email = normalizeEmail(req.body.email);
+    const { newPassword } = req.body;
 
     const employee: IEmployee | null = await Employee.findOne({
       email,
@@ -196,7 +211,7 @@ export const resetPassword = async (
       return;
     }
 
-    const hashedPassword: string = await bcrypt.hash(`${newPassword}${process.env.PEPPER}`, parseInt(process.env.SALT_ROUNDS as string));
+    const hashedPassword: string = await hashPassword(newPassword);
 
     employee.password = hashedPassword;
     employee.passwordResetCode = undefined;

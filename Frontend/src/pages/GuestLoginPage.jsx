@@ -28,7 +28,7 @@ function GuestLoginPage() {
 
   const navigate = useNavigate();
   const location = useLocation();
-  const redirectTo = location.state?.from?.pathname || '/rooms ';
+  const redirectTo = location.state?.from?.pathname || '/rooms';
 
   const canSubmit = useMemo(() => {
     return form.email.trim() && form.password.trim() && !loading;
@@ -104,7 +104,7 @@ function GuestLoginPage() {
                     </InputGroup>
                   </Form.Group>
 
-                  <Form.Group className="mb-4" controlId="loginPassword">
+                  <Form.Group className="mb-2" controlId="loginPassword">
                     <Form.Label className="fw-semibold">Password</Form.Label>
                     <InputGroup>
                       <InputGroup.Text className="bg-light">
@@ -130,6 +130,12 @@ function GuestLoginPage() {
                       </Button>
                     </InputGroup>
                   </Form.Group>
+
+                  <div className="text-end mb-4">
+                    <Link to="/forgot-password" className="small fw-semibold text-decoration-none">
+                      Forgot password?
+                    </Link>
+                  </div>
 
                   <Button type="submit" variant="dark" size="lg" className="w-100 d-flex align-items-center justify-content-center gap-2" disabled={!canSubmit}>
                     {loading ? <Spinner animation="border" size="sm" /> : <FontAwesomeIcon icon={faArrowRightToBracket} />}

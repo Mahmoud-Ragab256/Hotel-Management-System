@@ -99,7 +99,7 @@ function SignupPage() {
         user: session.user
       });
 
-      navigate('/guest-login');
+      navigate('/login');
     } catch (error) {
       setFeedback({
         type: 'danger',
@@ -274,7 +274,7 @@ function SignupPage() {
 
 <div className="text-center mt-3">
   Already have an account?{' '}
-  <Link to="/guest-login">
+  <Link to="/login">
     Login
   </Link>
 </div>

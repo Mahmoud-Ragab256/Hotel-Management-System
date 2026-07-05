@@ -27,6 +27,7 @@ import {
   faCircleInfo
 } from '@fortawesome/free-solid-svg-icons';
 import { dashboardApi, getApiErrorMessage } from '../services/api.js';
+import { formatDisplayDate } from '../utils/date.ts';
 
 const getEmployeeFromToken = () => {
   try {
@@ -52,12 +53,7 @@ const statusVariant = (status = '') => {
   return 'secondary';
 };
 
-const formatDate = (value) => {
-  if (!value) return 'N/A';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return 'N/A';
-  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-};
+const formatDate = formatDisplayDate;
 
 const invoiceId = (invoice) => invoice?._id || invoice?.id || '';
 const bookingRef = (invoice) => invoice?.bookingId?._id || invoice?.bookingId || 'N/A';

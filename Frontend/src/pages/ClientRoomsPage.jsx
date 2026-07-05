@@ -1,11 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { dashboardApi, getApiErrorMessage } from '../services/api.js';
+import { API_BASE_URL, dashboardApi, getApiErrorMessage } from '../services/api.js';
 import { isAuthenticated } from '../services/auth.js';
 
-const BASE_URL =
-  import.meta.env?.VITE_API_BASE_URL ||
-  'https://hotel-management-system-sigma-ruby.vercel.app';
+const BASE_URL = API_BASE_URL;
 
 const resolveImageUrl = (img) => {
   if (!img) return null;

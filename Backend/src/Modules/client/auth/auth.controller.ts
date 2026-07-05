@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import crypto from 'crypto';
 import sendResetPassEmail from '../../../utils/sendEmail.js';
+import { hashPassword, normalizeEmail, verifyPassword } from '../../../utils/password.js';
 
 dotenv.config()
 
@@ -51,7 +52,8 @@ export const register: RequestHandler = async (
   res: Response<ApiResponse<Partial<IGuest>>>
 ): Promise<void> => {
   try {
-    const { fullName, email, password, phone, nationalId, preferences } = req.body;
+    const { fullName, password, phone, nationalId, preferences } = req.body;
+    const email = normalizeEmail(req.body.email);
 
     const existingGuest: IGuest | null = await Guest.findOne({ email });
     if (existingGuest) {
@@ -62,7 +64,7 @@ export const register: RequestHandler = async (
       return;
     }
 
-    const hashedPassword: string = await bcrypt.hash(`${password}${process.env.PEPPER}`, parseInt(process.env.SALT_ROUNDS as string));
+    const hashedPassword: string = await hashPassword(password);
 
     const guest: IGuest = await Guest.create({
       fullName,
@@ -105,7 +107,8 @@ export const login: RequestHandler = async (
   res: Response<ApiResponse<Partial<IGuest>>>
 ): Promise<void> => {
   try {
-    const { email, password } = req.body;
+    const email = normalizeEmail(req.body.email);
+    const { password } = req.body;
 
     const guest: IGuest | null = await Guest.findOne({ email });
     if (!guest) {
@@ -115,13 +118,18 @@ export const login: RequestHandler = async (
       });
       return;
     }
-    const isMatch: boolean = await bcrypt.compare(`${password}${process.env.PEPPER}`, guest.password);
-    if (!isMatch) {
+    const { matched, needsRehash } = await verifyPassword(password, guest.password);
+    if (!matched) {
       res.status(401).json({
         success: false,
         message: 'Invalid email or password',
       });
       return;
+    }
+
+    if (needsRehash) {
+      guest.password = await hashPassword(password);
+      await guest.save();
     }
 
     const guestId: string = guest._id.toString();
@@ -153,7 +161,7 @@ export const forgotPassword = async (
   res: Response<ApiResponse>
 ): Promise<void> => {
   try {
-    const { email } = req.body;
+    const email = normalizeEmail(req.body.email);
 
     const guest: IGuest | null = await Guest.findOne({ email });
     if (!guest) {
@@ -195,7 +203,8 @@ export const resetPassCode = async (
   res: Response<ApiResponse>
 ): Promise<void> => {
   try {
-    const { email, resetCode } = req.body;
+    const email = normalizeEmail(req.body.email);
+    const { resetCode } = req.body;
 
     const hashedResetCode = crypto.createHash('sha256').update(resetCode).digest('hex');
 
@@ -234,7 +243,8 @@ export const resetPassword = async (
   res: Response<ApiResponse>
 ): Promise<void> => {
   try {
-    const { email, newPassword } = req.body;
+    const email = normalizeEmail(req.body.email);
+    const { newPassword } = req.body;
 
     const guest: IGuest | null = await Guest.findOne({
       email,
@@ -248,7 +258,7 @@ export const resetPassword = async (
       return;
     }
 
-    const hashedPassword: string = await bcrypt.hash(`${newPassword}${process.env.PEPPER}`, parseInt(process.env.SALT_ROUNDS as string));
+    const hashedPassword: string = await hashPassword(newPassword);
 
     guest.password = hashedPassword;
     guest.passwordResetCode = undefined;
