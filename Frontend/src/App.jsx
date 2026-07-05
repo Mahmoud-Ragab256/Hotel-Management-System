@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import GuestLayout from './layouts/GuestLayout.jsx';
+import ClientExplorePage from './pages/ClientExplorePage.jsx';
 import ClientRoomsPage from './pages/ClientRoomsPage.jsx';
 import RoomDetailsPage from './pages/RoomDetailsPage.jsx';
 import SignupPage from './pages/SignupPage.jsx';
@@ -9,6 +10,9 @@ import GuestLoginPage from './pages/GuestLoginPage.jsx';
 import ResetPasswordPage from './pages/ResetPasswordPage.jsx';
 import ProfilePage from './pages/ProfilePage.jsx';
 import ServiceOrdersPage from './pages/ServiceOrdersPage.jsx';
+import HelpCenterPage from './pages/HelpCenterPage.jsx';
+import GuestsReviewsPage from './pages/GuestsReviewsPage.jsx';
+import BookStayPage from './pages/BookStayPage.jsx';
 
 import AdminLayout from './layouts/AdminLayout.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
@@ -24,6 +28,7 @@ import AddServicePage from './pages/AddServicePage.jsx';
 import ReviewsPage from './pages/ReviewsPage.jsx';
 import ReviewDetailsPage from './pages/ReviewDetailsPage.jsx';
 import NotificationsPage from './pages/NotificationsPage.jsx';
+import MyBookingsPage from './pages/MyBookingsPage.jsx';
 
 function App() {
   return (
@@ -35,22 +40,29 @@ function App() {
       <Route path="/forgot-password" element={<ResetPasswordPage accountType="guest" />} />
       <Route path="/signup" element={<SignupPage />} />
 
-      {/* Public guest website: localhost:6501/ stays on / and does not redirect to /login */}
+
       <Route path="/" element={<GuestLayout />}>
-        <Route index element={<ClientRoomsPage />} />
+        <Route index element={<ClientExplorePage />} />
         <Route path="services" element={<ClientServicesPage />} />
+        <Route path="help-center" element={<HelpCenterPage />} />
+        <Route path="reviews" element={<GuestsReviewsPage />} />
         <Route path="rooms" element={<ClientRoomsPage />} />
         <Route path="rooms/:id" element={<RoomDetailsPage />} />
+        <Route path="book-stay" element={<BookStayPage />} />
       </Route>
 
-      {/* Guest-only protected pages */}
+
       <Route element={<ProtectedRoute redirectTo="/login" />}>
         <Route path="/profile" element={<GuestLayout />}>
           <Route index element={<ProfilePage />} />
         </Route>
+
+       <Route path="/my-bookings" element={<GuestLayout />}>
+          <Route index element={<MyBookingsPage />} />
+        </Route>
       </Route>
 
-      {/* Dashboard protected pages */}
+
       <Route element={<ProtectedRoute redirectTo="/dashboard/login" />}>
         <Route path="/dashboard" element={<AdminLayout />}>
           <Route index element={<DashboardPage />} />

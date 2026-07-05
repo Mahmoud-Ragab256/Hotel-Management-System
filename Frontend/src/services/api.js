@@ -241,8 +241,8 @@ export const dashboardApi = {
     return response.data;
   },
 
-  async createInvoice() {
-    const response = await api.post('/dashboard/invoices');
+  async createInvoice(payload) {
+    const response = await api.post('/dashboard/invoices', payload);
     return readArray(response, 'invoice');
   },
 
@@ -419,6 +419,18 @@ async guestLogin(payload) {
   async createNotification(payload) {
     const response = await api.post('/dashboard/notifications', payload);
     return readObject(response, 'notification');
+  },
+  async getLandingPageData() {
+    const response = await api.get('/client/landing/landing');
+    return response?.data?.data || null;
+  },
+  async getLandingStatistics() {
+    const response = await api.get('/client/landing/statistics');
+    return response?.data?.data || null;
+  },
+  async getLandingFeaturedCategories() {
+    const response = await api.get('/client/landing/featured-categories');
+    return response?.data?.data || null;
   },
 
 

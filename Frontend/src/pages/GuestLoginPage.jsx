@@ -14,6 +14,7 @@ import {
 import FeedbackCard from '../components/FeedbackCard.jsx';
 import { dashboardApi, getApiErrorMessage } from '../services/api.js';
 import { saveAuthSession } from '../services/auth.js';
+import { useTheme } from '../context/ThemeContext.jsx';
 
 const initialForm = {
   email: '',
@@ -21,6 +22,7 @@ const initialForm = {
 };
 
 function GuestLoginPage() {
+  const { colors, isDark } = useTheme();
   const [form, setForm] = useState(initialForm);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -75,8 +77,8 @@ function GuestLoginPage() {
                   <span className="login-brand-icon d-inline-flex align-items-center justify-content-center rounded-4 mb-3">
                     <FontAwesomeIcon icon={faHotel} />
                   </span>
-                  <h1 className="h3 fw-bold mb-1">Guest Login</h1>
-                  <p className="text-muted mb-0">Sign in to manage your stay</p>
+                  <h1 style={{ fontSize: '28px', fontWeight: '700', fontFamily: '"Playfair Display", serif', color: colors.textPrimary, margin: '0 0 8px' }}>Guest Login</h1>
+                  <p className="text-muted mb-0" style={{ fontSize: '14px', fontWeight: '300' }}>Sign in to manage your stay</p>
                 </div>
 
                 {feedback && (
@@ -89,7 +91,7 @@ function GuestLoginPage() {
                   <Form.Group className="mb-3" controlId="loginEmail">
                     <Form.Label className="fw-semibold">Email address</Form.Label>
                     <InputGroup>
-                      <InputGroup.Text className="bg-light">
+                      <InputGroup.Text>
                         <FontAwesomeIcon icon={faEnvelope} />
                       </InputGroup.Text>
                       <Form.Control
@@ -107,7 +109,7 @@ function GuestLoginPage() {
                   <Form.Group className="mb-2" controlId="loginPassword">
                     <Form.Label className="fw-semibold">Password</Form.Label>
                     <InputGroup>
-                      <InputGroup.Text className="bg-light">
+                      <InputGroup.Text>
                         <FontAwesomeIcon icon={faLock} />
                       </InputGroup.Text>
                       <Form.Control
@@ -121,10 +123,9 @@ function GuestLoginPage() {
                       />
                       <Button
                         type="button"
-                        variant="light"
-                        className="border"
                         onClick={() => setShowPassword((current) => !current)}
                         disabled={loading}
+                        style={{ borderLeft: 'none' }}
                       >
                         <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
                       </Button>
@@ -132,7 +133,7 @@ function GuestLoginPage() {
                   </Form.Group>
 
                   <div className="text-end mb-4">
-                    <Link to="/forgot-password" className="small fw-semibold text-decoration-none">
+                    <Link to="/forgot-password" style={{ fontSize: '13px', fontWeight: '500', textDecoration: 'none' }}>
                       Forgot password?
                     </Link>
                   </div>
@@ -142,9 +143,9 @@ function GuestLoginPage() {
                     {loading ? 'Signing in...' : 'Login'}
                   </Button>
 
-                  <div className="text-center mt-3">
+                  <div className="text-center mt-3" style={{ fontSize: '14px', color: '#9ca3af' }}>
                     Don't have an account?{' '}
-                    <Link to="/signup">
+                    <Link to="/signup" style={{ fontWeight: '500', textDecoration: 'none' }}>
                       Sign Up
                     </Link>
                   </div>
@@ -153,20 +154,25 @@ function GuestLoginPage() {
             </Card>
           </Col>
 
-
           <Col lg={6} xl={5} className="d-none d-lg-block">
             <div className="text-white ps-xl-5">
-              <h2 className="display-6 fw-bold mb-3">Welcome to your Guest Portal</h2>
-              <p className="lead text-white-75 mb-4">
-                Log in to view your bookings, invoices, and manage your hotel stay.
+              <div className="d-inline-flex align-items-center gap-2 rounded-pill px-3 py-2 mb-4 login-pill" style={{ fontSize: '13px', fontWeight: '500' }}>
+                <FontAwesomeIcon icon={faHotel} />
+                Portal Access
+              </div>
+              <h2 style={{ fontSize: '36px', fontWeight: '700', fontFamily: '"Playfair Display", serif', lineHeight: '1.3', color: colors.textPrimary, marginBottom: '20px' }}>
+                Welcome to your Guest Portal
+              </h2>
+              <p className="lead text-white-75 mb-4" style={{ fontSize: '15px', fontWeight: '300', lineHeight: '1.6' }}>
+                Log in to view your bookings, invoices, request room services, and manage your luxury stay effortlessly.
               </p>
               <div className="d-flex align-items-center gap-3">
                 <span className="login-feature-icon rounded-3 d-inline-flex align-items-center justify-content-center">
                   <FontAwesomeIcon icon={faUser} />
                 </span>
                 <div>
-                  <div className="fw-semibold">Guest access only</div>
-                  <small className="text-white-75">Use your personal guest account info.</small>
+                  <div className="fw-semibold" style={{ fontSize: '15px' }}>Guest access only</div>
+                  <small className="text-white-75" style={{ fontSize: '13px', fontWeight: '300' }}>Use your personal guest account info.</small>
                 </div>
               </div>
             </div>

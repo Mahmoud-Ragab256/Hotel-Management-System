@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { dashboardApi, getApiErrorMessage } from '../services/api.js';
 import { getCurrentUser, isAuthenticated } from '../services/auth.js';
+import { useTheme } from '../context/ThemeContext.jsx';
 
 const BASE_URL =
   import.meta.env?.VITE_API_BASE_URL ||
@@ -19,22 +20,23 @@ const DETAILS_TEXT =
 
 function MessageBox({ type, message, onClose }) {
   const colors = {
-    success: { bg: '#d1fae5', border: '#6ee7b7', text: '#065f46', icon: '✅' },
-    error: { bg: '#fee2e2', border: '#fca5a5', text: '#991b1b', icon: '❌' },
-    warning: { bg: '#fef3c7', border: '#fcd34d', text: '#92400e', icon: '⚠️' },
+    success: { bg: 'rgba(16, 185, 129, 0.1)', border: 'rgba(16, 185, 129, 0.3)', text: '#10b981', icon: '✅' },
+    error: { bg: 'rgba(239, 68, 68, 0.1)', border: 'rgba(239, 68, 68, 0.3)', text: '#fca5a5', icon: '❌' },
+    warning: { bg: 'rgba(245, 158, 11, 0.1)', border: 'rgba(245, 158, 11, 0.3)', text: '#f59e0b', icon: '⚠️' },
   };
   const c = colors[type] || colors.error;
   return (
-    <div style={{ background: c.bg, border: `1.5px solid ${c.border}`, borderRadius: 12, padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12 }}>
-      <span style={{ fontSize: 20 }}>{c.icon}</span>
-      <span style={{ fontSize: 14, color: c.text, fontWeight: 500, flex: 1 }}>{message}</span>
-      <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, color: c.text, lineHeight: 1 }}>×</button>
+    <div style={{ background: c.bg, border: `1px solid ${c.border}`, borderRadius: 12, padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12 }}>
+      <span style={{ fontSize: 18 }}>{c.icon}</span>
+      <span style={{ fontSize: 13, color: c.text, fontWeight: 500, flex: 1, fontFamily: '"Inter", sans-serif' }}>{message}</span>
+      <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: c.text, lineHeight: 1 }}>×</button>
     </div>
   );
 }
 
 function ServiceCard({ service, index, onRequest, msgRef }) {
-  const isLeft = index % 2 === 0; // true = الكارد كله شمال | false = الكارد كله يمين
+  const { colors, isDark } = useTheme();
+  const isLeft = index % 2 === 0;
   const imageUrl = resolveImageUrl(service.image || service.imageUrl || service.img);
   const isAvailable = service.status !== 'Unavailable' && service.isActive !== false;
   const [localMsg, setLocalMsg] = useState(null);
@@ -56,38 +58,56 @@ function ServiceCard({ service, index, onRequest, msgRef }) {
       justifyContent: isLeft ? 'flex-start' : 'flex-end',
       width: '100%',
     }}>
-      <div style={{
-        background: '#fff',
-        borderRadius: 20,
-        overflow: 'hidden',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.06), 0 8px 32px rgba(0,0,0,0.05)',
-        display: 'flex',
-        flexDirection: isLeft ? 'row' : 'row-reverse',
-        alignItems: 'stretch',
-        gap: 32,
-        width: '85%',
-        maxWidth: 880,
-      }}>
-        <div style={{ flex: '0 0 40%', background: '#f1f5f9', position: 'relative', minHeight: 320 }}>
+      <div 
+        style={{
+          background: colors.bgCard,
+          borderRadius: 20,
+          overflow: 'hidden',
+          border: `1px solid ${colors.borderCard}`,
+          display: 'flex',
+          flexDirection: isLeft ? 'row' : 'row-reverse',
+          alignItems: 'stretch',
+          gap: 32,
+          width: '100%',
+          maxWidth: '880px',
+          flexWrap: 'wrap',
+          boxShadow: colors.shadow,
+          transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'translateY(-6px)';
+          e.currentTarget.style.borderColor = colors.accent;
+          e.currentTarget.style.boxShadow = colors.shadowHover;
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'translateY(0)';
+          e.currentTarget.style.borderColor = colors.borderCard;
+          e.currentTarget.style.boxShadow = colors.shadow;
+        }}
+      >
+        {/* Service Image Block */}
+        <div style={{ flex: '1 1 320px', background: colors.inputBg, position: 'relative', minHeight: 320 }}>
           {imageUrl ? (
             <img src={imageUrl} alt={service.name}
               style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', position: 'absolute', inset: 0 }}
               onError={(e) => { e.currentTarget.style.display = 'none'; }}
             />
           ) : (
-            <div style={{ height: '100%', minHeight: 320, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', gap: 10 }}>
+            <div style={{ height: '100%', minHeight: 320, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#4b5563', gap: 10 }}>
               <svg width="44" height="44" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
-              <span style={{ fontSize: 13 }}>No image</span>
+              <span style={{ fontSize: 12, fontFamily: '"Inter", sans-serif' }}>No preview image</span>
             </div>
           )}
           <div style={{ position: 'absolute', top: 14, left: 14, zIndex: 1 }}>
             <span style={{
               display: 'inline-flex', alignItems: 'center', gap: 5,
-              padding: '4px 10px', borderRadius: 999, fontSize: 12, fontWeight: 600,
-              background: isAvailable ? '#d1fae5' : '#fee2e2',
-              color: isAvailable ? '#065f46' : '#991b1b',
+              padding: '4px 10px', borderRadius: 999, fontSize: 11, fontWeight: 600,
+              background: isAvailable ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+              color: isAvailable ? '#10b981' : '#fca5a5',
+              border: `1px solid ${isAvailable ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)'}`,
+              fontFamily: '"Inter", sans-serif'
             }}>
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: isAvailable ? '#10b981' : '#ef4444' }} />
               {isAvailable ? 'Available' : 'Unavailable'}
@@ -95,39 +115,40 @@ function ServiceCard({ service, index, onRequest, msgRef }) {
           </div>
         </div>
 
+        {/* Details and Request Form */}
         <div style={{
-          flex: 1,
+          flex: '1 1 380px',
           padding: '32px',
           display: 'flex',
           flexDirection: 'column',
-          gap: 14,
+          gap: 16,
           justifyContent: 'space-between',
         }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {service.category && (
-              <span style={{ fontSize: 11, fontWeight: 700, color: '#0ea5e9', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+              <span style={{ fontSize: 11, fontWeight: 700, color: colors.accent, textTransform: 'uppercase', letterSpacing: '0.12em', fontFamily: '"Inter", sans-serif' }}>
                 {service.category}
               </span>
             )}
 
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
-              <h3 style={{ fontSize: 22, fontWeight: 800, color: '#0f172a', margin: 0 }}>{service.name}</h3>
+              <h3 style={{ fontSize: 22, fontWeight: 700, color: colors.textPrimary, margin: 0, fontFamily: '"Playfair Display", serif' }}>{service.name}</h3>
               {service.price !== undefined && (
-                <div style={{ fontSize: 22, fontWeight: 800, color: '#0ea5e9', flexShrink: 0 }}>${service.price}</div>
+                <div style={{ fontSize: 22, fontWeight: 700, color: colors.accent, flexShrink: 0, fontFamily: '"Inter", sans-serif' }}>${service.price}</div>
               )}
             </div>
 
             {service.description && (
-              <p style={{ fontSize: 14, color: '#64748b', lineHeight: 1.7, margin: 0 }}>{service.description}</p>
+              <p style={{ fontSize: 14, color: colors.textSecondary, lineHeight: 1.6, margin: 0, fontFamily: '"Inter", sans-serif', fontWeight: 300 }}>{service.description}</p>
             )}
 
             <div>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Details</div>
-              <p style={{ fontSize: 14, color: '#475569', lineHeight: 1.7, margin: 0 }}>{DETAILS_TEXT}</p>
+              <div style={{ fontSize: 10, fontWeight: 700, color: colors.textMuted, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8, fontFamily: '"Inter", sans-serif' }}>Details</div>
+              <p style={{ fontSize: 13, color: colors.textSecondary, lineHeight: 1.6, margin: 0, fontFamily: '"Inter", sans-serif', fontWeight: 300 }}>{DETAILS_TEXT}</p>
             </div>
 
             {localMsg && (
-              <div ref={msgRef}>
+              <div ref={msgRef} style={{ marginTop: '10px' }}>
                 <MessageBox type={localMsg.type} message={localMsg.text} onClose={() => setLocalMsg(null)} />
               </div>
             )}
@@ -137,16 +158,18 @@ function ServiceCard({ service, index, onRequest, msgRef }) {
             onClick={handleRequest}
             disabled={!isAvailable}
             style={{
-              padding: '12px 28px', borderRadius: 12, border: 'none',
-              background: isAvailable ? '#0ea5e9' : '#e2e8f0',
-              color: isAvailable ? '#fff' : '#94a3b8',
-              fontWeight: 700, fontSize: 14,
+              padding: '12px 28px', borderRadius: '24px', border: 'none',
+              background: isAvailable ? colors.accent : colors.inputBg,
+              color: isAvailable ? '#ffffff' : colors.textMuted,
+              fontWeight: 600, fontSize: 14,
               cursor: isAvailable ? 'pointer' : 'not-allowed',
               alignSelf: isLeft ? 'flex-end' : 'flex-start',
-              transition: 'background 0.15s',
+              transition: 'background 0.2s',
+              fontFamily: '"Inter", sans-serif',
+              marginTop: '16px'
             }}
-            onMouseEnter={(e) => { if (isAvailable) e.currentTarget.style.background = '#0284c7'; }}
-            onMouseLeave={(e) => { if (isAvailable) e.currentTarget.style.background = '#0ea5e9'; }}
+            onMouseEnter={(e) => { if (isAvailable) e.currentTarget.style.background = colors.accentHover; }}
+            onMouseLeave={(e) => { if (isAvailable) e.currentTarget.style.background = colors.accent; }}
           >
             Request Service
           </button>
@@ -157,6 +180,7 @@ function ServiceCard({ service, index, onRequest, msgRef }) {
 }
 
 export default function ClientServicesPage() {
+  const { colors, isDark } = useTheme();
   const navigate = useNavigate();
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -212,31 +236,68 @@ export default function ClientServicesPage() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f8fafc', fontFamily: "'Inter', system-ui, sans-serif" }}>
-      <div style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%)', padding: '52px 24px 40px', textAlign: 'center' }}>
-        <div style={{ fontSize: 11, color: '#7dd3fc', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10 }}>Hotel Services</div>
-        <h1 style={{ fontSize: 'clamp(26px, 5vw, 42px)', fontWeight: 800, color: '#fff', margin: '0 0 12px', letterSpacing: '-0.03em' }}>Our Premium Services</h1>
-        <p style={{ fontSize: 16, color: '#94a3b8', margin: '0 auto', maxWidth: 480 }}>Everything you need for a perfect stay, all in one place.</p>
+    <div style={{ minHeight: '100vh', background: 'transparent', color: colors.textPrimary, fontFamily: '"Inter", sans-serif', paddingBottom: '120px' }}>
+      
+      {/* Services Header - Sleek Dynamic Theme */}
+      <div style={{
+        background: colors.accent,
+        borderBottom: `1px solid ${colors.borderCard}`,
+        boxShadow: '0 10px 30px rgba(200, 90, 73, 0.15)',
+        padding: '60px 24px 48px',
+        textAlign: 'center',
+        borderRadius: '24px',
+        margin: '20px 24px 0',
+      }}>
+        <div style={{ 
+          fontSize: '11px', 
+          color: 'rgba(255, 255, 255, 0.9)', 
+          fontWeight: '700', 
+          textTransform: 'uppercase', 
+          letterSpacing: '0.15em', 
+          marginBottom: '12px' 
+        }}>
+          Hotel Services
+        </div>
+        <h1 style={{ 
+          fontSize: 'clamp(26px, 5vw, 42px)', 
+          fontWeight: '700', 
+          color: '#ffffff', 
+          margin: '0 0 12px', 
+          letterSpacing: '-0.02em', 
+          fontFamily: '"Playfair Display", serif' 
+        }}>
+          Our Premium Services
+        </h1>
+        <p style={{ 
+          fontSize: '15px', 
+          color: 'rgba(255, 255, 255, 0.9)', 
+          margin: '0 auto', 
+          maxWidth: '480px', 
+          fontWeight: '300', 
+          lineHeight: '1.6' 
+        }}>
+          Everything you need for a perfect stay, curated with exceptional hospitality.
+        </p>
       </div>
 
-      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '40px 24px', display: 'flex', flexDirection: 'column', gap: 32 }}>
+      <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '40px 24px', display: 'flex', flexDirection: 'column', gap: '48px' }}>
         {loading && (
-          <div style={{ textAlign: 'center', padding: '80px 0', color: '#94a3b8' }}>
-            <div style={{ width: 36, height: 36, border: '3px solid #e2e8f0', borderTopColor: '#0ea5e9', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 16px' }} />
-            <p style={{ margin: 0 }}>Loading services...</p>
+          <div style={{ textAlign: 'center', padding: '80px 0', color: colors.textSecondary }}>
+            <div style={{ width: '36px', height: '36px', border: `3px solid ${colors.borderCard}`, borderTopColor: colors.accent, borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 16px' }} />
+            <p style={{ margin: 0, fontSize: '14px' }}>Loading services...</p>
             <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
           </div>
         )}
 
         {error && !loading && (
-          <div style={{ background: '#fee2e2', border: '1px solid #fca5a5', borderRadius: 12, padding: '14px 18px', color: '#991b1b', fontSize: 14 }}>
+          <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.25)', borderRadius: '12px', padding: '14px 18px', color: '#fca5a5', fontSize: '14px' }}>
             Could not load services: {error}
           </div>
         )}
 
         {!loading && !error && services.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '80px 0', color: '#94a3b8' }}>
-            <p style={{ margin: 0 }}>No services available at the moment.</p>
+          <div style={{ textAlign: 'center', padding: '80px 0', color: colors.textSecondary }}>
+            <p style={{ margin: 0, fontSize: '14px' }}>No services available at the moment.</p>
           </div>
         )}
 
@@ -250,20 +311,6 @@ export default function ClientServicesPage() {
           />
         ))}
       </div>
-
-      <style>{`
-        @media (max-width: 900px) {
-          div[style*="justify-content: flex-start"] > div[style*="width: 85%"],
-          div[style*="justify-content: flex-end"] > div[style*="width: 85%"] {
-            width: 100% !important;
-          }
-        }
-        @media (max-width: 640px) {
-          div[style*="width: 85%"][style*="flex-direction: row"] {
-            flex-direction: column !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }

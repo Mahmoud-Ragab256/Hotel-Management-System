@@ -1,5 +1,7 @@
-node_modules
-dist
+node_modules/
+Frontend/node_modules/
+Backend/node_modules/
+dist/
 .env
 .env.local
 .DS_Store

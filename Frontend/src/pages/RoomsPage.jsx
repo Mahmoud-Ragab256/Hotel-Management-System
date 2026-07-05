@@ -487,7 +487,7 @@ function RoomsPage() {
                 {roomImages.map((image, index) => (
                   <ListGroup.Item key={`${image}-${index}`} className="d-flex align-items-center justify-content-between gap-3">
                     <div className="text-truncate">{image}</div>
-                    <a href={image.startsWith('http') ? image : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'}/${image}`} target="_blank" rel="noreferrer" className="btn btn-sm btn-outline-secondary">Open</a>
+                    <a href={image.startsWith('http') ? image : `${import.meta.env.VITE_API_BASE_URL || 'https://hotel-management-system-sigma-ruby.vercel.app'}/${image}`} target="_blank" rel="noreferrer" className="btn btn-sm btn-outline-secondary">Open</a>
                   </ListGroup.Item>
                 ))}
               </ListGroup>

@@ -1,8 +1,9 @@
- import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Row, Col, Table, Card, Spinner, Alert } from 'react-bootstrap';
 import { dashboardApi, getApiErrorMessage } from '../services/api';
 import { formatDisplayDate } from '../utils/date.ts';
 import StatCard from '../components/StatCard';
+import { useTheme } from '../context/ThemeContext.jsx';
 import { 
   faBed, 
   faCalendarCheck, 
@@ -40,6 +41,7 @@ ChartJS.register(
 );
 
 function DashboardPage() {
+  const { colors, isDark } = useTheme();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [stats, setStats] = useState(null);
@@ -83,11 +85,12 @@ function DashboardPage() {
         label: 'Revenue',
         data: stats.revenueTrend.map(item => item.revenue),
         fill: true,
-        borderColor: '#4e54c8',
-        backgroundColor: 'rgba(78, 84, 200, 0.05)',
+        borderColor: isDark ? '#4f46e5' : '#4e54c8',
+        backgroundColor: isDark ? 'rgba(79, 70, 229, 0.15)' : 'rgba(78, 84, 200, 0.05)',
         tension: 0.4, 
-        pointRadius: 0, 
-        pointHoverRadius: 5
+        pointRadius: 2, 
+        pointBackgroundColor: isDark ? '#4f46e5' : '#4e54c8',
+        pointHoverRadius: 6
       }
     ]
   };
@@ -95,10 +98,26 @@ function DashboardPage() {
   const lineChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
-    plugins: { legend: { display: false } }, 
+    plugins: { 
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: isDark ? '#111625' : '#ffffff',
+        titleColor: isDark ? '#ffffff' : '#1a1a1a',
+        bodyColor: isDark ? '#9ca3af' : '#5a5a5a',
+        borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)',
+        borderWidth: 1,
+        padding: 10
+      }
+    }, 
     scales: {
-      y: { grid: { display: false }, ticks: { display: true } },
-      x: { grid: { display: false } }
+      y: { 
+        grid: { color: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.05)', drawBorder: false }, 
+        ticks: { color: isDark ? '#7c8ba1' : '#6b7280' } 
+      },
+      x: { 
+        grid: { display: false }, 
+        ticks: { color: isDark ? '#7c8ba1' : '#6b7280' } 
+      }
     }
   };
 
@@ -112,8 +131,9 @@ function DashboardPage() {
           stats.bookingStatusDistribution.pending,
           stats.bookingStatusDistribution.cancelled
         ],
-        backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
-        borderWidth: 0,
+        backgroundColor: isDark ? ['#10b981', '#f59e0b', '#ef4444'] : ['#10b981', '#f59e0b', '#ef4444'],
+        borderWidth: isDark ? 2 : 0,
+        borderColor: isDark ? '#111625' : '#ffffff',
         cutout: '75%' 
       }
     ]
@@ -122,7 +142,17 @@ function DashboardPage() {
   const doughnutOptions = {
     responsive: true,
     maintainAspectRatio: false,
-    plugins: { legend: { display: false } }
+    plugins: { 
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: isDark ? '#111625' : '#ffffff',
+        titleColor: isDark ? '#ffffff' : '#1a1a1a',
+        bodyColor: isDark ? '#9ca3af' : '#5a5a5a',
+        borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)',
+        borderWidth: 1,
+        padding: 10
+      }
+    }
   };
 
   return (
