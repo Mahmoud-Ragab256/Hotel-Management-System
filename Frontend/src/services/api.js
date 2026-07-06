@@ -36,11 +36,6 @@ export const dashboardApi = {
       user: response?.data?.data || null
     };
   },
-  async createServiceOrder(payload) {
-  const response = await api.post('/dashboard/service-orders', payload);
-  return response?.data?.data || null;
-},
-
 
   async forgotEmployeePassword(email) {
     const response = await api.post('/dashboard/auth/forgot-password', { email });
@@ -246,10 +241,18 @@ export const dashboardApi = {
     return response.data;
   },
 
-  async createInvoice() {
-    const response = await api.post('/dashboard/invoices');
-    return readArray(response, 'invoice');
-  },
+  async createInvoice(payload) {
+  console.log("Invoice Payload:", payload);
+
+  const response = await api.post("/dashboard/invoices", {
+    bookingId: payload.bookingId,
+    totalAmount: payload.totalAmount,
+    method: payload.method,
+    status: payload.status,
+  });
+
+  return readObject(response, "invoice");
+},
 
   async getInvoices() {
     const response = await api.get('/dashboard/invoices');

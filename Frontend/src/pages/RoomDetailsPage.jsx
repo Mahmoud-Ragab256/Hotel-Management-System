@@ -2,11 +2,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { dashboardApi, getApiErrorMessage } from '../services/api.js';
 import { getCurrentUser, isAuthenticated } from '../services/auth.js';
-import { daysBetweenDateInputs, todayDateInputValue } from '../utils/date.ts';
 
 const BASE_URL =
   import.meta.env?.VITE_API_BASE_URL ||
-  'http://localhost:3000';
+  'https://hotel-management-system-sigma-ruby.vercel.app';
 
 const resolveImageUrl = (img) => {
   if (!img) return null;
@@ -32,14 +31,15 @@ function StatusPill({ status }) {
 
 function BookingForm({ room, onSuccess }) {
   const basePrice = room.categoryId?.basePrice || 0;
-  const today = todayDateInputValue();
+  const today = new Date().toISOString().slice(0, 10);
   const [form, setForm] = useState({ checkInDate: '', checkOutDate: '', specialRequests: '' });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
   const nights = useMemo(() => {
     if (!form.checkInDate || !form.checkOutDate) return 0;
-    return Math.max(0, daysBetweenDateInputs(form.checkInDate, form.checkOutDate));
+    const diff = new Date(form.checkOutDate) - new Date(form.checkInDate);
+    return Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24)));
   }, [form.checkInDate, form.checkOutDate]);
 
   const totalPrice = nights * basePrice;
@@ -53,7 +53,7 @@ function BookingForm({ room, onSuccess }) {
     if (!guestId) { setError('Could not find your account. Please login again.'); return; }
     setSaving(true);
     try {
-      await dashboardApi.createClientBooking({
+      const booking = await dashboardApi.createClientBooking({
         guestId,
         roomId: room._id || room.id,
         checkInDate: form.checkInDate,
@@ -62,13 +62,43 @@ function BookingForm({ room, onSuccess }) {
         specialRequests: form.specialRequests,
         paymentMethod: 'Cash',
       });
-      onSuccess();
-    } catch (err) {
-      setError(getApiErrorMessage(err));
-    } finally {
-      setSaving(false);
-    }
-  };
+
+      const newBookingId =
+  booking?._id || booking?.id || booking?.booking?._id;
+
+// الفاتورة بتتعمل تلقائياً من الـ Backend
+// لذلك لا تستدعي createInvoice هنا
+
+if (newBookingId) {
+  try {
+    console.log("Creating notification...");
+
+    const res = await dashboardApi.createNotification({
+      recipientId: guestId,
+      recipientType: "Guest",
+      type: "Booking",
+      title: "Booking Created Successfully",
+      message:
+        "Your booking is pending confirmation. We will notify you once it is confirmed.",
+    });
+
+    console.log("Notification Success:", res);
+  } catch (e) {
+    console.log("Notification Error:");
+    console.log(e.response?.data);
+    console.log(e.response?.status);
+    console.log(e);
+  }
+}
+
+onSuccess();
+
+} catch (err) {
+  setError(getApiErrorMessage(err));
+} finally {
+  setSaving(false);
+}
+};
 
   return (
     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -146,9 +176,6 @@ export default function RoomDetailsPage() {
           dashboardApi.getRoom(id),
           dashboardApi.getRoomImages(id),
         ]);
-        console.log("Room:", roomData);
-  console.log("Images:", imagesData);
-
         setRoom(roomData);
         setImages(Array.isArray(imagesData) ? imagesData : []);
       } catch (err) {
@@ -202,7 +229,6 @@ export default function RoomDetailsPage() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#f8fafc', fontFamily: "'Inter', system-ui, sans-serif" }}>
-      {/* Top bar */}
       <div style={{ background: '#0f172a', padding: '14px 24px', display: 'flex', alignItems: 'center', gap: 16 }}>
         <button onClick={() => navigate('/rooms')} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, color: '#94a3b8', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}>
           <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
@@ -214,11 +240,7 @@ export default function RoomDetailsPage() {
 
       <div style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 24px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 360px', gap: 32, alignItems: 'start' }}>
-
-          {/* LEFT — images + info */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-
-            {/* Main image */}
             <div style={{ borderRadius: 16, overflow: 'hidden', background: '#e2e8f0', aspectRatio: '16/9', position: 'relative' }}>
               {displayImages.length > 0 ? (
                 <img src={displayImages[activeImg]} alt={`Room ${room.roomNumber}`} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
@@ -231,20 +253,17 @@ export default function RoomDetailsPage() {
               <div style={{ position: 'absolute', top: 16, left: 16 }}><StatusPill status={room.status} /></div>
             </div>
 
-            {/* Thumbnails */}
             {displayImages.length > 1 && (
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                 {displayImages.map((img, i) => (
                   <div key={i} onClick={() => setActiveImg(i)}
-                    style={{ width: 80, height: 60, borderRadius: 8, overflow: 'hidden', cursor: 'pointer', border: i === activeImg ? '2px solid #0ea5e9' : '2px solid transparent', flexShrink: 0, transition: 'border-color 0.15s' }}
-                  >
+                    style={{ width: 80, height: 60, borderRadius: 8, overflow: 'hidden', cursor: 'pointer', border: i === activeImg ? '2px solid #0ea5e9' : '2px solid transparent', flexShrink: 0, transition: 'border-color 0.15s' }}>
                     <img src={img} alt={`View ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </div>
                 ))}
               </div>
             )}
 
-            {/* Details card */}
             <div style={{ background: '#fff', borderRadius: 16, padding: 28, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
                 <div>
@@ -290,7 +309,6 @@ export default function RoomDetailsPage() {
             </div>
           </div>
 
-          {/* RIGHT — booking form */}
           <div style={{ position: 'sticky', top: 24 }}>
             <div style={{ background: '#fff', borderRadius: 16, padding: 28, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
               <div style={{ fontSize: 18, fontWeight: 800, color: '#0f172a', marginBottom: 4 }}>Book This Room</div>
@@ -305,11 +323,9 @@ export default function RoomDetailsPage() {
               )}
             </div>
           </div>
-
         </div>
       </div>
 
-      {/* Responsive */}
       <style>{`
         @media (max-width: 768px) {
           .room-details-grid { grid-template-columns: 1fr !important; }
