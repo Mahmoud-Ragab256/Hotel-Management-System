@@ -22,12 +22,15 @@ import {
   faPlus,
   faRefresh,
   faTrash,
+  faUserCheck,
+  faUserSlash,
   faUserTie
 } from '@fortawesome/free-solid-svg-icons';
 import FeedbackCard from '../components/FeedbackCard.jsx';
+import ProfileImageCropper from '../components/ProfileImageCropper.jsx';
 import StatCard from '../components/StatCard.jsx';
 import { dashboardApi, getApiErrorMessage } from '../services/api.js';
-import { formatDisplayDateTime } from '../utils/date.ts';
+import { formatDisplayDateTime } from '../utils/date.js';
 
 const roles = ['Admin', 'Manager', 'Receptionist', 'Service'];
 const shifts = ['Morning', 'Evening', 'Night'];
@@ -88,6 +91,8 @@ function EmployeesPage() {
   const [createForm, setCreateForm] = useState(initialCreateForm);
   const [editForm, setEditForm] = useState(initialEditForm);
   const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarCropFile, setAvatarCropFile] = useState(null);
+  const [avatarCropModal, setAvatarCropModal] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState('');
 
   const showFeedback = (type, message) => setFeedback({ type, message });
@@ -184,6 +189,21 @@ function EmployeesPage() {
     }
   };
 
+
+  const handleAvatarFileChange = (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    setAvatarCropFile(file);
+    setAvatarCropModal(true);
+  };
+
+  const handleAvatarCropConfirm = (croppedFile) => {
+    setAvatarFile(croppedFile);
+    setAvatarCropFile(null);
+    setAvatarCropModal(false);
+  };
+
   const handleSave = async (event) => {
     event.preventDefault();
     setSaving(true);
@@ -209,6 +229,7 @@ function EmployeesPage() {
           isActive: editForm.isActive
         };
         await dashboardApi.updateEmployee(employeeId(selectedEmployee), payload, avatarFile);
+        setAvatarFile(null);
         showFeedback('success', 'Employee updated successfully.');
       }
 
@@ -216,6 +237,22 @@ function EmployeesPage() {
       await loadEmployees();
     } catch (error) {
       showFeedback('danger', `Could not save employee: ${getApiErrorMessage(error)}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleToggleActiveStatus = async (employee) => {
+    if (!employee) return;
+
+    const nextIsActive = employee.isActive === false;
+    setSaving(true);
+    try {
+      await dashboardApi.setEmployeeActiveStatus(employeeId(employee), nextIsActive);
+      showFeedback('success', `Employee marked as ${nextIsActive ? 'active' : 'inactive'} successfully.`);
+      await loadEmployees();
+    } catch (error) {
+      showFeedback('danger', `Could not update employee status: ${getApiErrorMessage(error)}`);
     } finally {
       setSaving(false);
     }
@@ -325,8 +362,16 @@ function EmployeesPage() {
                       <ButtonGroup size="sm">
                         <Button variant="outline-secondary" onClick={() => openView(employee)}><FontAwesomeIcon icon={faEye} /></Button>
                         <Button variant="outline-info" onClick={() => openAvatar(employee)}><FontAwesomeIcon icon={faImage} /></Button>
-                        <Button variant="outline-primary" onClick={() => openEdit(employee)}><FontAwesomeIcon icon={faPenToSquare} /></Button>
-                        <Button variant="outline-danger" onClick={() => { setSelectedEmployee(employee); setDeleteModal(true); }}><FontAwesomeIcon icon={faTrash} /></Button>
+                        <Button variant="outline-primary" onClick={() => openEdit(employee)} title="Edit"><FontAwesomeIcon icon={faPenToSquare} /></Button>
+                        <Button
+                          variant={employee.isActive === false ? 'outline-success' : 'outline-warning'}
+                          onClick={() => handleToggleActiveStatus(employee)}
+                          disabled={saving}
+                          title={employee.isActive === false ? 'Mark active' : 'Mark inactive'}
+                        >
+                          <FontAwesomeIcon icon={employee.isActive === false ? faUserCheck : faUserSlash} />
+                        </Button>
+                        <Button variant="outline-danger" onClick={() => { setSelectedEmployee(employee); setDeleteModal(true); }} title="Delete"><FontAwesomeIcon icon={faTrash} /></Button>
                       </ButtonGroup>
                     </td>
                   </tr>
@@ -385,8 +430,11 @@ function EmployeesPage() {
                   </Col>
                   <Col md={12}>
                     <Form.Label>Avatar File</Form.Label>
-                    <Form.Control type="file" accept="image/*" onChange={(event) => setAvatarFile(event.target.files?.[0] || null)} />
-                    <small className="text-muted">Sent through PUT /dashboard/employees/:id as avatar multipart field.</small>
+                    <Form.Control type="file" accept="image/*" onChange={handleAvatarFileChange} />
+                    <small className="text-muted">The image opens in a circular crop tool before upload.</small>
+                    {avatarFile && (
+                      <div className="small text-success mt-2">Cropped avatar ready: {avatarFile.name}</div>
+                    )}
                   </Col>
                 </>
               )}
@@ -439,6 +487,15 @@ function EmployeesPage() {
           <Button variant="danger" onClick={handleDelete} disabled={saving}>{saving ? 'Deleting...' : 'Delete'}</Button>
         </Modal.Footer>
       </Modal>
+
+      <ProfileImageCropper
+        show={avatarCropModal}
+        file={avatarCropFile}
+        title="Adjust employee avatar"
+        confirmLabel="Use cropped avatar"
+        onCancel={() => { setAvatarCropModal(false); setAvatarCropFile(null); }}
+        onConfirm={handleAvatarCropConfirm}
+      />
     </div>
   );
 }

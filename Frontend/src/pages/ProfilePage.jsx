@@ -31,8 +31,9 @@ import {
   faStar,
   faBed
 } from '@fortawesome/free-solid-svg-icons';
+import ProfileImageCropper from '../components/ProfileImageCropper.jsx';
 import { dashboardApi, getApiErrorMessage } from '../services/api.js';
-import { formatDisplayDate } from '../utils/date.ts';
+import { formatDisplayDate } from '../utils/date.js';
 
 const PRIMARY = '#111827';
 
@@ -144,6 +145,8 @@ function ProfilePage() {
   const [passwordModal, setPasswordModal] = useState(false);
   const [passwordForm, setPasswordForm] = useState({ current: '', next: '', confirm: '' });
   const [passwordError, setPasswordError] = useState('');
+  const [photoCropModal, setPhotoCropModal] = useState(false);
+  const [photoCropFile, setPhotoCropFile] = useState(null);
 
   const showFeedback = (type, message) => setFeedback({ type, message });
 
@@ -219,11 +222,10 @@ function ProfilePage() {
     }
   };
 
-  const handlePhotoChange = async (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  const uploadProfilePhoto = async (file) => {
     const formData = new FormData();
     formData.append('avatar', file);
+    setSaving(true);
     try {
       const updated = await dashboardApi.updateProfileImage(formData);
       const merged = { ...profile, avatar: updated ? `${updated}?t=${Date.now()}` : null };
@@ -233,7 +235,23 @@ function ProfilePage() {
       showFeedback('success', 'Photo updated.');
     } catch (error) {
       showFeedback('danger', `Could not upload photo: ${getApiErrorMessage(error)}`);
+    } finally {
+      setSaving(false);
     }
+  };
+
+  const handlePhotoChange = (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    setPhotoCropFile(file);
+    setPhotoCropModal(true);
+  };
+
+  const handleProfilePhotoCropConfirm = async (croppedFile) => {
+    setPhotoCropModal(false);
+    setPhotoCropFile(null);
+    await uploadProfilePhoto(croppedFile);
   };
 
   const handleRemovePhoto = async () => {
@@ -663,6 +681,15 @@ function ProfilePage() {
           </Modal.Footer>
         </Form>
       </Modal>
+
+      <ProfileImageCropper
+        show={photoCropModal}
+        file={photoCropFile}
+        title="Adjust profile photo"
+        confirmLabel="Save cropped photo"
+        onCancel={() => { setPhotoCropModal(false); setPhotoCropFile(null); }}
+        onConfirm={handleProfilePhotoCropConfirm}
+      />
     </div>
   );
 }

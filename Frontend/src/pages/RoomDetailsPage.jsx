@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { dashboardApi, getApiErrorMessage } from '../services/api.js';
 import { getCurrentUser, isAuthenticated } from '../services/auth.js';
-import { daysBetweenDateInputs, todayDateInputValue } from '../utils/date.ts';
+import { daysBetweenDateInputs, todayDateInputValue } from '../utils/date.js';
 
 const BASE_URL =
   import.meta.env?.VITE_API_BASE_URL ||

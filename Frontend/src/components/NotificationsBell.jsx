@@ -3,20 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBell } from "@fortawesome/free-solid-svg-icons";
 import { dashboardApi } from "../services/api.js";
-import { formatDisplayDate } from "../utils/date.ts";
+import { getCurrentUser } from "../services/auth.js";
+import { formatDisplayDate } from "../utils/date.js";
 import "../styles/notificationsBell.css";
 
-const USER_KEY = "hotel_admin_user";
-
 const getStoredUserId = () => {
-  try {
-    const user = JSON.parse(localStorage.getItem(USER_KEY));
-    return user?.id || user?._id || null;
-  } catch {
-    console.log("userId:", userId);
-    console.log("user:", localStorage.getItem(USER_KEY));
-    return null;
-  }
+  const user = getCurrentUser('guest');
+  return user?.id || user?._id || null;
 };
 
 const NotificationBell = () => {

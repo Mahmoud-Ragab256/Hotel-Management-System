@@ -27,7 +27,7 @@ import {
   faCircleInfo
 } from '@fortawesome/free-solid-svg-icons';
 import { dashboardApi, getApiErrorMessage } from '../services/api.js';
-import { formatDisplayDate } from '../utils/date.ts';
+import { formatDisplayDate } from '../utils/date.js';
 
 const getEmployeeFromToken = () => {
   try {

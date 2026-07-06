@@ -17,6 +17,11 @@ const resolveImageUrl = (img) => {
 const DETAILS_TEXT =
   'Available around the clock with a specialized, certified hotel team that ensures fast execution and consistently high quality.';
 
+const firstServiceImage = (service) => {
+  if (Array.isArray(service?.images) && service.images.length) return service.images.find(Boolean) || '';
+  return service?.image || service?.imageUrl || service?.img || '';
+};
+
 function MessageBox({ type, message, onClose }) {
   const colors = {
     success: { bg: '#d1fae5', border: '#6ee7b7', text: '#065f46', icon: '✅' },
@@ -35,8 +40,8 @@ function MessageBox({ type, message, onClose }) {
 
 function ServiceCard({ service, index, onRequest, msgRef }) {
   const isLeft = index % 2 === 0; // true = الكارد كله شمال | false = الكارد كله يمين
-  const imageUrl = resolveImageUrl(service.image || service.imageUrl || service.img);
-  const isAvailable = service.status !== 'Unavailable' && service.isActive !== false;
+  const imageUrl = resolveImageUrl(firstServiceImage(service));
+  const isAvailable = service.isAvailable !== false && service.status !== 'Unavailable' && service.isActive !== false;
   const [localMsg, setLocalMsg] = useState(null);
 
   const handleRequest = async () => {
@@ -123,7 +128,7 @@ function ServiceCard({ service, index, onRequest, msgRef }) {
 
             <div>
               <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Details</div>
-              <p style={{ fontSize: 14, color: '#475569', lineHeight: 1.7, margin: 0 }}>{DETAILS_TEXT}</p>
+              <p style={{ fontSize: 14, color: '#475569', lineHeight: 1.7, margin: 0 }}>{service.details || DETAILS_TEXT}</p>
             </div>
 
             {localMsg && (

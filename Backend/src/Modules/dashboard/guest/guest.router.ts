@@ -7,6 +7,8 @@ router.get('/', guestController.getAllGuests);
 router.get('/:id', guestController.getGuestById);
 router.post('/register', guestController.createGuest);
 router.post('/login', guestController.loginGuest);
+router.put('/:id/status', guestController.setGuestActiveStatus);
+router.put('/:id/inactive', guestController.setGuestInactive);
 router.put('/:id', guestController.updateGuest);
 router.delete('/:id', guestController.deleteGuest);
 

@@ -13,7 +13,7 @@ import "../styles/header.css";
 
 const Header = () => {
   const navigate = useNavigate();
-  const loggedIn = isAuthenticated();
+  const loggedIn = isAuthenticated('guest');
 
   return (
     <Navbar bg="white" expand="lg" className="border-bottom px-4 header-navbar">

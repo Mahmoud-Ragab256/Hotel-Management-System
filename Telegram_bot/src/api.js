@@ -71,6 +71,11 @@ export async function getBookings() {
   return readArray(response, 'bookings');
 }
 
+export async function getBookingByNumber(bookingNumber) {
+  const response = await api.get(`/dashboard/bookings/number/${bookingNumber}`);
+  return response?.data?.data?.booking || null;
+}
+
 export async function getGuests() {
   const response = await api.get('/dashboard/guests');
   return readArray(response, 'guests');

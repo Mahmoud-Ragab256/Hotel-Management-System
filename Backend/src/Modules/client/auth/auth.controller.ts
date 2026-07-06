@@ -118,6 +118,14 @@ export const login: RequestHandler = async (
       });
       return;
     }
+    if (guest.isActive === false) {
+      res.status(401).json({
+        success: false,
+        message: 'Account is inactive',
+      });
+      return;
+    }
+
     const { matched, needsRehash } = await verifyPassword(password, guest.password);
     if (!matched) {
       res.status(401).json({

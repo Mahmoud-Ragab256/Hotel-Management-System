@@ -9,16 +9,48 @@ const api = axios.create({
   timeout: 15000
 });
 
+const getRequestAccountType = (url = '') => {
+  const path = String(url || '').replace(/^https?:\/\/[^/]+/i, '');
+
+  if (path.startsWith('/dashboard') || path.startsWith('dashboard')) return 'dashboard';
+  if (path.startsWith('/client') || path.startsWith('client')) return 'guest';
+
+  return null;
+};
+
 api.interceptors.request.use((config) => {
-  const token = getAuthToken();
+  const accountType = getRequestAccountType(config.url);
+  const token = accountType ? getAuthToken(accountType) : null;
+
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
   return config;
 });
 
 const readArray = (response, key) => response?.data?.data?.[key] || [];
 const readObject = (response, key) => response?.data?.data?.[key] || null;
+
+
+const hasFiles = (files) => Array.isArray(files) && files.length > 0;
+
+const buildMultipartPayload = (payload = {}, files = []) => {
+  const formData = new FormData();
+
+  Object.entries(payload).forEach(([key, value]) => {
+    if (value === undefined || value === null) return;
+    if (Array.isArray(value)) {
+      value.forEach((item) => formData.append(key, item));
+      return;
+    }
+    formData.append(key, value);
+  });
+
+  files.forEach((file) => formData.append('images', file));
+
+  return formData;
+};
 
 export const getApiErrorMessage = (error) => {
   return (
@@ -74,6 +106,11 @@ export const dashboardApi = {
 
   async getBooking(id) {
     const response = await api.get(`/dashboard/bookings/${id}`);
+    return readObject(response, 'booking');
+  },
+
+  async getBookingByNumber(bookingNumber) {
+    const response = await api.get(`/dashboard/bookings/number/${bookingNumber}`);
     return readObject(response, 'booking');
   },
 
@@ -193,6 +230,15 @@ export const dashboardApi = {
     return readObject(response, 'guest');
   },
 
+  async setGuestActiveStatus(id, isActive) {
+    const response = await api.put(`/dashboard/guests/${id}/status`, { isActive });
+    return readObject(response, 'guest');
+  },
+
+  async setGuestInactive(id) {
+    return this.setGuestActiveStatus(id, false);
+  },
+
   async deleteGuest(id) {
     const response = await api.delete(`/dashboard/guests/${id}`);
     return response.data;
@@ -211,6 +257,15 @@ export const dashboardApi = {
   async createEmployee(payload) {
     const response = await api.post('/dashboard/employees/register', payload);
     return response?.data?.data || null;
+  },
+
+  async setEmployeeActiveStatus(id, isActive) {
+    const response = await api.put(`/dashboard/employees/${id}/status`, { isActive });
+    return readObject(response, 'employee');
+  },
+
+  async setEmployeeInactive(id) {
+    return this.setEmployeeActiveStatus(id, false);
   },
 
   async updateEmployee(id, payload, avatarFile) {
@@ -278,13 +333,29 @@ export const dashboardApi = {
     const response = await api.get(`/dashboard/services/${id}`);
     return readObject(response, 'service');
   },
-  async createService(payload) {
+  async createService(payload, imageFiles = []) {
+    if (hasFiles(imageFiles)) {
+      const response = await api.post('/dashboard/services', buildMultipartPayload(payload, imageFiles), {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      return readObject(response, 'service');
+    }
+
     const response = await api.post('/dashboard/services', payload);
     return readObject(response, 'service');
   },
-  async updateService(id, payload) {
+  async updateService(id, payload, imageFiles = []) {
     const response = await api.put(`/dashboard/services/${id}`, payload);
-    return readObject(response, 'service');
+    let service = readObject(response, 'service');
+
+    if (hasFiles(imageFiles)) {
+      const imageResponse = await api.put(`/dashboard/services/${id}/images`, buildMultipartPayload({}, imageFiles), {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      service = readObject(imageResponse, 'service') || service;
+    }
+
+    return service;
   },
   async deleteService(id) {
     const response = await api.delete(`/dashboard/services/${id}`);

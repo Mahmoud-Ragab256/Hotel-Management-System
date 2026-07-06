@@ -55,7 +55,7 @@ function GuestLoginPage() {
         password: form.password
       });
 
-      saveAuthSession({ token: session.token, user: session.user });
+      saveAuthSession({ token: session.token, user: session.user, accountType: 'guest' });
       navigate(redirectTo, { replace: true });
     } catch (error) {
       setFeedback({ type: 'danger', message: getApiErrorMessage(error) });

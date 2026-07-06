@@ -28,7 +28,7 @@ import {
   faCircleInfo
 } from '@fortawesome/free-solid-svg-icons';
 import { dashboardApi, getApiErrorMessage } from '../services/api.js';
-import { formatDisplayDateTime } from '../utils/date.ts';
+import { formatDisplayDateTime } from '../utils/date.js';
 
 const roomStatuses = ['Available', 'Occupied', 'Maintenance'];
 
@@ -48,6 +48,18 @@ const statusVariant = (status = '') => {
 
 const roomId = (room) => room?._id || room?.id || '';
 const categoryName = (room) => room?.categoryId?.name || room?.categoryName || 'N/A';
+
+const getRoomImage = (room) => {
+  if (!room) return '';
+
+  if (Array.isArray(room.images) && room.images.length > 0) {
+    const firstImage = room.images[0];
+    if (typeof firstImage === 'string') return firstImage;
+    return firstImage?.url || firstImage?.secure_url || firstImage?.src || '';
+  }
+
+  return room.image || room.imageUrl || room.photo || '';
+};
 
 const feedbackMeta = (type = 'info') => {
   if (type === 'success') return { title: 'Success', icon: faCircleCheck, tone: 'success' };
@@ -104,6 +116,8 @@ function RoomsPage() {
   const [roomForm, setRoomForm] = useState(initialRoomForm);
   const [roomImages, setRoomImages] = useState([]);
   const [imageFiles, setImageFiles] = useState([]);
+  const [roomImageFiles, setRoomImageFiles] = useState([]);
+  const [roomPreviewUrl, setRoomPreviewUrl] = useState('');
 
   const showFeedback = (type, message) => setFeedback({ type, message });
 
@@ -168,9 +182,36 @@ function RoomsPage() {
     maintenance: rooms.filter((room) => room.status === 'Maintenance').length
   }), [rooms]);
 
+  const resetRoomImageSelection = () => {
+    if (roomPreviewUrl?.startsWith('blob:')) {
+      URL.revokeObjectURL(roomPreviewUrl);
+    }
+
+    setRoomImageFiles([]);
+    setRoomPreviewUrl('');
+  };
+
+  const closeRoomModal = () => {
+    resetRoomImageSelection();
+    setRoomModal(false);
+  };
+
+  const handleRoomImageChange = (event) => {
+    const files = Array.from(event.target.files || []);
+    setRoomImageFiles(files);
+
+    if (roomPreviewUrl?.startsWith('blob:')) {
+      URL.revokeObjectURL(roomPreviewUrl);
+    }
+
+    setRoomPreviewUrl(files[0] ? URL.createObjectURL(files[0]) : getRoomImage(selectedRoom));
+  };
+
   const openCreate = async () => {
     setModalMode('create');
+    setSelectedRoom(null);
     setRoomForm(initialRoomForm);
+    resetRoomImageSelection();
     await loadCategories();
     setRoomModal(true);
   };
@@ -187,6 +228,8 @@ function RoomsPage() {
         floor: source.floor ?? '',
         status: source.status || 'Available'
       });
+      setRoomImageFiles([]);
+      setRoomPreviewUrl(getRoomImage(source));
       setModalMode('edit');
       await loadCategories();
       setRoomModal(true);
@@ -222,15 +265,31 @@ function RoomsPage() {
     };
 
     try {
+      let savedRoom = null;
+
       if (modalMode === 'create') {
-        await dashboardApi.createRoom(payload);
-        showFeedback('success', 'Room created successfully.');
+        savedRoom = await dashboardApi.createRoom(payload);
       } else {
-        await dashboardApi.updateRoom(roomId(selectedRoom), payload);
-        showFeedback('success', 'Room updated successfully.');
+        const id = roomId(selectedRoom);
+
+        if (!id) {
+          showFeedback('danger', 'Could not save room: missing room ID.');
+          setSaving(false);
+          return;
+        }
+
+        savedRoom = await dashboardApi.updateRoom(id, payload);
       }
 
-      setRoomModal(false);
+      const savedRoomId = roomId(savedRoom) || roomId(selectedRoom);
+
+      if (roomImageFiles.length > 0 && savedRoomId) {
+        await dashboardApi.uploadRoomImages(savedRoomId, roomImageFiles);
+      }
+
+      closeRoomModal();
+      showFeedback('success', modalMode === 'create' ? 'Room created successfully.' : 'Room updated successfully.');
+
       if (availableMode) {
         await loadAvailableRooms();
       } else {
@@ -416,7 +475,7 @@ function RoomsPage() {
         </Card.Body>
       </Card>
 
-      <Modal show={roomModal} onHide={() => setRoomModal(false)} centered>
+      <Modal show={roomModal} onHide={closeRoomModal} centered size="lg">
         <Form onSubmit={handleSaveRoom}>
           <Modal.Header closeButton><Modal.Title>{modalMode === 'create' ? 'Add Room' : 'Edit Room'}</Modal.Title></Modal.Header>
           <Modal.Body>
@@ -442,10 +501,28 @@ function RoomsPage() {
                   {roomStatuses.map((item) => <option key={item} value={item}>{item}</option>)}
                 </Form.Select>
               </Col>
+
+              <Col md={6}>
+                <Form.Label>{modalMode === 'create' ? 'Room Image' : 'Replace Room Image'}</Form.Label>
+                <Form.Control type="file" accept="image/*" onChange={handleRoomImageChange} />
+                <Form.Text className="text-muted">
+                  {modalMode === 'create' ? 'Optional image uploaded to Cloudinary after creating the room.' : 'Leave empty to keep the current Cloudinary image.'}
+                </Form.Text>
+              </Col>
+
+              <Col md={6}>
+                <div className="border rounded-3 bg-light-subtle p-3 text-center h-100 d-flex align-items-center justify-content-center">
+                  {roomPreviewUrl ? (
+                    <Image src={roomPreviewUrl} alt="Room preview" fluid rounded style={{ maxHeight: 170, objectFit: 'cover' }} />
+                  ) : (
+                    <span className="text-muted">No room image selected</span>
+                  )}
+                </div>
+              </Col>
             </Row>
           </Modal.Body>
           <Modal.Footer>
-            <Button variant="outline-secondary" onClick={() => setRoomModal(false)}>Close</Button>
+            <Button variant="outline-secondary" onClick={closeRoomModal}>Close</Button>
             <Button type="submit" variant="primary" disabled={saving}>{saving ? 'Saving...' : 'Save Room'}</Button>
           </Modal.Footer>
         </Form>

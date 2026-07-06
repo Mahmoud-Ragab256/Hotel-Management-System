@@ -19,12 +19,14 @@ import {
   faPlus,
   faRefresh,
   faTrash,
+  faUserCheck,
+  faUserSlash,
   faUsers
 } from '@fortawesome/free-solid-svg-icons';
 import FeedbackCard from '../components/FeedbackCard.jsx';
 import StatCard from '../components/StatCard.jsx';
 import { dashboardApi, getApiErrorMessage } from '../services/api.js';
-import { formatDisplayDateTime } from '../utils/date.ts';
+import { formatDisplayDateTime } from '../utils/date.js';
 
 const vipLevels = ['Bronze', 'Silver', 'Gold', 'Platinum'];
 
@@ -98,6 +100,7 @@ function GuestsPage() {
 
   const counts = useMemo(() => ({
     total: guests.length,
+    active: guests.filter((guest) => guest.isActive !== false).length,
     platinum: guests.filter((guest) => guest.vipLevel === 'Platinum').length,
     gold: guests.filter((guest) => guest.vipLevel === 'Gold').length
   }), [guests]);
@@ -179,6 +182,22 @@ function GuestsPage() {
     }
   };
 
+  const handleToggleActiveStatus = async (guest) => {
+    if (!guest) return;
+
+    const nextIsActive = guest.isActive === false;
+    setSaving(true);
+    try {
+      await dashboardApi.setGuestActiveStatus(guestId(guest), nextIsActive);
+      showFeedback('success', `Guest marked as ${nextIsActive ? 'active' : 'inactive'} successfully.`);
+      await loadGuests();
+    } catch (error) {
+      showFeedback('danger', `Could not update guest status: ${getApiErrorMessage(error)}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleDelete = async () => {
     setSaving(true);
     try {
@@ -227,9 +246,10 @@ function GuestsPage() {
       {feedback && <FeedbackCard feedback={feedback} onClose={() => setFeedback(null)} />}
 
       <Row className="g-3">
-        <Col md={4}><StatCard title="Total Guests" value={counts.total} description="Loaded from backend" icon={faUsers} variant="primary" /></Col>
-        <Col md={4}><StatCard title="Platinum Guests" value={counts.platinum} description="VIP level summary" icon={faCrown} variant="dark" /></Col>
-        <Col md={4}><StatCard title="Gold Guests" value={counts.gold} description="VIP level summary" icon={faCrown} variant="warning" /></Col>
+        <Col md={3}><StatCard title="Total Guests" value={counts.total} description="Loaded from backend" icon={faUsers} variant="primary" /></Col>
+        <Col md={3}><StatCard title="Active Guests" value={counts.active} description="isActive is not false" icon={faUsers} variant="success" /></Col>
+        <Col md={3}><StatCard title="Platinum Guests" value={counts.platinum} description="VIP level summary" icon={faCrown} variant="dark" /></Col>
+        <Col md={3}><StatCard title="Gold Guests" value={counts.gold} description="VIP level summary" icon={faCrown} variant="warning" /></Col>
       </Row>
 
       <Card className="border-0 shadow-sm">
@@ -264,12 +284,13 @@ function GuestsPage() {
                   <th>Phone</th>
                   <th>National ID</th>
                   <th>VIP Level</th>
+                  <th>Status</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {loading && <tr><td colSpan="6" className="py-4"><Spinner size="sm" className="me-2" />Loading guests...</td></tr>}
-                {!loading && filteredGuests.length === 0 && <tr><td colSpan="6" className="text-muted py-4">No guests found.</td></tr>}
+                {loading && <tr><td colSpan="7" className="py-4"><Spinner size="sm" className="me-2" />Loading guests...</td></tr>}
+                {!loading && filteredGuests.length === 0 && <tr><td colSpan="7" className="text-muted py-4">No guests found.</td></tr>}
                 {!loading && filteredGuests.map((guest) => (
                   <tr key={guestId(guest)}>
                     <td className="fw-semibold">{guest.fullName || '-'}</td>
@@ -277,11 +298,20 @@ function GuestsPage() {
                     <td>{guest.phone || '-'}</td>
                     <td>{guest.nationalId || '-'}</td>
                     <td><Badge bg={vipVariant(guest.vipLevel)}>{guest.vipLevel || 'Bronze'}</Badge></td>
+                    <td><Badge bg={guest.isActive !== false ? 'success' : 'secondary'}>{guest.isActive !== false ? 'Active' : 'Inactive'}</Badge></td>
                     <td>
                       <ButtonGroup size="sm">
-                        <Button variant="outline-secondary" onClick={() => openView(guest)}><FontAwesomeIcon icon={faEye} /></Button>
-                        <Button variant="outline-primary" onClick={() => openEdit(guest)}><FontAwesomeIcon icon={faPenToSquare} /></Button>
-                        <Button variant="outline-danger" onClick={() => { setSelectedGuest(guest); setDeleteModal(true); }}><FontAwesomeIcon icon={faTrash} /></Button>
+                        <Button variant="outline-secondary" onClick={() => openView(guest)} title="View"><FontAwesomeIcon icon={faEye} /></Button>
+                        <Button variant="outline-primary" onClick={() => openEdit(guest)} title="Edit"><FontAwesomeIcon icon={faPenToSquare} /></Button>
+                        <Button
+                          variant={guest.isActive === false ? 'outline-success' : 'outline-warning'}
+                          onClick={() => handleToggleActiveStatus(guest)}
+                          disabled={saving}
+                          title={guest.isActive === false ? 'Mark active' : 'Mark inactive'}
+                        >
+                          <FontAwesomeIcon icon={guest.isActive === false ? faUserCheck : faUserSlash} />
+                        </Button>
+                        <Button variant="outline-danger" onClick={() => { setSelectedGuest(guest); setDeleteModal(true); }} title="Delete"><FontAwesomeIcon icon={faTrash} /></Button>
                       </ButtonGroup>
                     </td>
                   </tr>
@@ -347,6 +377,7 @@ function GuestsPage() {
               <div><strong>Phone:</strong> {selectedGuest.phone}</div>
               <div><strong>National ID:</strong> {selectedGuest.nationalId}</div>
               <div><strong>VIP Level:</strong> <Badge bg={vipVariant(selectedGuest.vipLevel)}>{selectedGuest.vipLevel}</Badge></div>
+              <div><strong>Status:</strong> <Badge bg={selectedGuest.isActive !== false ? 'success' : 'secondary'}>{selectedGuest.isActive !== false ? 'Active' : 'Inactive'}</Badge></div>
               <div><strong>Created At:</strong> {formatDisplayDateTime(selectedGuest.createdAt)}</div>
             </div>
           )}

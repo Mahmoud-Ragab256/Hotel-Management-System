@@ -10,24 +10,40 @@ import {
   Row,
   Spinner,
   Table,
-  Form
+  Form,
+  Image
 } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faBellConcierge,
+  faCircleCheck,
   faEye,
+  faPenToSquare,
   faPlus,
   faRefresh,
-  faTrash
+  faTrash,
+  faTriangleExclamation,
+  faXmark
 } from '@fortawesome/free-solid-svg-icons';
-import FeedbackCard from '../components/FeedbackCard.jsx';
 import StatCard from '../components/StatCard.jsx';
 import { dashboardApi, getApiErrorMessage } from '../services/api.js';
-import { formatDisplayDateTime } from '../utils/date.ts';
+import { formatDisplayDateTime } from '../utils/date.js';
 
 const serviceCategories = ['RoomService', 'Spa', 'Laundry', 'Restaurant', 'Transport', 'Other'];
 
 const serviceId = (service) => service?._id || service?.id || '';
+
+const getServiceImage = (service) => {
+  if (!service) return '';
+
+  if (Array.isArray(service.images) && service.images.length > 0) {
+    const firstImage = service.images[0];
+    if (typeof firstImage === 'string') return firstImage;
+    return firstImage?.url || firstImage?.secure_url || firstImage?.src || '';
+  }
+
+  return service.image || service.imageUrl || service.photo || '';
+};
 
 const categoryVariant = (category = '') => {
   if (category === 'RoomService') return 'primary';
@@ -38,6 +54,39 @@ const categoryVariant = (category = '') => {
   return 'success';
 };
 
+const ServiceFeedbackCard = ({ feedback, onClose, className = '' }) => {
+  if (!feedback) return null;
+
+  const isSuccess = feedback.type === 'success';
+  const icon = isSuccess ? faCircleCheck : faTriangleExclamation;
+  const title = isSuccess ? 'Success' : 'Error';
+  const borderColor = isSuccess ? '#198754' : '#dc3545';
+  const bgColor = isSuccess ? '#d1e7dd' : '#f8d7da';
+  const iconColor = isSuccess ? '#198754' : '#dc3545';
+
+  return (
+    <Card className={`border-0 shadow-sm rounded-4 ${className}`} style={{ borderLeft: `5px solid ${borderColor}` }}>
+      <Card.Body className="d-flex align-items-start gap-3 p-3">
+        <span
+          className="rounded-circle d-inline-flex align-items-center justify-content-center flex-shrink-0"
+          style={{ width: 44, height: 44, backgroundColor: bgColor, color: iconColor }}
+        >
+          <FontAwesomeIcon icon={icon} />
+        </span>
+        <div className="flex-grow-1">
+          <div className="fw-bold mb-1">{title}</div>
+          <div className="text-muted small">{feedback.message}</div>
+        </div>
+        {onClose && (
+          <Button variant="light" size="sm" className="rounded-circle flex-shrink-0" onClick={onClose} aria-label="Close service message">
+            <FontAwesomeIcon icon={faXmark} />
+          </Button>
+        )}
+      </Card.Body>
+    </Card>
+  );
+};
+
 function ServicesPage() {
   const navigate = useNavigate();
   const [services, setServices] = useState([]);
@@ -46,11 +95,25 @@ function ServicesPage() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState(null);
+  const [modalFeedback, setModalFeedback] = useState(null);
   const [viewModal, setViewModal] = useState(false);
+  const [editModal, setEditModal] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
+  const [editImageFiles, setEditImageFiles] = useState([]);
+  const [editPreviewUrl, setEditPreviewUrl] = useState('');
+  const [editForm, setEditForm] = useState({
+    name: '',
+    description: '',
+    details: '',
+    category: 'RoomService',
+    price: '',
+    maxCapacity: 1,
+    isAvailable: true
+  });
 
   const showFeedback = (type, message) => setFeedback({ type, message });
+  const showModalFeedback = (type, message) => setModalFeedback({ type, message });
 
   const loadServices = async () => {
     setLoading(true);
@@ -92,6 +155,113 @@ function ServicesPage() {
       setViewModal(true);
     } catch (error) {
       showFeedback('danger', `Could not read service details: ${getApiErrorMessage(error)}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const openEdit = async (service) => {
+    setSaving(true);
+    setFeedback(null);
+    setModalFeedback(null);
+
+    try {
+      const data = await dashboardApi.getService(serviceId(service));
+      const serviceData = data || service;
+
+      setSelectedService(serviceData);
+      setEditForm({
+        name: serviceData.name || '',
+        description: serviceData.description || '',
+        details: serviceData.details || '',
+        category: serviceData.category || 'RoomService',
+        price: serviceData.price ?? '',
+        maxCapacity: serviceData.maxCapacity ?? 1,
+        isAvailable: serviceData.isAvailable ?? true
+      });
+      setEditImageFiles([]);
+      setEditPreviewUrl(getServiceImage(serviceData));
+      setEditModal(true);
+    } catch (error) {
+      showFeedback('danger', `Could not read service for editing: ${getApiErrorMessage(error)}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleEditImageChange = (event) => {
+    const files = Array.from(event.target.files || []);
+    setEditImageFiles(files);
+
+    if (editPreviewUrl?.startsWith('blob:')) {
+      URL.revokeObjectURL(editPreviewUrl);
+    }
+
+    setEditPreviewUrl(files[0] ? URL.createObjectURL(files[0]) : getServiceImage(selectedService));
+  };
+
+  const closeEditModal = () => {
+    if (editPreviewUrl?.startsWith('blob:')) {
+      URL.revokeObjectURL(editPreviewUrl);
+    }
+
+    setEditModal(false);
+    setEditImageFiles([]);
+    setEditPreviewUrl('');
+    setModalFeedback(null);
+  };
+
+  const handleUpdate = async (event) => {
+    event.preventDefault();
+    setSaving(true);
+    setFeedback(null);
+    setModalFeedback(null);
+
+    try {
+      const id = serviceId(selectedService);
+      const normalizedPrice = Number(editForm.price);
+      const normalizedCapacity = Number(editForm.maxCapacity);
+
+      if (!id) {
+        showModalFeedback('danger', 'Could not update service: missing service ID.');
+        setSaving(false);
+        return;
+      }
+
+      if (!editForm.name.trim()) {
+        showModalFeedback('danger', 'Service name is required.');
+        setSaving(false);
+        return;
+      }
+
+      if (!Number.isFinite(normalizedPrice) || normalizedPrice < 0) {
+        showModalFeedback('danger', 'Base price must be a valid number greater than or equal to 0.');
+        setSaving(false);
+        return;
+      }
+
+      if (!Number.isFinite(normalizedCapacity) || normalizedCapacity < 1) {
+        showModalFeedback('danger', 'Max capacity must be at least 1.');
+        setSaving(false);
+        return;
+      }
+
+      const payload = {
+        name: editForm.name.trim(),
+        description: editForm.description.trim(),
+        details: editForm.details.trim(),
+        category: editForm.category,
+        price: normalizedPrice,
+        maxCapacity: Math.max(1, normalizedCapacity),
+        isAvailable: Boolean(editForm.isAvailable)
+      };
+
+      await dashboardApi.updateService(id, payload, editImageFiles);
+      closeEditModal();
+      showFeedback('success', 'Service updated successfully.');
+      await loadServices();
+    } catch (error) {
+      showModalFeedback('danger', `Could not update service: ${getApiErrorMessage(error)}`);
     } finally {
       setSaving(false);
     }
@@ -139,7 +309,7 @@ function ServicesPage() {
         </Card.Body>
       </Card>
 
-      {feedback && <FeedbackCard feedback={feedback} onClose={() => setFeedback(null)} />}
+      <ServiceFeedbackCard feedback={feedback} onClose={() => setFeedback(null)} />
 
       <Row className="g-3">
         <Col md={4}><StatCard title="Total Services" value={counts.total} description="All hotel services" icon={faBellConcierge} variant="primary" /></Col>
@@ -198,8 +368,9 @@ function ServicesPage() {
                     </td>
                     <td>
                       <ButtonGroup size="sm">
-                        <Button variant="outline-secondary" onClick={() => openView(service)} disabled={saving}><FontAwesomeIcon icon={faEye} /></Button>
-                        <Button variant="outline-danger" onClick={() => { setSelectedService(service); setDeleteModal(true); }}><FontAwesomeIcon icon={faTrash} /></Button>
+                        <Button variant="outline-secondary" onClick={() => openView(service)} disabled={saving} title="View" aria-label="View service"><FontAwesomeIcon icon={faEye} /></Button>
+                        <Button variant="outline-primary" onClick={() => openEdit(service)} disabled={saving} title="Edit" aria-label="Edit service"><FontAwesomeIcon icon={faPenToSquare} /></Button>
+                        <Button variant="outline-danger" onClick={() => { setSelectedService(service); setDeleteModal(true); }} title="Delete" aria-label="Delete service"><FontAwesomeIcon icon={faTrash} /></Button>
                       </ButtonGroup>
                     </td>
                   </tr>
@@ -221,11 +392,137 @@ function ServicesPage() {
               <div><strong>Price:</strong> ${selectedService.price}</div>
               <div><strong>Max Capacity:</strong> {selectedService.maxCapacity} Person</div>
               <div><strong>Status:</strong> <Badge bg={selectedService.isAvailable ? 'success' : 'danger'}>{selectedService.isAvailable ? 'Available' : 'Unavailable'}</Badge></div>
+              <div><strong>Description:</strong> {selectedService.description || '-'}</div>
+              <div><strong>Details:</strong> {selectedService.details || '-'}</div>
               <div><strong>Created At:</strong> {formatDisplayDateTime(selectedService.createdAt)}</div>
             </div>
           )}
         </Modal.Body>
         <Modal.Footer><Button variant="secondary" onClick={() => setViewModal(false)}>Close</Button></Modal.Footer>
+      </Modal>
+
+      <Modal show={editModal} onHide={closeEditModal} centered size="lg">
+        <Form onSubmit={handleUpdate}>
+          <Modal.Header closeButton><Modal.Title>Edit Service</Modal.Title></Modal.Header>
+          <Modal.Body>
+            <ServiceFeedbackCard feedback={modalFeedback} onClose={() => setModalFeedback(null)} className="mb-3" />
+            <Row className="g-3">
+              <Col md={12}>
+                <Form.Group>
+                  <Form.Label className="fw-semibold">Service Name</Form.Label>
+                  <Form.Control
+                    required
+                    value={editForm.name}
+                    onChange={(event) => setEditForm({ ...editForm, name: event.target.value })}
+                  />
+                </Form.Group>
+              </Col>
+
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label className="fw-semibold">Category</Form.Label>
+                  <Form.Select
+                    value={editForm.category}
+                    onChange={(event) => setEditForm({ ...editForm, category: event.target.value })}
+                  >
+                    {serviceCategories.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label className="fw-semibold">Base Price (USD)</Form.Label>
+                  <Form.Control
+                    required
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={editForm.price}
+                    onChange={(event) => setEditForm({ ...editForm, price: event.target.value })}
+                  />
+                </Form.Group>
+              </Col>
+
+              <Col md={12}>
+                <Form.Group>
+                  <Form.Label className="fw-semibold">Short Description</Form.Label>
+                  <Form.Control
+                    as="textarea"
+                    rows={3}
+                    maxLength={1000}
+                    value={editForm.description}
+                    onChange={(event) => setEditForm({ ...editForm, description: event.target.value })}
+                  />
+                </Form.Group>
+              </Col>
+
+              <Col md={12}>
+                <Form.Group>
+                  <Form.Label className="fw-semibold">Full Details</Form.Label>
+                  <Form.Control
+                    as="textarea"
+                    rows={4}
+                    maxLength={2000}
+                    value={editForm.details}
+                    onChange={(event) => setEditForm({ ...editForm, details: event.target.value })}
+                  />
+                </Form.Group>
+              </Col>
+
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label className="fw-semibold">Replace Image</Form.Label>
+                  <Form.Control type="file" accept="image/*" multiple onChange={handleEditImageChange} />
+                  <Form.Text className="text-muted">Leave empty to keep the current Cloudinary image.</Form.Text>
+                </Form.Group>
+              </Col>
+
+              <Col md={6}>
+                <div className="border rounded-3 bg-light-subtle p-3 text-center h-100 d-flex align-items-center justify-content-center">
+                  {editPreviewUrl ? (
+                    <Image src={editPreviewUrl} alt="Service preview" fluid rounded style={{ maxHeight: 170, objectFit: 'cover' }} />
+                  ) : (
+                    <span className="text-muted">No service image</span>
+                  )}
+                </div>
+              </Col>
+
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label className="fw-semibold">Max Capacity per Order</Form.Label>
+                  <Form.Control
+                    required
+                    type="number"
+                    min="1"
+                    value={editForm.maxCapacity}
+                    onChange={(event) => setEditForm({ ...editForm, maxCapacity: event.target.value })}
+                  />
+                </Form.Group>
+              </Col>
+
+              <Col md={6}>
+                <div className="p-3 border rounded-3 bg-light-subtle d-flex justify-content-between align-items-center">
+                  <div>
+                    <div className="fw-bold mb-0">Service Status</div>
+                    <small className="text-muted">Toggle guest availability</small>
+                  </div>
+                  <Form.Check
+                    type="switch"
+                    id="edit-service-status-switch"
+                    label={editForm.isAvailable ? 'Available' : 'Unavailable'}
+                    checked={editForm.isAvailable}
+                    onChange={(event) => setEditForm({ ...editForm, isAvailable: event.target.checked })}
+                  />
+                </div>
+              </Col>
+            </Row>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="outline-secondary" onClick={closeEditModal} disabled={saving}>Cancel</Button>
+            <Button variant="primary" type="submit" disabled={saving}>{saving ? 'Saving...' : 'Save Changes'}</Button>
+          </Modal.Footer>
+        </Form>
       </Modal>
 
       <Modal show={deleteModal} onHide={() => setDeleteModal(false)} centered>

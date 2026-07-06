@@ -56,7 +56,7 @@ function LoginPage() {
         password: form.password
       });
 
-      saveAuthSession({ token: session.token, user: session.user });
+      saveAuthSession({ token: session.token, user: session.user, accountType: 'dashboard' });
       navigate(redirectTo, { replace: true });
     } catch (error) {
       setFeedback({ type: 'danger', message: getApiErrorMessage(error) });

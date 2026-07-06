@@ -4,6 +4,7 @@ import { Telegraf } from 'telegraf';
 import {
   getAvailableRooms,
   getBookings,
+  getBookingByNumber,
   getEmployees,
   getGuests,
   getRooms,
@@ -258,31 +259,12 @@ function explicitBookingCode(booking = {}) {
   ).trim();
 }
 
-function generatedBookingCode(booking = {}) {
-  const explicit = explicitBookingCode(booking);
-  if (explicit) return explicit;
-
-  const id = bookingId(booking);
-  const digits = id.replace(/\D/g, '');
-  if (digits.length >= 4) return digits.slice(-6);
-
-  let hash = 0;
-  for (const char of id || JSON.stringify(booking)) {
-    hash = ((hash * 31) + char.charCodeAt(0)) % 900000;
-  }
-  return String(1000 + Math.abs(hash % 900000)).padStart(4, '0');
-}
-
 function displayBookingCode(booking = {}) {
-  return explicitBookingCode(booking) || generatedBookingCode(booking);
+  return explicitBookingCode(booking) || '----';
 }
 
 function bookingCodeCandidates(booking = {}) {
-  const values = [
-    explicitBookingCode(booking),
-    generatedBookingCode(booking),
-    bookingId(booking)
-  ];
+  const values = [explicitBookingCode(booking)];
   return Array.from(new Set(values.map(normalizeInput).filter(Boolean)));
 }
 
@@ -346,24 +328,34 @@ function findGuestById(guests = [], id = '') {
 
 async function findGuestBookingByCode(code) {
   const cleanCode = normalizeInput(code);
-  if (!cleanCode) return null;
+  if (!/^\d{4}$/.test(cleanCode)) return null;
 
-  const [bookings, guests] = await Promise.all([getBookings(), getGuests().catch(() => [])]);
-  const candidates = bookings.filter((booking) => bookingCodeCandidates(booking).includes(cleanCode));
+  const guestsPromise = getGuests().catch(() => []);
+  let booking = null;
 
-  for (const booking of candidates) {
-    if (!isBookingActiveForBot(booking)) continue;
-    const directGuest = guestObjFromBooking(booking);
-    const guest = directGuest || findGuestById(guests, guestIdFromBooking(booking)) || {};
-    return {
-      booking,
-      guest,
-      roomNumber: roomNumberFromBooking(booking),
-      bookingCode: displayBookingCode(booking)
-    };
+  try {
+    booking = await getBookingByNumber(cleanCode);
+  } catch (error) {
+    if (error?.response?.status !== 404) throw error;
   }
 
-  return null;
+  if (!booking) {
+    const bookings = await getBookings();
+    booking = bookings.find((item) => bookingCodeCandidates(item).includes(cleanCode)) || null;
+  }
+
+  if (!booking || !isBookingActiveForBot(booking)) return null;
+
+  const guests = await guestsPromise;
+  const directGuest = guestObjFromBooking(booking);
+  const guest = directGuest || findGuestById(guests, guestIdFromBooking(booking)) || {};
+
+  return {
+    booking,
+    guest,
+    roomNumber: roomNumberFromBooking(booking),
+    bookingCode: displayBookingCode(booking)
+  };
 }
 
 function userBookings(user, bookings = []) {
@@ -751,8 +743,8 @@ function startLogin(ctx, loginType) {
     return ctx.reply([
       '🔐 دخول العميل',
       '',
-      'أرسل رقم الحجز فقط.',
-      'لا يمكن الدخول برقم الغرفة أو الموبايل.',
+      'أرسل رقم الحجز المكوّن من 4 أرقام فقط.',
+      'لا يمكن الدخول برقم الغرفة أو الموبايل أو ID طويل.',
       '',
       'مثال: 1005'
     ].join('\n'));

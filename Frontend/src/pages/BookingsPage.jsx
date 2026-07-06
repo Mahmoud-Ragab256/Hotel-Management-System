@@ -26,7 +26,7 @@ import {
   faCircleInfo
 } from '@fortawesome/free-solid-svg-icons';
 import { dashboardApi, getApiErrorMessage } from '../services/api.js';
-import { formatDisplayDate, todayDateInputValue, toDateInputValue } from '../utils/date.ts';
+import { formatDisplayDate, todayDateInputValue, toDateInputValue } from '../utils/date.js';
 
 const bookingStatuses = ['Pending', 'Confirmed', 'CheckedIn', 'CheckedOut', 'Cancelled'];
 
@@ -60,6 +60,7 @@ const displayDate = formatDisplayDate;
 const todayInput = todayDateInputValue();
 
 const bookingId = (booking) => booking?._id || booking?.id || '';
+const bookingNumber = (booking) => booking?.bookingNumber || booking?.bookingCode || booking?.reservationNumber || '----';
 const guestName = (booking) => booking?.guestId?.fullName || booking?.guestName || 'Unknown Guest';
 const roomNumber = (booking) => booking?.roomId?.roomNumber || booking?.roomNumber || 'N/A';
 
@@ -156,7 +157,7 @@ function BookingsPage() {
 
   const filteredBookings = useMemo(() => {
     return bookings.filter((booking) => {
-      const target = `${guestName(booking)} ${booking?.guestId?.email || ''} ${roomNumber(booking)} ${bookingId(booking)}`.toLowerCase();
+      const target = `${guestName(booking)} ${booking?.guestId?.email || ''} ${roomNumber(booking)} ${bookingNumber(booking)} ${bookingId(booking)}`.toLowerCase();
       const matchesSearch = target.includes(search.toLowerCase());
       const matchesStatus = statusFilter === 'All' || booking.status === statusFilter;
       return matchesSearch && matchesStatus;
@@ -332,7 +333,7 @@ function BookingsPage() {
             <Col lg={6}>
               <Row className="g-2">
                 <Col md={7}>
-                  <Form.Control value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search booking, guest, email, or room" />
+                  <Form.Control value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search booking number, guest, email, or room" />
                 </Col>
                 <Col md={5}>
                   <Form.Select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
@@ -349,7 +350,7 @@ function BookingsPage() {
             <Table hover className="align-middle mb-0 text-center admin-table-centered">
               <thead className="table-light">
                 <tr>
-                  <th>Booking ID</th>
+                  <th>Booking No.</th>
                   <th>Guest</th>
                   <th>Room</th>
                   <th>Check-in</th>
@@ -370,7 +371,10 @@ function BookingsPage() {
 
                 {!loading && filteredBookings.map((booking) => (
                   <tr key={bookingId(booking)}>
-                    <td className="fw-semibold">{bookingId(booking).slice(-8)}</td>
+                    <td>
+                      <Badge bg="dark" className="fs-6">{bookingNumber(booking)}</Badge>
+                      <div className="small text-muted mt-1">ID: {bookingId(booking).slice(-8)}</div>
+                    </td>
                     <td>
                       <div className="fw-semibold">{guestName(booking)}</div>
                       <small className="text-muted">{booking?.guestId?.email || 'No email'}</small>
@@ -487,7 +491,8 @@ function BookingsPage() {
         <Modal.Body>
           {selectedBooking && (
             <div className="d-flex flex-column gap-2">
-              <div><strong>ID:</strong> {bookingId(selectedBooking)}</div>
+              <div><strong>Booking Number:</strong> {bookingNumber(selectedBooking)}</div>
+              <div><strong>System ID:</strong> {bookingId(selectedBooking)}</div>
               <div><strong>Guest:</strong> {selectedBooking?.guestId?.fullName || 'N/A'}</div>
               <div><strong>Room:</strong> {selectedBooking?.roomId?.roomNumber || 'N/A'}</div>
               <div><strong>Check-in:</strong> {displayDate(selectedBooking.checkInDate)}</div>

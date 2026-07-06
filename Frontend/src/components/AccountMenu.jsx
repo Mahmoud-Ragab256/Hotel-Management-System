@@ -3,20 +3,12 @@ import { Dropdown } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser, faSignOutAlt } from "@fortawesome/free-solid-svg-icons";
-import { clearAuthSession } from "../services/auth.js";
+import { clearAuthSession, getCurrentUser } from "../services/auth.js";
 import { dashboardApi } from "../services/api.js";
 import menuItems from "../data/accountMenuItems.js";
 import "../styles/accountMenu.css";
 
-const USER_KEY = "hotel_admin_user";
-
-const getStoredUser = () => {
-  try {
-    return JSON.parse(localStorage.getItem(USER_KEY)) || null;
-  } catch {
-    return null;
-  }
-};
+const getStoredUser = () => getCurrentUser('guest');
 
 const AccountMenu = ({ user: userProp }) => {
   const navigate = useNavigate();
@@ -28,27 +20,27 @@ const AccountMenu = ({ user: userProp }) => {
     };
 
     window.addEventListener("storage", handleUserUpdate);
-    window.addEventListener("hotel_admin_user_updated", handleUserUpdate);
+    window.addEventListener("hotel_guest_user_updated", handleUserUpdate);
 
     dashboardApi.getProfileImage()
       .then((avatar) => {
         const current = getStoredUser();
         const merged = { ...current, avatar };
-        localStorage.setItem(USER_KEY, JSON.stringify(merged));
+        localStorage.setItem("hotel_guest_user", JSON.stringify(merged));
         setStoredUser(merged);
       })
       .catch(() => { });
 
     return () => {
       window.removeEventListener("storage", handleUserUpdate);
-      window.removeEventListener("hotel_admin_user_updated", handleUserUpdate);
+      window.removeEventListener("hotel_guest_user_updated", handleUserUpdate);
     };
   }, []);
 
   const user = userProp || storedUser;
 
   const handleLogout = () => {
-    clearAuthSession();
+    clearAuthSession('guest');
     navigate("/login");
   };
 

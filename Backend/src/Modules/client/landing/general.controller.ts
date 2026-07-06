@@ -3,13 +3,22 @@ import { Room } from '../../../DB/Models/room.model.js';
 import { RoomCategory } from '../../../DB/Models/roomCategory.model.js';
 import { Service } from '../../../DB/Models/service.model.js';
 import { Review } from '../../../DB/Models/review.model.js';
-import { IRoom } from '../../../DB/Models/room.model.js';
 import { IRoomCategory } from '../../../DB/Models/roomCategory.model.js';
 import { IService } from '../../../DB/Models/service.model.js';
 import { IReview } from '../../../DB/Models/review.model.js';
 
+interface LandingStatsData {
+  totalRooms: number;
+  availableRooms: number;
+  occupiedRooms: number;
+  maintenanceRooms: number;
+  totalRoomCategories: number;
+  totalServices: number;
+  totalReviews: number;
+}
 
 interface LandingPageData {
+  stats: LandingStatsData;
   availableRooms: number;
   roomCategories: IRoomCategory[];
   services: IService[];
@@ -20,6 +29,8 @@ interface StatisticsData {
   totalRooms: number;
   availableRooms: number;
   occupiedRooms: number;
+  maintenanceRooms: number;
+  totalRoomCategories: number;
   totalServices: number;
   totalReviews: number;
 }
@@ -28,39 +39,69 @@ interface FeaturedCategoriesData {
   categories: IRoomCategory[];
 }
 
-
 interface ApiResponse<T = null> {
   success: boolean;
   message?: string;
   data?: T;
 }
 
+const buildLandingStats = async (): Promise<LandingStatsData> => {
+  const [
+    totalRooms,
+    availableRooms,
+    occupiedRooms,
+    maintenanceRooms,
+    totalRoomCategories,
+    totalServices,
+    totalReviews,
+  ] = await Promise.all([
+    Room.countDocuments(),
+    Room.countDocuments({ status: 'Available' }),
+    Room.countDocuments({ status: 'Occupied' }),
+    Room.countDocuments({ status: 'Maintenance' }),
+    RoomCategory.countDocuments(),
+    Service.countDocuments({ isAvailable: true }),
+    Review.countDocuments({ isApproved: true }),
+  ]);
+
+  return {
+    totalRooms,
+    availableRooms,
+    occupiedRooms,
+    maintenanceRooms,
+    totalRoomCategories,
+    totalServices,
+    totalReviews,
+  };
+};
 
 export const getLandingPageData = async (
   req: Request,
   res: Response<ApiResponse<LandingPageData>>
 ): Promise<void> => {
   try {
-    const availableRoomsCount: number = await Room.countDocuments({ status: 'Available' });
-
-    const roomCategories: IRoomCategory[] = await RoomCategory.find()
-      .select('name description basePrice amenities')
-      .limit(6);
-
-    const services: IService[] = await Service.find({ isAvailable: true })
-      .select('name description price category')
-      .limit(8);
-
-    const reviews: IReview[] = await Review.find({ isApproved: true })
-      .populate('guestId', 'fullName')
-      .select('rating comment createdAt')
-      .sort({ createdAt: -1 })
-      .limit(5);
+    const [stats, roomCategories, services, reviews] = await Promise.all([
+      buildLandingStats(),
+      RoomCategory.find()
+        .select('name description basePrice capacity amenities images createdAt')
+        .sort({ createdAt: -1 })
+        .limit(6),
+      Service.find({ isAvailable: true })
+        .select('name description details price category maxCapacity images createdAt')
+        .sort({ createdAt: -1 })
+        .limit(8),
+      Review.find({ isApproved: true })
+        .populate('guestId', 'fullName')
+        .select('rating comment guestId createdAt')
+        .sort({ createdAt: -1 })
+        .limit(5),
+    ]);
 
     res.status(200).json({
       success: true,
       data: {
-        availableRooms: availableRoomsCount,
+        stats,
+        availableRooms: stats.availableRooms,
         roomCategories,
         services,
         reviews,
@@ -74,19 +115,12 @@ export const getLandingPageData = async (
   }
 };
 
-
 export const getStatistics = async (
   req: Request,
   res: Response<ApiResponse<StatisticsData>>
 ): Promise<void> => {
   try {
-    const stats: StatisticsData = {
-      totalRooms: await Room.countDocuments(),
-      availableRooms: await Room.countDocuments({ status: 'Available' }),
-      occupiedRooms: await Room.countDocuments({ status: 'Occupied' }),
-      totalServices: await Service.countDocuments(),
-      totalReviews: await Review.countDocuments({ isApproved: true }),
-    };
+    const stats = await buildLandingStats();
 
     res.status(200).json({
       success: true,
@@ -100,14 +134,14 @@ export const getStatistics = async (
   }
 };
 
-
 export const getFeaturedCategories = async (
   req: Request,
   res: Response<ApiResponse<FeaturedCategoriesData>>
 ): Promise<void> => {
   try {
     const categories: IRoomCategory[] = await RoomCategory.find()
-      .select('name description basePrice amenities')
+      .select('name description basePrice capacity amenities images createdAt')
+      .sort({ createdAt: -1 })
       .limit(3);
 
     res.status(200).json({

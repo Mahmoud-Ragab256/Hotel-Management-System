@@ -118,8 +118,9 @@ export function formatRoom(room) {
 export function formatBooking(booking) {
   const roomNumber = booking?.roomId?.roomNumber || booking?.roomNumber || booking?.room || '-';
   const guestName = booking?.guestId?.fullName || booking?.guest?.fullName || booking?.guestName || '-';
+  const bookingNumber = booking?.bookingNumber || booking?.bookingCode || booking?.reservationNumber || '-';
   return [
-    `📄 رقم الحجز: ${booking._id || booking.id || '-'}`,
+    `📄 رقم الحجز: ${bookingNumber}`,
     `👤 اسم العميل: ${guestName}`,
     `🏨 الغرفة: ${roomNumber}`,
     `📅 تاريخ الوصول: ${formatDate(booking.checkInDate || booking.checkIn)}`,

@@ -56,6 +56,14 @@ export const protect = async (
       return;
     };
 
+    if ('isActive' in currentUser && currentUser.isActive === false) {
+      res.status(401).json({
+        success: false,
+        message: 'Account is inactive',
+      });
+      return;
+    };
+
     // const updatedAtInSec = Math.floor(currentUser.updatedAt.getTime() / 1000);
 
     // if (updatedAtInSec > iat) {

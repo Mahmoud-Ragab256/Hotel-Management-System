@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { Booking, IBooking } from '../../../DB/Models/booking.model.js';
+import { Booking, IBooking, backfillMissingBookingNumbers, ensureBookingNumber } from '../../../DB/Models/booking.model.js';
 import { Room, IRoom } from '../../../DB/Models/room.model.js';
 import { Invoice, IInvoice, PaymentMethod } from '../../../DB/Models/invoice.model.js';
 
@@ -92,11 +92,57 @@ const getPaymentMethod = (body: CreateBookingBody): PaymentMethod => {
   return body.paymentMethod || body.method || 'Cash';
 };
 
+
+
+export const getBookingByNumber = async (
+  req: Request<{ bookingNumber: string }>,
+  res: Response<ApiResponse<BookingData>>
+): Promise<void> => {
+  try {
+    const bookingNumber = String(req.params.bookingNumber || '').trim();
+
+    if (!/^\d{4}$/.test(bookingNumber)) {
+      res.status(400).json({
+        success: false,
+        message: 'Booking number must be exactly 4 digits',
+      });
+      return;
+    }
+
+    let booking: IBooking | null = await Booking.findOne({ bookingNumber })
+      .populate('guestId', 'fullName email phone')
+      .populate('roomId', 'roomNumber status');
+
+    if (!booking) {
+      res.status(404).json({
+        success: false,
+        message: 'Booking not found',
+      });
+      return;
+    }
+
+    booking = await ensureBookingNumber(booking);
+    const invoice = booking ? await Invoice.findOne({ bookingId: booking._id }) : null;
+
+    res.status(200).json({
+      success: true,
+      data: { booking: booking as IBooking, invoice },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: (error as Error).message,
+    });
+  }
+};
+
 export const getAllBookings = async (
   req: Request,
   res: Response<ApiResponse<BookingsData>>
 ): Promise<void> => {
   try {
+    await backfillMissingBookingNumbers();
+
     const bookings: IBooking[] = await Booking.find()
       .populate('guestId', 'fullName email phone')
       .populate('roomId', 'roomNumber status')
@@ -132,11 +178,12 @@ export const getBookingById = async (
       return;
     }
 
-    const invoice = await Invoice.findOne({ bookingId: booking._id });
+    const bookingWithNumber = await ensureBookingNumber(booking);
+    const invoice = bookingWithNumber ? await Invoice.findOne({ bookingId: bookingWithNumber._id }) : null;
 
     res.status(200).json({
       success: true,
-      data: { booking, invoice },
+      data: { booking: bookingWithNumber as IBooking, invoice },
     });
   } catch (error) {
     res.status(500).json({

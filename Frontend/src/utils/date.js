@@ -1,6 +1,6 @@
-const pad2 = (value: number): string => String(value).padStart(2, '0');
+const pad2 = (value) => String(value).padStart(2, '0');
 
-export const toDateInputValue = (value?: string | Date | null): string => {
+export const toDateInputValue = (value) => {
   if (!value) return '';
 
   if (typeof value === 'string') {
@@ -14,9 +14,9 @@ export const toDateInputValue = (value?: string | Date | null): string => {
   return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
 };
 
-export const todayDateInputValue = (): string => toDateInputValue(new Date());
+export const todayDateInputValue = () => toDateInputValue(new Date());
 
-export const parseDateInputValue = (value?: string | null): Date | null => {
+export const parseDateInputValue = (value) => {
   if (!value || typeof value !== 'string') return null;
   const [year, month, day] = value.split('-').map(Number);
   if (!year || !month || !day) return null;
@@ -25,17 +25,14 @@ export const parseDateInputValue = (value?: string | null): Date | null => {
   return date;
 };
 
-export const daysBetweenDateInputs = (start?: string | null, end?: string | null): number => {
+export const daysBetweenDateInputs = (start, end) => {
   const startDate = parseDateInputValue(start);
   const endDate = parseDateInputValue(end);
   if (!startDate || !endDate) return 0;
   return Math.round((endDate.getTime() - startDate.getTime()) / 86400000);
 };
 
-export const formatDisplayDate = (
-  value?: string | Date | null,
-  options: Intl.DateTimeFormatOptions = {}
-): string => {
+export const formatDisplayDate = (value, options = {}) => {
   if (!value) return 'N/A';
 
   const dateInput = typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)
@@ -52,7 +49,7 @@ export const formatDisplayDate = (
   });
 };
 
-export const formatDisplayDateTime = (value?: string | Date | null): string => {
+export const formatDisplayDateTime = (value) => {
   if (!value) return 'N/A';
   const date = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(date.getTime())) return 'N/A';

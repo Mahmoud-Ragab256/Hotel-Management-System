@@ -214,6 +214,7 @@ export const seedDatabaseIfEmpty = async (): Promise<void> => {
       checkOutDate.setDate(checkOutDate.getDate() + 2);
 
       return {
+        bookingNumber: String(1001 + index),
         guestId: guests[index]!._id,
         roomId: rooms[index]!._id,
         checkInDate,

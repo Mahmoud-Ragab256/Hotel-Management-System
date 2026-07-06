@@ -13,6 +13,7 @@ export interface IGuest extends Document {
   phone: string;
   nationalId: string;
   vipLevel: VipLevel;
+  isActive: boolean;
   preferences: Record<string, unknown>;
   avatar: string;
   images: string[];
@@ -62,6 +63,10 @@ const guestSchema = new Schema<IGuest>(
       type: String,
       enum: ['Bronze', 'Silver', 'Gold', 'Platinum'] as VipLevel[],
       default: 'Bronze' as VipLevel,
+    },
+    isActive: {
+      type: Boolean,
+      default: true,
     },
     preferences: {
       type: Object,

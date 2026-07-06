@@ -1,7 +1,7 @@
  import React, { useEffect, useState } from 'react';
 import { Row, Col, Table, Card, Spinner, Alert } from 'react-bootstrap';
 import { dashboardApi, getApiErrorMessage } from '../services/api';
-import { formatDisplayDate } from '../utils/date.ts';
+import { formatDisplayDate } from '../utils/date.js';
 import StatCard from '../components/StatCard';
 import { 
   faBed, 

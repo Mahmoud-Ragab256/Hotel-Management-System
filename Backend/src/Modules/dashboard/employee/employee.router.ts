@@ -8,6 +8,8 @@ router.get('/', employeeController.getAllEmployees);
 router.get('/:id', employeeController.getEmployeeById);
 router.post('/register', employeeController.createEmployee);
 router.post('/login', employeeController.loginEmployee);
+router.put('/:id/status', employeeController.setEmployeeActiveStatus);
+router.put('/:id/inactive', employeeController.setEmployeeInactive);
 router.put('/:id', upload.single("avatar"), employeeController.updateEmployee);
 router.get('/:id/avatar', employeeController.getProfileImage);
 router.delete('/:id', employeeController.deleteEmployee);

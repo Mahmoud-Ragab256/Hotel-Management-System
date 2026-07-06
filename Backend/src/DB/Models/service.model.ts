@@ -6,11 +6,14 @@ export type ServiceCategory = 'RoomService' | 'Spa' | 'Laundry' | 'Restaurant' |
 
 export interface IService extends Document {
   name: string;
+  description: string;
+  details: string;
   category: ServiceCategory;
   price: number;
   isAvailable: boolean;
   maxCapacity: number;
   images: string[];
+  imagePublicIds: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -21,6 +24,16 @@ const serviceSchema = new Schema<IService>(
     name: {
       type: String,
       required: [true, 'Service name is required'],
+      trim: true,
+    },
+    description: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    details: {
+      type: String,
+      default: '',
       trim: true,
     },
     category: {
@@ -40,10 +53,16 @@ const serviceSchema = new Schema<IService>(
     maxCapacity: {
       type: Number,
       default: 1,
+      min: 1,
     },
     images: {
       type: [String],
       default: [],
+    },
+    imagePublicIds: {
+      type: [String],
+      default: [],
+      select: false,
     },
   },
   {

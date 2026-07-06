@@ -206,6 +206,55 @@ export const updateEmployee = async (
 };
 
 
+export const setEmployeeActiveStatus = async (
+  req: Request<{ id: string }, ApiResponse<EmployeeData>, { isActive?: boolean }>,
+  res: Response<ApiResponse<EmployeeData>>
+): Promise<void> => {
+  try {
+    if (typeof req.body.isActive !== 'boolean') {
+      res.status(400).json({
+        success: false,
+        message: 'isActive must be a boolean value',
+      });
+      return;
+    }
+
+    const employee: IEmployee | null = await Employee.findByIdAndUpdate(
+      req.params.id,
+      { isActive: req.body.isActive },
+      { new: true, runValidators: true }
+    ).select('-password');
+
+    if (!employee) {
+      res.status(404).json({
+        success: false,
+        message: 'Employee not found',
+      });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `Employee marked as ${employee.isActive ? 'active' : 'inactive'} successfully`,
+      data: { employee },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: (error as Error).message,
+    });
+  }
+};
+
+export const setEmployeeInactive = async (
+  req: Request<{ id: string }>,
+  res: Response<ApiResponse<EmployeeData>>
+): Promise<void> => {
+  req.body.isActive = false;
+  await setEmployeeActiveStatus(req as Request<{ id: string }, ApiResponse<EmployeeData>, { isActive?: boolean }>, res);
+};
+
+
 export const getProfileImage = async (
   req: Request<{ id: string }>,
   res: Response<ApiResponse<String>>

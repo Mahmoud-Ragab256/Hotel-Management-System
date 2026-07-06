@@ -20,6 +20,7 @@ interface UpdateGuestBody {
   phone?: string;
   nationalId?: string;
   vipLevel?: VipLevel;
+  isActive?: boolean;
   preferences?: Record<string, unknown>;
   avatar?: string;
 }
@@ -202,6 +203,55 @@ export const updateGuest = async (
 };
 
 
+export const setGuestActiveStatus = async (
+  req: Request<{ id: string }, ApiResponse<GuestData>, { isActive?: boolean }>,
+  res: Response<ApiResponse<GuestData>>
+): Promise<void> => {
+  try {
+    if (typeof req.body.isActive !== 'boolean') {
+      res.status(400).json({
+        success: false,
+        message: 'isActive must be a boolean value',
+      });
+      return;
+    }
+
+    const guest: IGuest | null = await Guest.findByIdAndUpdate(
+      req.params.id,
+      { isActive: req.body.isActive },
+      { new: true, runValidators: true }
+    ).select('-password');
+
+    if (!guest) {
+      res.status(404).json({
+        success: false,
+        message: 'Guest not found',
+      });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `Guest marked as ${guest.isActive ? 'active' : 'inactive'} successfully`,
+      data: { guest },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: (error as Error).message,
+    });
+  }
+};
+
+export const setGuestInactive = async (
+  req: Request<{ id: string }>,
+  res: Response<ApiResponse<GuestData>>
+): Promise<void> => {
+  req.body.isActive = false;
+  await setGuestActiveStatus(req as Request<{ id: string }, ApiResponse<GuestData>, { isActive?: boolean }>, res);
+};
+
+
 export const deleteGuest = async (
   req: Request<{ id: string }>,
   res: Response<ApiResponse>
@@ -243,6 +293,14 @@ export const loginGuest = async (
       res.status(401).json({
         success: false,
         message: 'Invalid credentials',
+      });
+      return;
+    }
+
+    if (!guest.isActive) {
+      res.status(401).json({
+        success: false,
+        message: 'Account is inactive',
       });
       return;
     }

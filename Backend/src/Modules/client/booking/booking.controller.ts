@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { Booking, IBooking } from '../../../DB/Models/booking.model.js';
+import { Booking, IBooking, ensureBookingNumber } from '../../../DB/Models/booking.model.js';
 import { Room } from '../../../DB/Models/room.model.js';
 import { IInvoice, Invoice, PaymentMethod } from '../../../DB/Models/invoice.model.js';
 import { Types } from 'mongoose';
@@ -150,12 +150,13 @@ export const getBookingDetails = async (
       return;
     }
 
-    const invoice = await Invoice.findOne({ bookingId: booking._id });
+    const bookingWithNumber = await ensureBookingNumber(booking);
+    const invoice = bookingWithNumber ? await Invoice.findOne({ bookingId: bookingWithNumber._id }) : null;
 
     res.status(200).json({
       success: true,
       data: {
-        booking,
+        booking: bookingWithNumber as IBooking,
         invoice,
       },
     });

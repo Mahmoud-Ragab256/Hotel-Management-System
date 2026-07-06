@@ -96,7 +96,8 @@ function SignupPage() {
 
       saveAuthSession({
         token: session.token,
-        user: session.user
+        user: session.user,
+        accountType: 'guest'
       });
 
       navigate('/login');

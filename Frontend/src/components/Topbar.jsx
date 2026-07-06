@@ -11,10 +11,10 @@ import { clearAuthSession, getCurrentUser } from '../services/auth.js';
 
 function Topbar() {
   const navigate = useNavigate();
-  const user = getCurrentUser();
+  const user = getCurrentUser('dashboard');
 
   const handleLogout = () => {
-    clearAuthSession();
+    clearAuthSession('dashboard');
     navigate('/dashboard/login', { replace: true });
   };
 
