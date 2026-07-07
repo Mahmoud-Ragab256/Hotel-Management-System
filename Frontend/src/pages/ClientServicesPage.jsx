@@ -75,8 +75,8 @@ function ServiceCard({ service, index, onRequest, msgRef }) {
           transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'translateY(-6px)';
-          e.currentTarget.style.borderColor = colors.accent;
+          e.currentTarget.style.transform = 'translateY(-4px)';
+          e.currentTarget.style.borderColor = colors.borderHover;
           e.currentTarget.style.boxShadow = colors.shadowHover;
         }}
         onMouseLeave={(e) => {

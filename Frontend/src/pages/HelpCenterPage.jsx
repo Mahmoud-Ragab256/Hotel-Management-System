@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { dashboardApi, getApiErrorMessage } from '../services/api.js';
 import { getCurrentUser } from '../services/auth.js';
+import { useTheme } from '../context/ThemeContext.jsx';
 
 const CONTACT_INFO = [
   {
@@ -79,6 +80,7 @@ function MessageBox({ type, message, onClose }) {
 
 function ContactCard({ item }) {
   const [isHovered, setIsHovered] = useState(false);
+  const { colors } = useTheme();
 
   return (
     <a
@@ -88,10 +90,10 @@ function ContactCard({ item }) {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       style={{
-        background: '#161616',
+        background: colors.bgCard,
         borderRadius: 20,
-        border: isHovered ? '1px solid #c85a49' : '1px solid rgba(255, 255, 255, 0.08)',
-        boxShadow: isHovered ? '0 12px 32px rgba(200, 90, 73, 0.22)' : '0 4px 24px rgba(0, 0, 0, 0.25)',
+        border: isHovered ? `1px solid ${colors.borderHover}` : `1px solid ${colors.borderCard}`,
+        boxShadow: isHovered ? colors.shadowHover : colors.shadow,
         padding: '28px 26px',
         display: 'flex',
         flexDirection: 'column',
@@ -111,11 +113,11 @@ function ContactCard({ item }) {
       }}>
         {item.icon}
       </div>
-      <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: '"Inter", sans-serif' }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: '"Inter", sans-serif' }}>
         {item.label}
       </div>
-      <div style={{ fontSize: 16, fontWeight: 700, color: '#ffffff', fontFamily: '"Inter", sans-serif' }}>{item.value}</div>
-      <span style={{ fontSize: 13, fontWeight: 600, color: '#c85a49', fontFamily: '"Inter", sans-serif', transition: 'color 0.2s' }}>
+      <div style={{ fontSize: 16, fontWeight: 700, color: colors.textPrimary, fontFamily: '"Inter", sans-serif' }}>{item.value}</div>
+      <span style={{ fontSize: 13, fontWeight: 600, color: colors.accent, fontFamily: '"Inter", sans-serif', transition: 'color 0.2s' }}>
         {item.actionLabel} →
       </span>
     </a>
@@ -124,6 +126,7 @@ function ContactCard({ item }) {
 
 function FaqAccordion({ items }) {
   const [openIndex, setOpenIndex] = useState(null);
+  const { colors } = useTheme();
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -133,9 +136,9 @@ function FaqAccordion({ items }) {
           <div
             key={index}
             style={{
-              background: '#161616',
+              background: colors.bgCard,
               borderRadius: 16,
-              border: isOpen ? '1px solid rgba(200, 90, 73, 0.3)' : '1px solid #222222',
+              border: isOpen ? `1px solid ${colors.borderHover}` : `1px solid ${colors.borderCard}`,
               overflow: 'hidden',
               transition: 'border-color 0.3s ease'
             }}
@@ -156,27 +159,28 @@ function FaqAccordion({ items }) {
                 outline: 'none'
               }}
             >
-              <span style={{ fontSize: 15, fontWeight: 600, color: '#ffffff', fontFamily: '"Inter", sans-serif' }}>{item.question}</span>
+              <span style={{ fontSize: 15, fontWeight: 600, color: colors.textPrimary, fontFamily: '"Inter", sans-serif' }}>{item.question}</span>
               <span style={{
                 flexShrink: 0,
                 width: 26,
                 height: 26,
                 borderRadius: '50%',
-                background: isOpen ? '#c85a49' : '#222222',
-                color: '#fff',
+                background: isOpen ? colors.accent : (colors.inputBg || '#222222'),
+                color: isOpen ? '#ffffff' : colors.textPrimary,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontSize: 16,
                 fontWeight: 700,
                 transition: 'background 0.2s, color 0.2s',
+                border: isOpen ? 'none' : `1px solid ${colors.borderCard}`
               }}>
                 {isOpen ? '−' : '+'}
               </span>
             </button>
             {isOpen && (
-              <div style={{ padding: '0 22px 20px', borderTop: '1px solid #222222', paddingTop: '16px' }}>
-                <p style={{ margin: 0, fontSize: 14, color: '#9ca3af', lineHeight: 1.7, fontFamily: '"Inter", sans-serif', fontWeight: 300 }}>{item.answer}</p>
+              <div style={{ padding: '0 22px 20px', borderTop: `1px solid ${colors.borderCard}`, paddingTop: '16px' }}>
+                <p style={{ margin: 0, fontSize: 14, color: colors.textSecondary, lineHeight: 1.7, fontFamily: '"Inter", sans-serif', fontWeight: 300 }}>{item.answer}</p>
               </div>
             )}
           </div>
@@ -188,6 +192,7 @@ function FaqAccordion({ items }) {
 
 function SupportTicketForm() {
   const user = getCurrentUser();
+  const { colors } = useTheme();
   const [form, setForm] = useState({
     name: user?.name || '',
     email: user?.email || '',
@@ -231,20 +236,20 @@ function SupportTicketForm() {
     width: '100%',
     padding: '12px 14px',
     borderRadius: 12,
-    border: '1px solid #2e2e2e',
+    border: `1px solid ${colors.inputBorder || 'rgba(255,255,255,0.1)'}`,
     fontSize: 14,
-    color: '#ffffff',
-    background: '#222222',
+    color: colors.textPrimary,
+    backgroundColor: colors.inputBg,
     outline: 'none',
     boxSizing: 'border-box',
     fontFamily: '"Inter", sans-serif',
-    transition: 'border-color 0.2s',
+    transition: 'border-color 0.2s, background-color 0.2s',
   };
 
   const labelStyle = {
     fontSize: 11,
     fontWeight: 700,
-    color: '#9ca3af',
+    color: colors.textSecondary,
     textTransform: 'uppercase',
     letterSpacing: '0.08em',
     marginBottom: 8,
@@ -257,10 +262,10 @@ function SupportTicketForm() {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       style={{
-        background: '#161616',
+        background: colors.bgCard,
         borderRadius: 20,
-        border: isHovered ? '1px solid #c85a49' : '1px solid rgba(255, 255, 255, 0.08)',
-        boxShadow: isHovered ? '0 12px 32px rgba(200, 90, 73, 0.12)' : '0 4px 24px rgba(0,0,0,0.25)',
+        border: isHovered ? `1px solid ${colors.borderHover}` : `1px solid ${colors.borderCard}`,
+        boxShadow: isHovered ? colors.shadowHover : colors.shadow,
         padding: '32px',
         display: 'flex',
         flexDirection: 'column',
@@ -277,8 +282,8 @@ function SupportTicketForm() {
               value={form.name} 
               onChange={handleChange('name')} 
               placeholder="Your name" 
-              onFocus={(e) => e.target.style.borderColor = '#c85a49'}
-              onBlur={(e) => e.target.style.borderColor = '#2e2e2e'}
+              onFocus={(e) => e.target.style.borderColor = colors.accent}
+              onBlur={(e) => e.target.style.borderColor = colors.inputBorder || 'rgba(255,255,255,0.1)'}
             />
           </div>
           <div style={{ flex: 1, minWidth: 200 }}>
@@ -289,8 +294,8 @@ function SupportTicketForm() {
               onChange={handleChange('email')} 
               placeholder="you@example.com" 
               type="email" 
-              onFocus={(e) => e.target.style.borderColor = '#c85a49'}
-              onBlur={(e) => e.target.style.borderColor = '#2e2e2e'}
+              onFocus={(e) => e.target.style.borderColor = colors.accent}
+              onBlur={(e) => e.target.style.borderColor = colors.inputBorder || 'rgba(255,255,255,0.1)'}
             />
           </div>
         </div>
@@ -312,7 +317,7 @@ function SupportTicketForm() {
               onChange={handleChange('category')}
             >
               {TICKET_CATEGORIES.map((cat) => (
-                <option key={cat} value={cat} style={{ background: '#222222', color: '#ffffff' }}>{cat}</option>
+                <option key={cat} value={cat} style={{ background: colors.bgCard, color: colors.textPrimary }}>{cat}</option>
               ))}
             </select>
           </div>
@@ -330,8 +335,8 @@ function SupportTicketForm() {
             value={form.message}
             onChange={handleChange('message')}
             placeholder="Tell us how we can help..."
-            onFocus={(e) => e.target.style.borderColor = '#c85a49'}
-            onBlur={(e) => e.target.style.borderColor = '#2e2e2e'}
+            onFocus={(e) => e.target.style.borderColor = colors.accent}
+            onBlur={(e) => e.target.style.borderColor = colors.inputBorder || 'rgba(255,255,255,0.1)'}
           />
         </div>
       </div>
@@ -348,7 +353,7 @@ function SupportTicketForm() {
           padding: '12px 28px',
           borderRadius: '24px',
           border: 'none',
-          background: submitting ? '#2e2e2e' : '#c85a49',
+          background: submitting ? (colors.bgCardAlt || '#2e2e2e') : colors.accent,
           color: '#fff',
           fontWeight: 600,
           fontSize: 14,
@@ -356,8 +361,8 @@ function SupportTicketForm() {
           transition: 'all 0.25s',
           fontFamily: '"Inter", sans-serif'
         }}
-        onMouseEnter={(e) => { if (!submitting) e.currentTarget.style.background = '#d16b5a'; }}
-        onMouseLeave={(e) => { if (!submitting) e.currentTarget.style.background = '#c85a49'; }}
+        onMouseEnter={(e) => { if (!submitting) e.currentTarget.style.background = colors.accentHover; }}
+        onMouseLeave={(e) => { if (!submitting) e.currentTarget.style.background = colors.accent; }}
       >
         {submitting ? 'Sending...' : 'Send message'}
       </button>
@@ -366,24 +371,26 @@ function SupportTicketForm() {
 }
 
 export default function HelpCenterPage() {
+  const { colors, isDark } = useTheme();
+
   return (
-    <div style={{ minHeight: '100vh', background: 'transparent', color: '#ffffff', fontFamily: '"Inter", sans-serif', paddingBottom: '120px' }}>
+    <div style={{ minHeight: '100vh', background: 'transparent', color: colors.textPrimary, fontFamily: '"Inter", sans-serif', paddingBottom: '120px' }}>
       
-      {/* Header Banner - Sleek Dark Theme */}
+      {/* Header Banner */}
       <div style={{
-        background: 'linear-gradient(135deg, #1c100e 0%, #111111 100%)',
-        borderBottom: '1px solid rgba(200, 90, 73, 0.25)',
-        boxShadow: '0 8px 32px rgba(200, 90, 73, 0.1)',
+        background: isDark ? 'linear-gradient(135deg, #1c100e 0%, #111111 100%)' : colors.headerGradient,
+        borderBottom: `1px solid ${colors.borderHeader || 'rgba(200, 90, 73, 0.25)'}`,
+        boxShadow: isDark ? '0 8px 32px rgba(200, 90, 73, 0.1)' : '0 4px 16px rgba(0,0,0,0.02)',
         padding: '60px 24px 48px',
         textAlign: 'center'
       }}>
-        <div style={{ fontSize: '11px', color: '#c85a49', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: '12px' }}>
+        <div style={{ fontSize: '11px', color: colors.accent, fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: '12px' }}>
           Support
         </div>
-        <h1 style={{ fontSize: 'clamp(26px, 5vw, 42px)', fontWeight: '700', color: '#ffffff', margin: '0 0 12px', letterSpacing: '-0.02em', fontFamily: '"Playfair Display", serif' }}>
+        <h1 style={{ fontSize: 'clamp(26px, 5vw, 42px)', fontWeight: '700', color: colors.textPrimary, margin: '0 0 12px', letterSpacing: '-0.02em', fontFamily: '"Playfair Display", serif' }}>
           Help Center
         </h1>
-        <p style={{ fontSize: '15px', color: '#9ca3af', margin: '0 auto', maxWidth: '480px', fontWeight: '300', lineHeight: '1.6' }}>
+        <p style={{ fontSize: '15px', color: colors.textSecondary, margin: '0 auto', maxWidth: '480px', fontWeight: '300', lineHeight: '1.6' }}>
           We are here to help. Find quick answers or reach out to our team directly.
         </p>
       </div>
@@ -398,14 +405,14 @@ export default function HelpCenterPage() {
         </section>
 
         <section>
-          <h2 style={{ fontSize: 22, fontWeight: 700, color: '#ffffff', margin: '0 0 20px', fontFamily: '"Playfair Display", serif' }}>
+          <h2 style={{ fontSize: 22, fontWeight: 700, color: colors.textPrimary, margin: '0 0 20px', fontFamily: '"Playfair Display", serif' }}>
             Frequently Asked Questions
           </h2>
           <FaqAccordion items={FAQ_ITEMS} />
         </section>
 
         <section>
-          <h2 style={{ fontSize: 22, fontWeight: 700, color: '#ffffff', margin: '0 0 20px', fontFamily: '"Playfair Display", serif' }}>
+          <h2 style={{ fontSize: 22, fontWeight: 700, color: colors.textPrimary, margin: '0 0 20px', fontFamily: '"Playfair Display", serif' }}>
             Still need help?
           </h2>
           <SupportTicketForm />

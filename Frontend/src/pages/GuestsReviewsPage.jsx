@@ -60,10 +60,10 @@ function ReviewCard({ review, guest }) {
         background: colors.bgCard,
         borderRadius: '20px',
         border: isHovered 
-          ? `1px solid ${isDark ? 'rgba(200, 90, 73, 0.35)' : 'rgba(200, 90, 73, 0.25)'}` 
+          ? `1px solid ${colors.borderHover}` 
           : `1px solid ${colors.borderCard}`,
         boxShadow: isHovered 
-          ? (isDark ? '0 12px 32px rgba(200, 90, 73, 0.08)' : '0 12px 28px rgba(200, 90, 73, 0.04)') 
+          ? colors.shadowHover 
           : colors.shadow,
         padding: '28px',
         display: 'flex',

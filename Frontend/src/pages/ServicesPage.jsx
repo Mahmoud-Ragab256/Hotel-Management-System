@@ -49,6 +49,14 @@ function ServicesPage() {
   const [viewModal, setViewModal] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
+  const [createModal, setCreateModal] = useState(false);
+  const [createForm, setCreateForm] = useState({
+    name: '',
+    category: 'RoomService',
+    price: '',
+    maxCapacity: 1,
+    isAvailable: true
+  });
 
   const showFeedback = (type, message) => setFeedback({ type, message });
 
@@ -111,6 +119,31 @@ function ServicesPage() {
     }
   };
 
+  const handleCreateSubmit = async (event) => {
+    event.preventDefault();
+    setSaving(true);
+    setFeedback(null);
+    try {
+      const payload = {
+        name: createForm.name,
+        category: createForm.category,
+        price: Number(createForm.price),
+        maxCapacity: Number(createForm.maxCapacity),
+        isAvailable: createForm.isAvailable,
+        images: []
+      };
+
+      await dashboardApi.createService(payload);
+      setCreateModal(false);
+      showFeedback('success', 'Service created successfully.');
+      await loadServices();
+    } catch (error) {
+      showFeedback('danger', `Could not create service: ${getApiErrorMessage(error)}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div className="d-flex flex-column gap-4">
       <Card className="border-0 shadow-sm">
@@ -131,7 +164,16 @@ function ServicesPage() {
               <Button variant="outline-secondary" className="me-2" onClick={loadServices} disabled={loading}>
                 <FontAwesomeIcon icon={faRefresh} className="me-2" />Refresh
               </Button>
-              <Button onClick={() => navigate('/dashboard/services/add')}>
+              <Button onClick={() => {
+                setCreateForm({
+                  name: '',
+                  category: 'RoomService',
+                  price: '',
+                  maxCapacity: 1,
+                  isAvailable: true
+                });
+                setCreateModal(true);
+              }}>
                 <FontAwesomeIcon icon={faPlus} className="me-2" />Add New Service
               </Button>
             </Col>
@@ -235,6 +277,102 @@ function ServicesPage() {
           <Button variant="outline-secondary" onClick={() => setDeleteModal(false)}>Close</Button>
           <Button variant="danger" onClick={handleDelete} disabled={saving}>{saving ? 'Deleting...' : 'Delete'}</Button>
         </Modal.Footer>
+      </Modal>
+
+      {/* Create Service Modal */}
+      <Modal show={createModal} onHide={() => setCreateModal(false)} centered size="lg">
+        <Form onSubmit={handleCreateSubmit}>
+          <Modal.Header closeButton>
+            <Modal.Title>Add New Service</Modal.Title>
+          </Modal.Header>
+          <Modal.Body className="p-4" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <Row className="g-3">
+              <Col md={12}>
+                <Form.Group>
+                  <Form.Label className="fw-semibold">Service Name <span className="text-danger">*</span></Form.Label>
+                  <Form.Control
+                    required
+                    type="text"
+                    placeholder="e.g., Premium Spa Wellness Package"
+                    value={createForm.name}
+                    onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })}
+                  />
+                </Form.Group>
+              </Col>
+
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label className="fw-semibold">Category</Form.Label>
+                  <Form.Select
+                    value={createForm.category}
+                    onChange={(e) => setCreateForm({ ...createForm, category: e.target.value })}
+                  >
+                    {serviceCategories.map((cat) => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label className="fw-semibold">Base Price (USD) <span className="text-danger">*</span></Form.Label>
+                  <Form.Control
+                    required
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={createForm.price}
+                    onChange={(e) => setCreateForm({ ...createForm, price: e.target.value })}
+                  />
+                </Form.Group>
+              </Col>
+
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label className="fw-semibold">Max Capacity per Order</Form.Label>
+                  <Form.Control
+                    required
+                    type="number"
+                    min="1"
+                    placeholder="e.g., 5"
+                    value={createForm.maxCapacity}
+                    onChange={(e) => setCreateForm({ ...createForm, maxCapacity: e.target.value })}
+                  />
+                  <Form.Text className="text-muted">
+                    Limits the number of guests/items per request.
+                  </Form.Text>
+                </Form.Group>
+              </Col>
+
+              <Col md={6}>
+                <div className="p-3 border rounded bg-light-subtle d-flex justify-content-between align-items-center h-100">
+                  <div>
+                    <div className="fw-bold mb-0">Service Status</div>
+                    <small className="text-muted">Toggle availability on guest portal</small>
+                  </div>
+                  <Form.Check
+                    type="switch"
+                    id="modal-service-status-switch"
+                    label={createForm.isAvailable ? "Available" : "Unavailable"}
+                    className="fw-semibold"
+                    checked={createForm.isAvailable}
+                    onChange={(e) => setCreateForm({ ...createForm, isAvailable: e.target.checked })}
+                  />
+                </div>
+              </Col>
+            </Row>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="outline-secondary" onClick={() => setCreateModal(false)} disabled={saving}>
+              Cancel
+            </Button>
+            <Button type="submit" variant="primary" disabled={saving}>
+              {saving ? <Spinner size="sm" className="me-2" /> : 'Save Service'}
+            </Button>
+          </Modal.Footer>
+        </Form>
       </Modal>
     </div>
   );

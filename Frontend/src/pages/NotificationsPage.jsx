@@ -21,8 +21,10 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import FeedbackCard from '../components/FeedbackCard.jsx';
 import { dashboardApi, getApiErrorMessage } from '../services/api.js';
+import { useTheme } from '../context/ThemeContext.jsx';
 
 function NotificationsPage() {
+  const { colors, isDark } = useTheme();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -118,62 +120,90 @@ function NotificationsPage() {
   };
 
   return (
-    <div className="d-flex flex-column gap-4" style={{ backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
+    <div className="d-flex flex-column gap-4" style={{ backgroundColor: 'transparent', minHeight: '100vh' }}>
       <div className="d-flex justify-content-between align-items-center pt-2">
         <div>
-          <h1 className="h2 fw-bold text-dark mb-1">Notification Center</h1>
-          <p className="text-muted mb-0">Manage and monitor all system, booking, and service alerts.</p>
+          <h1 className="h2 fw-bold mb-1" style={{ color: colors.textPrimary }}>Notification Center</h1>
+          <p className="mb-0" style={{ color: colors.textSecondary }}>Manage and monitor all system, booking, and service alerts.</p>
         </div>
-        <Button variant="primary" className="px-4 py-2 fw-semibold" onClick={() => setShowFormModal(true)} style={{ borderRadius: '8px' }}>
+        <Button 
+          variant="primary" 
+          className="create-notification-btn" 
+          onClick={() => setShowFormModal(true)}
+        >
           <FontAwesomeIcon icon={faPlus} className="me-2" /> Create Notification
         </Button>
       </div>
 
       {feedback && <FeedbackCard feedback={feedback} onClose={() => setFeedback(null)} />}
 
-      <Card className="border-0 shadow-sm" style={{ borderRadius: '12px' }}>
+      <Card 
+        className="border-0 shadow-sm" 
+        style={{ 
+          borderRadius: '12px',
+          backgroundColor: colors.bgCard,
+          border: isDark ? `1px solid ${colors.borderCard}` : 'none'
+        }}
+      >
         <Card.Body className="p-3 d-flex flex-wrap align-items-center justify-content-between gap-3">
           <div className="d-flex align-items-center gap-3 flex-wrap">
             <div className="d-flex align-items-center gap-2">
-              <span className="text-muted small">Type:</span>
+              <span style={{ color: colors.textSecondary }} className="small">Type:</span>
               <Form.Select 
                 size="sm" 
-                className="border-light-subtle bg-light fw-medium text-dark" 
-                style={{ width: '160px', borderRadius: '6px' }}
+                className="fw-medium" 
+                style={{ 
+                  width: '160px', 
+                  borderRadius: '6px',
+                  backgroundColor: isDark ? colors.bgCardAlt : '#f8f9fa',
+                  color: colors.textPrimary,
+                  borderColor: isDark ? colors.borderCard : 'rgba(0,0,0,0.1)'
+                }}
                 value={filterType}
                 onChange={(e) => setFilterType(e.target.value)}
               >
-                <option value="All">All Notifications</option>
-                <option value="System">System</option>
-                <option value="Booking">Booking</option>
-                <option value="Service">Service</option>
+                <option value="All" style={{ backgroundColor: colors.bgCard, color: colors.textPrimary }}>All Notifications</option>
+                <option value="System" style={{ backgroundColor: colors.bgCard, color: colors.textPrimary }}>System</option>
+                <option value="Booking" style={{ backgroundColor: colors.bgCard, color: colors.textPrimary }}>Booking</option>
+                <option value="Service" style={{ backgroundColor: colors.bgCard, color: colors.textPrimary }}>Service</option>
               </Form.Select>
             </div>
 
             <div className="d-flex align-items-center gap-2">
-              <span className="text-muted small">Recipient:</span>
+              <span style={{ color: colors.textSecondary }} className="small">Recipient:</span>
               <Form.Select 
                 size="sm" 
-                className="border-light-subtle bg-light fw-medium text-dark" 
-                style={{ width: '130px', borderRadius: '6px' }}
+                className="fw-medium" 
+                style={{ 
+                  width: '130px', 
+                  borderRadius: '6px',
+                  backgroundColor: isDark ? colors.bgCardAlt : '#f8f9fa',
+                  color: colors.textPrimary,
+                  borderColor: isDark ? colors.borderCard : 'rgba(0,0,0,0.1)'
+                }}
                 value={filterRecipient}
                 onChange={(e) => setFilterRecipient(e.target.value)}
               >
-                <option value="All">All</option>
-                <option value="Guest">Guest</option>
-                <option value="Employee">Employee</option>
-                <option value="Admin">Admin</option>
+                <option value="All" style={{ backgroundColor: colors.bgCard, color: colors.textPrimary }}>All</option>
+                <option value="Guest" style={{ backgroundColor: colors.bgCard, color: colors.textPrimary }}>Guest</option>
+                <option value="Employee" style={{ backgroundColor: colors.bgCard, color: colors.textPrimary }}>Employee</option>
+                <option value="Admin" style={{ backgroundColor: colors.bgCard, color: colors.textPrimary }}>Admin</option>
               </Form.Select>
             </div>
           </div>
 
           <div className="d-flex align-items-center gap-3">
-            <ButtonGroup size="sm" className="bg-light p-1" style={{ borderRadius: '8px' }}>
+            <ButtonGroup size="sm" className="p-1" style={{ borderRadius: '8px', backgroundColor: isDark ? colors.bgCardAlt : '#f1f5f9' }}>
               {['All', 'Unread', 'Read'].map((tab) => (
                 <Button
                   key={tab}
-                  variant={statusTab === tab ? 'white' : 'light'}
-                  className={`px-3 border-0 rounded-2 small fw-medium ${statusTab === tab ? 'shadow-sm text-dark' : 'text-muted'}`}
+                  variant="none"
+                  style={{
+                    backgroundColor: statusTab === tab ? (isDark ? '#2a3554' : '#ffffff') : 'transparent',
+                    color: statusTab === tab ? colors.textPrimary : colors.textSecondary,
+                    borderRadius: '6px'
+                  }}
+                  className={`px-3 border-0 small fw-medium ${statusTab === tab ? 'shadow-sm' : ''}`}
                   onClick={() => setStatusTab(tab)}
                 >
                   {tab}
@@ -181,29 +211,44 @@ function NotificationsPage() {
               ))}
             </ButtonGroup>
 
-            <Button variant="link" className="text-muted text-decoration-none small p-0 fw-medium">
+            <Button variant="link" className="text-decoration-none small p-0 fw-medium" style={{ color: colors.textSecondary }}>
               <FontAwesomeIcon icon={faSlidersH} className="me-1" /> Advanced Filters
             </Button>
           </div>
         </Card.Body>
       </Card>
 
-      <Card className="border-0 shadow-sm" style={{ borderRadius: '12px', overflow: 'hidden' }}>
+      <Card 
+        className="border-0 shadow-sm" 
+        style={{ 
+          borderRadius: '12px', 
+          overflow: 'hidden',
+          backgroundColor: colors.bgCard,
+          border: isDark ? `1px solid ${colors.borderCard}` : 'none'
+        }}
+      >
         <div className="table-responsive">
-          <Table className="align-middle mb-0" style={{ '--bs-table-hover-bg': '#f8f9fa' }} hover>
-            <thead style={{ backgroundColor: '#f8f9fa', borderBottom: '1px solid #edf2f7' }}>
+          <Table 
+            className="align-middle mb-0" 
+            style={{ 
+              '--bs-table-hover-bg': isDark ? 'rgba(255, 255, 255, 0.03)' : '#f8f9fa',
+              color: colors.textPrimary 
+            }} 
+            hover
+          >
+            <thead style={{ backgroundColor: isDark ? colors.bgCardAlt : '#f8f9fa', borderBottom: isDark ? `1px solid ${colors.borderCard}` : '1px solid #edf2f7' }}>
               <tr>
-                <th className="text-muted text-uppercase px-4 py-3 small fw-bold" style={{ width: '80px' }}>Status</th>
-                <th className="text-muted text-uppercase px-3 py-3 small fw-bold">Message</th>
-                <th className="text-muted text-uppercase px-3 py-3 small fw-bold" style={{ width: '120px' }}>Type</th>
-                <th className="text-muted text-uppercase px-3 py-3 small fw-bold" style={{ width: '140px' }}>Recipient</th>
-                <th className="text-muted text-uppercase px-4 py-3 small fw-bold text-end" style={{ width: '160px' }}>Created At</th>
+                <th className="text-uppercase px-4 py-3 small fw-bold" style={{ width: '80px', color: colors.textSecondary, borderBottom: 'none' }}>Status</th>
+                <th className="text-uppercase px-3 py-3 small fw-bold" style={{ color: colors.textSecondary, borderBottom: 'none' }}>Message</th>
+                <th className="text-uppercase px-3 py-3 small fw-bold" style={{ width: '120px', color: colors.textSecondary, borderBottom: 'none' }}>Type</th>
+                <th className="text-uppercase px-3 py-3 small fw-bold" style={{ width: '140px', color: colors.textSecondary, borderBottom: 'none' }}>Recipient</th>
+                <th className="text-uppercase px-4 py-3 small fw-bold text-end" style={{ width: '160px', color: colors.textSecondary, borderBottom: 'none' }}>Created At</th>
               </tr>
             </thead>
             <tbody>
               {loading && (
                 <tr>
-                  <td colSpan="5" className="text-center py-5 text-muted">
+                  <td colSpan="5" className="text-center py-5" style={{ color: colors.textSecondary, borderBottom: 'none' }}>
                     <Spinner animation="border" size="sm" className="me-2" /> Loading center updates...
                   </td>
                 </tr>
@@ -211,7 +256,7 @@ function NotificationsPage() {
               
               {!loading && filteredNotifications.length === 0 && (
                 <tr>
-                  <td colSpan="5" className="text-center py-5 text-muted small">
+                  <td colSpan="5" className="text-center py-5 small" style={{ color: colors.textMuted, borderBottom: 'none' }}>
                     No notifications match the active filter criteria.
                   </td>
                 </tr>
@@ -221,39 +266,43 @@ function NotificationsPage() {
                 <tr 
                   key={notif._id} 
                   onClick={() => handleMarkAsRead(notif._id, notif.isRead)}
-                  style={{ cursor: 'pointer', borderBottom: '1px solid #edf2f7' }}
+                  style={{ 
+                    cursor: 'pointer', 
+                    borderBottom: isDark ? `1px solid ${colors.borderCard}` : '1px solid #edf2f7',
+                    backgroundColor: !notif.isRead ? (isDark ? 'rgba(200, 90, 73, 0.06)' : 'rgba(200, 90, 73, 0.03)') : 'transparent'
+                  }}
                 >
-                  <td className="px-4 py-3 text-center">
+                  <td className="px-4 py-3 text-center" style={{ borderBottom: 'none' }}>
                     {!notif.isRead ? (
                       <span className="d-inline-block bg-primary rounded-circle" style={{ width: '8px', height: '8px' }}></span>
                     ) : (
-                      <span className="d-inline-block bg-light-subtle rounded-circle border" style={{ width: '8px', height: '8px', borderColor: '#cbd5e1' }}></span>
+                      <span className="d-inline-block rounded-circle border" style={{ width: '8px', height: '8px', backgroundColor: 'transparent', borderColor: isDark ? colors.borderCard : '#cbd5e1' }}></span>
                     )}
                   </td>
-                  <td className="px-3 py-3">
-                    <div className={`fw-bold text-dark ${!notif.isRead ? 'mb-0' : 'text-opacity-75 mb-0'}`} style={{ fontSize: '15px' }}>
+                  <td className="px-3 py-3" style={{ borderBottom: 'none' }}>
+                    <div className="fw-bold" style={{ fontSize: '15px', color: !notif.isRead ? colors.textPrimary : colors.textSecondary }}>
                       {notif.title}
                     </div>
-                    <div className="text-muted small mt-1" style={{ maxWidth: '550px', whiteSpace: 'normal', wordBreak: 'break-word' }}>
+                    <div className="small mt-1" style={{ color: colors.textMuted, maxWidth: '550px', whiteSpace: 'normal', wordBreak: 'break-word' }}>
                       {notif.message}
                     </div>
                   </td>
-                  <td className="px-3 py-3">
+                  <td className="px-3 py-3" style={{ borderBottom: 'none' }}>
                   {(() => {
                         const typeLower = notif.type ? notif.type.toLowerCase() : '';
                         
-                        let bgColor = '#e8f0fe'; 
-                        let textColor = '#4c6cb3';
+                        let bgColor = isDark ? 'rgba(76, 108, 179, 0.2)' : '#e8f0fe'; 
+                        let textColor = isDark ? '#a0bdfa' : '#4c6cb3';
                         
                         if (typeLower === 'booking') {
-                        bgColor = '#e6f7ed';   
-                        textColor = '#1e5a3e'; 
+                          bgColor = isDark ? 'rgba(30, 90, 62, 0.25)' : '#e6f7ed';   
+                          textColor = isDark ? '#86efac' : '#1e5a3e'; 
                         } else if (typeLower === 'system') {
-                        bgColor = '#e8f0fe';   
-                        textColor = '#4c6cb3'; 
+                          bgColor = isDark ? 'rgba(76, 108, 179, 0.25)' : '#e8f0fe';   
+                          textColor = isDark ? '#a0bdfa' : '#4c6cb3'; 
                         } else if (typeLower === 'service') {
-                        bgColor = '#fef3c7';   
-                        textColor = '#92400e'; 
+                          bgColor = isDark ? 'rgba(146, 64, 14, 0.25)' : '#fef3c7';   
+                          textColor = isDark ? '#fde047' : '#92400e'; 
                         }
 
                         return (
@@ -271,10 +320,10 @@ function NotificationsPage() {
                         );
                    })()}
                   </td>
-                  <td className="px-3 py-3 fw-medium text-dark-emphasis small">
+                  <td className="px-3 py-3 fw-medium small" style={{ color: colors.textPrimary, borderBottom: 'none' }}>
                     {notif.recipientType}
                   </td>
-                  <td className="px-4 py-3 text-end text-muted small">
+                  <td className="px-4 py-3 text-end small" style={{ color: colors.textSecondary, borderBottom: 'none' }}>
                     {formatTimeAgo(notif.createdAt)}
                   </td>
                 </tr>
@@ -291,49 +340,49 @@ function NotificationsPage() {
             width: 100% !important;
           }
         `}</style>
-        <Modal.Header closeButton>
-          <Modal.Title className="fw-bold text-dark">New Notification Details</Modal.Title>
+        <Modal.Header closeButton style={{ backgroundColor: colors.bgCard, borderColor: isDark ? colors.borderCard : '#dee2e6' }}>
+          <Modal.Title className="fw-bold" style={{ color: colors.textPrimary }}>New Notification Details</Modal.Title>
         </Modal.Header>
-        <Modal.Body className="p-4">
+        <Modal.Body className="p-4" style={{ backgroundColor: colors.bgCard, color: colors.textPrimary }}>
           <Form onSubmit={handleSubmit}>
             <Row className="g-3">
               <Col md={6}>
                 <Form.Group>
-                  <Form.Label className="small fw-semibold text-muted">Recipient Type</Form.Label>
+                  <Form.Label className="small fw-semibold" style={{ color: colors.textSecondary }}>Recipient Type</Form.Label>
                   <Form.Select 
-                    className="py-2"
+                    className="py-2 premium-form-control"
                     value={formData.recipientType} 
                     onChange={(e) => setFormData({...formData, recipientType: e.target.value})}
                   >
-                    <option value="Guest">Guest Only</option>
-                    <option value="Employee">Employee Only</option>
-                    <option value="Admin">Admin Only</option>
+                    <option value="Guest" style={{ backgroundColor: colors.bgCard, color: colors.textPrimary }}>Guest Only</option>
+                    <option value="Employee" style={{ backgroundColor: colors.bgCard, color: colors.textPrimary }}>Employee Only</option>
+                    <option value="Admin" style={{ backgroundColor: colors.bgCard, color: colors.textPrimary }}>Admin Only</option>
                   </Form.Select>
                 </Form.Group>
               </Col>
               <Col md={6}>
                 <Form.Group>
-                  <Form.Label className="small fw-semibold text-muted">Notification Type</Form.Label>
+                  <Form.Label className="small fw-semibold" style={{ color: colors.textSecondary }}>Notification Type</Form.Label>
                   <Form.Select 
-                    className="py-2"
+                    className="py-2 premium-form-control"
                     value={formData.type} 
                     onChange={(e) => setFormData({...formData, type: e.target.value})}
                   >
-                    <option value="System">System</option>
-                    <option value="Booking">Booking</option>
-                    <option value="Service">Service</option>
+                    <option value="System" style={{ backgroundColor: colors.bgCard, color: colors.textPrimary }}>System</option>
+                    <option value="Booking" style={{ backgroundColor: colors.bgCard, color: colors.textPrimary }}>Booking</option>
+                    <option value="Service" style={{ backgroundColor: colors.bgCard, color: colors.textPrimary }}>Service</option>
                   </Form.Select>
                 </Form.Group>
               </Col>
               
               <Col md={12}>
                 <Form.Group>
-                  <Form.Label className="small fw-semibold text-muted">Recipient User ID (From Database)</Form.Label>
+                  <Form.Label className="small fw-semibold" style={{ color: colors.textSecondary }}>Recipient User ID (From Database)</Form.Label>
                   <Form.Control 
                     type="text" 
                     required 
                     placeholder="Paste a valid user ObjectId (e.g., 64bcb...)" 
-                    className="py-2"
+                    className="py-2 premium-form-control"
                     value={formData.recipientId}
                     onChange={(e) => setFormData({...formData, recipientId: e.target.value})}
                   />
@@ -342,12 +391,12 @@ function NotificationsPage() {
               
               <Col md={12}>
                 <Form.Group>
-                  <Form.Label className="small fw-semibold text-muted">Notification Title</Form.Label>
+                  <Form.Label className="small fw-semibold" style={{ color: colors.textSecondary }}>Notification Title</Form.Label>
                   <Form.Control 
                     type="text" 
                     required 
                     placeholder="e.g., New Room Service Order #882" 
-                    className="py-2"
+                    className="py-2 premium-form-control"
                     value={formData.title}
                     onChange={(e) => setFormData({...formData, title: e.target.value})}
                   />
@@ -355,12 +404,13 @@ function NotificationsPage() {
               </Col>
               <Col md={12}>
                 <Form.Group>
-                  <Form.Label className="small fw-semibold text-muted">Message Content</Form.Label>
+                  <Form.Label className="small fw-semibold" style={{ color: colors.textSecondary }}>Message Content</Form.Label>
                   <Form.Control 
                     as="textarea" 
                     rows={4} 
                     required 
                     placeholder="Provide clear details regarding this alert notification..." 
+                    className="premium-form-control"
                     style={{ resize: 'none' }}
                     value={formData.message}
                     onChange={(e) => setFormData({...formData, message: e.target.value})}
@@ -368,10 +418,21 @@ function NotificationsPage() {
                 </Form.Group>
               </Col>
               <Col md={12} className="text-end mt-4">
-                <Button variant="light" className="me-2 px-4" onClick={handleCloseModal} disabled={saving}>
+                <Button 
+                  variant="outline-secondary" 
+                  className="me-2 px-4" 
+                  onClick={handleCloseModal} 
+                  disabled={saving}
+                  style={{ borderRadius: '8px' }}
+                >
                   Cancel
                 </Button>
-                <Button type="submit" variant="primary" className="px-4" disabled={saving}>
+                <Button 
+                  type="submit" 
+                  variant="primary" 
+                  className="send-notification-btn" 
+                  disabled={saving}
+                >
                   <FontAwesomeIcon icon={faPaperPlane} className="me-2" />
                   {saving ? 'Sending...' : 'Send Notification'}
                 </Button>

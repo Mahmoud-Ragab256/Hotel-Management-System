@@ -23,10 +23,12 @@ import {
   faCircleCheck,
   faCircleExclamation,
   faTriangleExclamation,
-  faCircleInfo
+  faCircleInfo,
+  faClock
 } from '@fortawesome/free-solid-svg-icons';
 import { dashboardApi, getApiErrorMessage } from '../services/api.js';
 import { formatDisplayDate, todayDateInputValue, toDateInputValue } from '../utils/date.ts';
+import StatCard from '../components/StatCard';
 
 const bookingStatuses = ['Pending', 'Confirmed', 'CheckedIn', 'CheckedOut', 'Cancelled'];
 
@@ -316,10 +318,42 @@ function BookingsPage() {
       )}
 
       <Row className="g-3">
-        <Col md={3}><Card className="border-0 shadow-sm h-100"><Card.Body><p className="text-muted mb-1">Total</p><h3 className="fw-bold mb-0">{stats.total}</h3></Card.Body></Card></Col>
-        <Col md={3}><Card className="border-0 shadow-sm h-100"><Card.Body><p className="text-muted mb-1">Confirmed / Checked In</p><h3 className="fw-bold mb-0">{stats.confirmed}</h3></Card.Body></Card></Col>
-        <Col md={3}><Card className="border-0 shadow-sm h-100"><Card.Body><p className="text-muted mb-1">Pending</p><h3 className="fw-bold mb-0">{stats.pending}</h3></Card.Body></Card></Col>
-        <Col md={3}><Card className="border-0 shadow-sm h-100"><Card.Body><p className="text-muted mb-1">Cancelled</p><h3 className="fw-bold mb-0">{stats.cancelled}</h3></Card.Body></Card></Col>
+        <Col md={3}>
+          <StatCard
+            title="Total Bookings"
+            value={stats.total}
+            icon={faCalendarCheck}
+            description="All-time bookings"
+            variant="primary"
+          />
+        </Col>
+        <Col md={3}>
+          <StatCard
+            title="Confirmed / Checked In"
+            value={stats.confirmed}
+            icon={faCircleCheck}
+            description="Active reservations"
+            variant="success"
+          />
+        </Col>
+        <Col md={3}>
+          <StatCard
+            title="Pending"
+            value={stats.pending}
+            icon={faClock}
+            description="Awaiting action"
+            variant="warning"
+          />
+        </Col>
+        <Col md={3}>
+          <StatCard
+            title="Cancelled"
+            value={stats.cancelled}
+            icon={faBan}
+            description="Voided reservations"
+            variant="danger"
+          />
+        </Col>
       </Row>
 
       <Card className="border-0 shadow-sm">

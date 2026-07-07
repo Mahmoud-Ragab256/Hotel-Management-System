@@ -26,82 +26,110 @@ const isAccepted = (review) => {
 
 function ExploreReviewCard({ rev, colors, isDark }) {
   const [imgError, setImgError] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+
   return (
     <div
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       style={{
         background: colors.bgCard,
         borderRadius: '20px',
-        padding: '32px',
-        boxShadow: colors.shadow,
+        border: isHovered 
+          ? `1px solid ${colors.borderHover}` 
+          : `1px solid ${colors.borderCard}`,
+        boxShadow: isHovered 
+          ? colors.shadowHover 
+          : colors.shadow,
+        padding: '28px',
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'space-between',
-        border: `1px solid ${colors.borderCard}`
+        gap: '18px',
+        transform: isHovered ? 'translateY(-4px)' : 'translateY(0)',
+        transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
       }}
     >
-      <div>
-        {/* Dynamic Golden Stars */}
-        <div style={{ display: 'flex', gap: '4px', marginBottom: '20px' }}>
-          {[...Array(5)].map((_, i) => (
-            <svg key={i} width="16" height="16" fill={i < rev.rating ? "#fbbf24" : (isDark ? "#4b5563" : "#d1d5db")} viewBox="0 0 20 20">
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', minWidth: 0 }}>
+          {rev.avatar && !imgError ? (
+            <img
+              src={rev.avatar}
+              alt={rev.name}
+              style={{
+                width: '46px',
+                height: '46px',
+                borderRadius: '50%',
+                objectFit: 'cover',
+                border: `1px solid ${colors.borderCard}`,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                flexShrink: 0
+              }}
+              onError={() => setImgError(true)}
+            />
+          ) : (
+            <div style={{
+              width: '46px',
+              height: '46px',
+              borderRadius: '50%',
+              background: colors.inputBg || 'rgba(0,0,0,0.05)',
+              border: `1px solid ${colors.borderCard}`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: colors.accent,
+              flexShrink: 0
+            }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
+                <circle cx="12" cy="8" r="4" />
+                <path strokeLinecap="round" d="M4 20c0-4.418 3.582-8 8-8s8 3.582 8 8" />
+              </svg>
+            </div>
+          )}
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: '15px', fontWeight: '600', color: colors.textPrimary, overflowWrap: 'break-word', wordBreak: 'break-word' }}>
+              {rev.name}
+            </div>
+            {rev.location && (
+              <div style={{ fontSize: '12px', color: colors.textSecondary, overflowWrap: 'break-word', wordBreak: 'break-word' }}>
+                {rev.location}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Golden stars on the right */}
+        <div style={{ display: 'flex', gap: '3px' }}>
+          {[1, 2, 3, 4, 5].map((n) => (
+            <span 
+              key={n} 
+              style={{ 
+                fontSize: '15px', 
+                color: n <= rev.rating ? '#f59e0b' : (isDark ? '#374151' : '#e5e7eb'), 
+                transition: 'color 0.2s' 
+              }}
+            >
+              ★
+            </span>
           ))}
         </div>
+      </div>
+
+      {rev.text && (
         <p style={{
+          margin: 0,
           fontSize: '14px',
-          lineHeight: '1.6',
-          color: colors.textSecondary,
+          color: colors.textPrimary,
+          lineHeight: '1.75',
+          fontWeight: '300',
           fontStyle: 'italic',
-          marginBottom: '24px',
-          fontFamily: '"Inter", sans-serif'
+          letterSpacing: '0.01em',
+          overflowWrap: 'break-word',
+          wordBreak: 'break-word',
+          whiteSpace: 'pre-wrap'
         }}>
           "{rev.text}"
         </p>
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-        {rev.avatar && !imgError ? (
-          <img
-            src={rev.avatar}
-            alt={rev.name}
-            onError={() => setImgError(true)}
-            style={{
-              width: '44px',
-              height: '44px',
-              borderRadius: '50%',
-              objectFit: 'cover',
-              border: `2px solid ${colors.accent}`,
-              boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-            }}
-          />
-        ) : (
-          <div style={{
-            width: '44px',
-            height: '44px',
-            borderRadius: '50%',
-            background: colors.inputBg || 'rgba(0, 0, 0, 0.05)',
-            border: `2px solid ${colors.accent}`,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: colors.accent,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-          }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
-              <circle cx="12" cy="8" r="4" />
-              <path strokeLinecap="round" d="M4 20c0-4.418 3.582-8 8-8s8 3.582 8 8" />
-            </svg>
-          </div>
-        )}
-        <div>
-          <h4 style={{ fontSize: '15px', fontWeight: 600, color: colors.textPrimary, margin: '0 0 2px 0', fontFamily: '"Inter", sans-serif' }}>
-            {rev.name}
-          </h4>
-          <p style={{ fontSize: '12px', color: colors.textSecondary, margin: 0, fontFamily: '"Inter", sans-serif' }}>
-            {rev.location}
-          </p>
-        </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -115,6 +143,7 @@ export default function ClientExplorePage() {
   const [guestsById, setGuestsById] = useState({});
   const [statistics, setStatistics] = useState(null);
   const [activeServiceIdx, setActiveServiceIdx] = useState(0);
+  const [hoveredRoomId, setHoveredRoomId] = useState(null);
 
   // Fetch backend data
   useEffect(() => {
@@ -504,7 +533,7 @@ export default function ClientExplorePage() {
         {/* Our Promise Section */}
         <div style={{ maxWidth: '1200px', width: '100%', padding: '0 24px', zIndex: 10, boxSizing: 'border-box' }}>
           <div style={{
-            background: isDark ? 'rgba(255, 255, 255, 0.05)' : colors.bgCard,
+            background: isDark ? 'rgba(255, 255, 255, 0.05)' : '#f7f2eb',
             backdropFilter: isDark ? 'blur(10px)' : 'none',
             WebkitBackdropFilter: isDark ? 'blur(10px)' : 'none',
             border: isDark ? '1px solid rgba(255, 255, 255, 0.12)' : `1px solid ${colors.borderCard}`,
@@ -528,7 +557,7 @@ export default function ClientExplorePage() {
                 <p style={{
                   fontSize: '16px',
                   lineHeight: '1.7',
-                  color: colors.textSecondary,
+                  color: isDark ? '#e5e7eb' : colors.textSecondary,
                   margin: 0,
                   fontFamily: '"Inter", sans-serif',
                   fontWeight: 300
@@ -550,19 +579,19 @@ export default function ClientExplorePage() {
                   <div style={{ fontSize: '48px', fontWeight: 700, color: colors.textPrimary, fontFamily: '"Playfair Display", serif' }}>
                     {statistics ? statistics.totalRooms : 120}
                   </div>
-                  <div style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.1em', color: colors.textSecondary, marginTop: '4px', fontFamily: '"Inter", sans-serif' }}>Luxury Rooms</div>
+                  <div style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.1em', color: isDark ? '#cbd5e1' : colors.textSecondary, marginTop: '4px', fontFamily: '"Inter", sans-serif' }}>Luxury Rooms</div>
                 </div>
                 <div style={{ textAlign: 'center', flex: '1 1 100px' }}>
                   <div style={{ fontSize: '48px', fontWeight: 700, color: colors.textPrimary, fontFamily: '"Playfair Display", serif' }}>
                     {statistics ? statistics.totalServices : 5}
                   </div>
-                  <div style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.1em', color: colors.textSecondary, marginTop: '4px', fontFamily: '"Inter", sans-serif' }}>Services</div>
+                  <div style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.1em', color: isDark ? '#cbd5e1' : colors.textSecondary, marginTop: '4px', fontFamily: '"Inter", sans-serif' }}>Services</div>
                 </div>
                 <div style={{ textAlign: 'center', flex: '1 1 100px' }}>
                   <div style={{ fontSize: '48px', fontWeight: 700, color: colors.textPrimary, fontFamily: '"Playfair Display", serif' }}>
                     {statistics ? (statistics.totalRooms > 0 ? Math.round((statistics.availableRooms / statistics.totalRooms) * 100) : 98) : 98}%
                   </div>
-                  <div style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.1em', color: colors.textSecondary, marginTop: '4px', fontFamily: '"Inter", sans-serif' }}>Availability</div>
+                  <div style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.1em', color: isDark ? '#cbd5e1' : colors.textSecondary, marginTop: '4px', fontFamily: '"Inter", sans-serif' }}>Availability</div>
                 </div>
               </div>
             </div>
@@ -593,12 +622,16 @@ export default function ClientExplorePage() {
                 ? `linear-gradient(to right, rgba(22, 22, 22, 0.9) 0%, rgba(22, 22, 22, 0.72) 40%, rgba(22, 22, 22, 0) 100%)`
                 : `linear-gradient(to left, rgba(22, 22, 22, 0.9) 0%, rgba(22, 22, 22, 0.72) 40%, rgba(22, 22, 22, 0) 100%)`)
               : (isEven
-                ? `linear-gradient(to right, rgba(253, 248, 247, 0.94) 0%, rgba(253, 248, 247, 0.78) 40%, rgba(253, 248, 247, 0) 100%)`
-                : `linear-gradient(to left, rgba(253, 248, 247, 0.94) 0%, rgba(253, 248, 247, 0.78) 40%, rgba(253, 248, 247, 0) 100%)`);
+                ? `linear-gradient(to right, rgba(253, 248, 247, 0.88) 0%, rgba(253, 248, 247, 0.45) 35%, rgba(253, 248, 247, 0) 70%)`
+                : `linear-gradient(to left, rgba(253, 248, 247, 0.88) 0%, rgba(253, 248, 247, 0.45) 35%, rgba(253, 248, 247, 0) 70%)`);
+
+            const isHovered = hoveredRoomId === room.id;
 
             return (
               <div
                 key={room.id}
+                onMouseEnter={() => setHoveredRoomId(room.id)}
+                onMouseLeave={() => setHoveredRoomId(null)}
                 style={{
                   position: 'relative',
                   display: 'flex',
@@ -606,12 +639,18 @@ export default function ClientExplorePage() {
                   justifyContent: isEven ? 'flex-start' : 'flex-end',
                   alignItems: 'center',
                   minHeight: '480px',
-                  background: `${gradient}, url(${room.image}) no-repeat center center`,
+                  backgroundImage: `${gradient}, url(${room.image})`,
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: 'center center',
                   backgroundSize: 'cover',
                   borderRadius: '24px',
                   overflow: 'hidden',
-                  boxShadow: isDark ? '0 12px 36px rgba(0, 0, 0, 0.25)' : '0 8px 24px rgba(0, 0, 0, 0.04)',
-                  border: isDark ? 'none' : `1px solid ${colors.borderCard}`
+                  boxShadow: isHovered
+                    ? (isDark ? '0 20px 48px rgba(0,0,0,0.45)' : '0 16px 36px rgba(200, 90, 73, 0.12)')
+                    : (isDark ? '0 12px 36px rgba(0, 0, 0, 0.25)' : '0 8px 24px rgba(0, 0, 0, 0.04)'),
+                  border: isHovered && !isDark ? '1px solid rgba(200, 90, 73, 0.22)' : 'none',
+                  transform: isHovered ? 'translateY(-6px)' : 'translateY(0)',
+                  transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
                 }}
               >
                 {/* Price Tag in top right */}

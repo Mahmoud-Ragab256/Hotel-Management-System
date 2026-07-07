@@ -12,6 +12,7 @@ export const themeColors = {
     bgCardAlt: '#1a1a1a',
     bgCardHover: 'rgba(200, 90, 73, 0.05)',
     borderCard: 'rgba(255, 255, 255, 0.08)',
+    borderHover: 'rgba(200, 90, 73, 0.35)',
     textPrimary: '#ffffff',
     textSecondary: '#9ca3af',
     textMuted: '#6b7280',
@@ -34,6 +35,7 @@ export const themeColors = {
     bgCardAlt: '#fcfcfc',
     bgCardHover: 'rgba(200, 90, 73, 0.04)',
     borderCard: 'rgba(0, 0, 0, 0.08)',
+    borderHover: 'rgba(200, 90, 73, 0.45)',
     textPrimary: '#1a1a1a',
     textSecondary: '#5a5a5a',
     textMuted: '#8a8a8a',
@@ -43,7 +45,7 @@ export const themeColors = {
     inputBg: '#ffffff',
     inputBorder: 'rgba(0, 0, 0, 0.12)',
     shadow: '0 6px 24px rgba(0,0,0,0.03)',
-    shadowHover: '0 12px 28px rgba(200, 90, 73, 0.06)',
+    shadowHover: '0 12px 30px rgba(0, 0, 0, 0.09), 0 4px 12px rgba(200, 90, 73, 0.06)',
     bottomNavBg: 'rgba(255, 255, 255, 0.8)',
     bottomNavBorder: 'rgba(0, 0, 0, 0.08)',
   }
@@ -58,6 +60,19 @@ export function ThemeProvider({ children }) {
   useEffect(() => {
     localStorage.setItem('aethos_theme', theme);
     document.documentElement.setAttribute('data-theme', theme);
+    
+    // Add theme classes to document.documentElement and document.body for CSS targeting of portals
+    if (theme === 'dark') {
+      document.documentElement.classList.add('theme-dark');
+      document.documentElement.classList.remove('theme-light');
+      document.body.classList.add('theme-dark');
+      document.body.classList.remove('theme-light');
+    } else {
+      document.documentElement.classList.add('theme-light');
+      document.documentElement.classList.remove('theme-dark');
+      document.body.classList.add('theme-light');
+      document.body.classList.remove('theme-dark');
+    }
   }, [theme]);
 
   const toggleTheme = () => {

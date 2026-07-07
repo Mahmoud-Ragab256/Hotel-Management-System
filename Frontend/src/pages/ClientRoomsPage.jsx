@@ -60,8 +60,8 @@ function RoomCard({ room }) {
         transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.transform = 'translateY(-6px)';
-        e.currentTarget.style.borderColor = colors.accent;
+        e.currentTarget.style.transform = 'translateY(-4px)';
+        e.currentTarget.style.borderColor = colors.borderHover;
         e.currentTarget.style.boxShadow = colors.shadowHover;
       }}
       onMouseLeave={(e) => {
@@ -507,7 +507,7 @@ export default function ClientRoomsPage() {
                 onChange={(e) => setSelectedCategory(e.target.value)}
                 style={{
                   width: '100%',
-                  background: colors.inputBg,
+                  backgroundColor: colors.inputBg,
                   border: `1px solid ${colors.borderCard}`,
                   borderRadius: '10px',
                   padding: '10px 14px',
@@ -541,7 +541,7 @@ export default function ClientRoomsPage() {
                 onChange={(e) => setSelectedCapacity(e.target.value)}
                 style={{
                   width: '100%',
-                  background: colors.inputBg,
+                  backgroundColor: colors.inputBg,
                   border: `1px solid ${colors.borderCard}`,
                   borderRadius: '10px',
                   padding: '10px 14px',
@@ -635,7 +635,7 @@ export default function ClientRoomsPage() {
                 onChange={(e) => setSortBy(e.target.value)}
                 style={{
                   width: '100%',
-                  background: colors.inputBg,
+                  backgroundColor: colors.inputBg,
                   border: `1px solid ${colors.borderCard}`,
                   borderRadius: '10px',
                   padding: '10px 14px',

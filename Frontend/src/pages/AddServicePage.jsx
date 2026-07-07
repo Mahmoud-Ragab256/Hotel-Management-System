@@ -55,7 +55,7 @@ function AddServicePage() {
       {/* Top Header Row */}
       <div className="d-flex justify-content-between align-items-center">
         <div>
-          <Button variant="link" className="text-decoration-none p-0 mb-2 text-muted sm fw-semibold" onClick={() => navigate('/services')}>
+          <Button variant="link" className="text-decoration-none p-0 mb-2 text-muted sm fw-semibold" onClick={() => navigate('/dashboard/services')}>
             <FontAwesomeIcon icon={faArrowLeft} className="me-1" /> Back to Services
           </Button>
           <h1 className="h2 fw-bold mb-1">Add New Service</h1>

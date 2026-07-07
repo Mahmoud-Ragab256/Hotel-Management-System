@@ -38,18 +38,18 @@ function Topbar() {
             <Form.Control className="topbar-search-input border-start-0" placeholder="Search admin panel..." />
           </InputGroup>
 
-          <Button variant="light" className="border border-secondary-subtle" onClick={toggleTheme} title="Toggle Theme" style={{ width: '40px', height: '40px', padding: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
-            <FontAwesomeIcon icon={isDark ? faSun : faMoon} style={{ color: isDark ? '#fbbf24' : '#6b7280', fontSize: '1.1rem' }} />
+          <Button variant="light" className="topbar-btn border border-secondary-subtle" onClick={toggleTheme} title="Toggle Theme" style={{ width: '40px', height: '40px', padding: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+            <FontAwesomeIcon icon={isDark ? faSun : faMoon} style={{ color: isDark ? '#fbbf24' : '#c85a49', fontSize: '1.1rem' }} />
           </Button>
 
-          <Button variant="light" className="border border-secondary-subtle" style={{ width: '40px', height: '40px', padding: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
-            <FontAwesomeIcon icon={faBell} />
+          <Button variant="light" className="topbar-btn border border-secondary-subtle" style={{ width: '40px', height: '40px', padding: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+            <FontAwesomeIcon icon={faBell} style={{ color: isDark ? '#ffffff' : '#c85a49' }} />
           </Button>
 
           <Dropdown align="end">
-            <Dropdown.Toggle variant={isDark ? 'dark' : 'dark'} className="d-flex align-items-center gap-2 px-3 py-2 border-0" style={{ background: isDark ? '#4f46e5' : '#1e293b' }}>
+            <Dropdown.Toggle className="admin-profile-toggle">
               <FontAwesomeIcon icon={faUserShield} />
-              {user?.fullName || 'Admin'}
+              <span>{user?.fullName || 'Admin'}</span>
             </Dropdown.Toggle>
             <Dropdown.Menu className="shadow-sm border-0">
               <Dropdown.Header>

@@ -208,12 +208,19 @@ function DashboardPage() {
 
       <Row className="g-4 mb-4">
         <Col lg={8}>
-          <Card className="border-0 shadow-sm h-100 p-4">
+          <Card 
+            className="border-0 shadow-sm h-100 p-4"
+            style={{ 
+              backgroundColor: colors.bgCard, 
+              color: colors.textPrimary, 
+              border: isDark ? `1px solid ${colors.borderCard}` : 'none' 
+            }}
+          >
             <Card.Body>
               <div className="d-flex justify-content-between align-items-center mb-3">
                 <div>
-                  <h5 className="fw-bold mb-1">Revenue Trend</h5>
-                  <small className="text-muted">Monthly overview of room & service earnings</small>
+                  <h5 className="fw-bold mb-1" style={{ color: colors.textPrimary }}>Revenue Trend</h5>
+                  <small style={{ color: colors.textSecondary }}>Monthly overview of room & service earnings</small>
                 </div>
               </div>
               <div style={{ height: '300px' }}>
@@ -224,30 +231,46 @@ function DashboardPage() {
         </Col>
 
         <Col lg={4}>
-          <Card className="border-0 shadow-sm h-100 p-4">
+          <Card 
+            className="border-0 shadow-sm h-100 p-4"
+            style={{ 
+              backgroundColor: colors.bgCard, 
+              color: colors.textPrimary, 
+              border: isDark ? `1px solid ${colors.borderCard}` : 'none' 
+            }}
+          >
             <Card.Body>
-              <h5 className="fw-bold mb-1">Booking Status</h5>
-              <small className="text-muted">Current distribution of reservations</small>
+              <h5 className="fw-bold mb-1" style={{ color: colors.textPrimary }}>Booking Status</h5>
+              <small style={{ color: colors.textSecondary }}>Current distribution of reservations</small>
               <div className="position-relative d-flex justify-content-center align-items-center my-4" style={{ height: '200px' }}>
                 <Doughnut data={doughnutData} options={doughnutOptions} />
                 <div className="position-absolute text-center">
-                  <h3 className="fw-bold mb-0">{stats.bookingStatusDistribution.total}</h3>
-                  <small className="text-muted text-uppercase" style={{ fontSize: '10px' }}>Total</small>
+                  <h3 className="fw-bold mb-0" style={{ color: colors.textPrimary }}>{stats.bookingStatusDistribution.total}</h3>
+                  <small style={{ fontSize: '10px', color: colors.textSecondary }} className="text-uppercase">Total</small>
                 </div>
               </div>
 
               <div className="d-flex flex-column gap-2 mt-3">
                 <div className="d-flex justify-content-between align-items-center">
-                  <span><span className="badge bg-success rounded-circle me-2" style={{ width: '10px', height: '10px', display: 'inline-block' }}></span>Confirmed</span>
-                  <span className="fw-bold">{stats.bookingStatusDistribution.confirmed}</span>
+                  <span style={{ color: colors.textPrimary }}>
+                    <span className="badge bg-success rounded-circle me-2" style={{ width: '10px', height: '10px', display: 'inline-block' }}></span>
+                    Confirmed
+                  </span>
+                  <span className="fw-bold" style={{ color: colors.textPrimary }}>{stats.bookingStatusDistribution.confirmed}</span>
                 </div>
                 <div className="d-flex justify-content-between align-items-center">
-                  <span><span className="badge bg-warning rounded-circle me-2" style={{ width: '10px', height: '10px', display: 'inline-block' }}></span>Pending</span>
-                  <span className="fw-bold">{stats.bookingStatusDistribution.pending}</span>
+                  <span style={{ color: colors.textPrimary }}>
+                    <span className="badge bg-warning rounded-circle me-2" style={{ width: '10px', height: '10px', display: 'inline-block' }}></span>
+                    Pending
+                  </span>
+                  <span className="fw-bold" style={{ color: colors.textPrimary }}>{stats.bookingStatusDistribution.pending}</span>
                 </div>
                 <div className="d-flex justify-content-between align-items-center">
-                  <span><span className="badge bg-danger rounded-circle me-2" style={{ width: '10px', height: '10px', display: 'inline-block' }}></span>Cancelled</span>
-                  <span className="fw-bold">{stats.bookingStatusDistribution.cancelled}</span>
+                  <span style={{ color: colors.textPrimary }}>
+                    <span className="badge bg-danger rounded-circle me-2" style={{ width: '10px', height: '10px', display: 'inline-block' }}></span>
+                    Cancelled
+                  </span>
+                  <span className="fw-bold" style={{ color: colors.textPrimary }}>{stats.bookingStatusDistribution.cancelled}</span>
                 </div>
               </div>
             </Card.Body>
@@ -257,29 +280,36 @@ function DashboardPage() {
 
       <Row className="g-4">
         <Col lg={6}>
-          <Card className="border-0 shadow-sm p-4">
+          <Card 
+            className="border-0 shadow-sm p-4"
+            style={{ 
+              backgroundColor: colors.bgCard, 
+              color: colors.textPrimary, 
+              border: isDark ? `1px solid ${colors.borderCard}` : 'none' 
+            }}
+          >
             <Card.Body>
               <div className="d-flex justify-content-between align-items-center mb-3">
-                <h5 className="fw-bold mb-0">Recent Bookings</h5>
+                <h5 className="fw-bold mb-0" style={{ color: colors.textPrimary }}>Recent Bookings</h5>
               </div>
-              <Table responsive hover borderless className="align-middle mb-0">
-                <thead className="table-light text-muted">
+              <Table responsive hover borderless className="align-middle mb-0" style={{ color: colors.textPrimary }}>
+                <thead style={{ background: isDark ? colors.bgCardAlt : '#f8f9fa' }}>
                   <tr>
-                    <th>Guest</th>
-                    <th>Room</th>
-                    <th>Status</th>
-                    <th>Date</th>
+                    <th style={{ color: colors.textSecondary, borderBottom: isDark ? `1px solid ${colors.borderCard}` : 'none' }}>Guest</th>
+                    <th style={{ color: colors.textSecondary, borderBottom: isDark ? `1px solid ${colors.borderCard}` : 'none' }}>Room</th>
+                    <th style={{ color: colors.textSecondary, borderBottom: isDark ? `1px solid ${colors.borderCard}` : 'none' }}>Status</th>
+                    <th style={{ color: colors.textSecondary, borderBottom: isDark ? `1px solid ${colors.borderCard}` : 'none' }}>Date</th>
                   </tr>
                 </thead>
                 <tbody>
                   {stats.recentBookings.map((booking) => (
-                    <tr key={booking._id}>
-                      <td>
-                        <div className="fw-semibold">{booking.guestId?.firstName} {booking.guestId?.lastName}</div>
-                        <small className="text-muted">{booking.guestId?.email}</small>
+                    <tr key={booking._id} style={{ borderBottom: isDark ? `1px solid ${colors.borderCard}` : 'rgba(0,0,0,0.05)' }}>
+                      <td style={{ color: colors.textPrimary, borderBottom: isDark ? `1px solid ${colors.borderCard}` : 'none' }}>
+                        <div className="fw-semibold" style={{ color: colors.textPrimary }}>{booking.guestId?.firstName} {booking.guestId?.lastName}</div>
+                        <small style={{ color: colors.textSecondary }}>{booking.guestId?.email}</small>
                       </td>
-                      <td>{booking.roomId?.roomNumber || 'N/A'}</td>
-                      <td>
+                      <td style={{ color: colors.textPrimary, borderBottom: isDark ? `1px solid ${colors.borderCard}` : 'none' }}>{booking.roomId?.roomNumber || 'N/A'}</td>
+                      <td style={{ color: colors.textPrimary, borderBottom: isDark ? `1px solid ${colors.borderCard}` : 'none' }}>
                         <span className={`badge ${
                           booking.status === 'CheckedIn' || booking.status === 'CheckedOut' || booking.status === 'Confirmed'
                             ? 'bg-success-subtle text-success'
@@ -290,7 +320,7 @@ function DashboardPage() {
                           {booking.status}
                         </span>
                       </td>
-                      <td>{formatDisplayDate(booking.createdAt)}</td>
+                      <td style={{ color: colors.textSecondary, borderBottom: isDark ? `1px solid ${colors.borderCard}` : 'none' }}>{formatDisplayDate(booking.createdAt)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -300,27 +330,34 @@ function DashboardPage() {
         </Col>
 
         <Col lg={6}>
-          <Card className="border-0 shadow-sm p-4">
+          <Card 
+            className="border-0 shadow-sm p-4"
+            style={{ 
+              backgroundColor: colors.bgCard, 
+              color: colors.textPrimary, 
+              border: isDark ? `1px solid ${colors.borderCard}` : 'none' 
+            }}
+          >
             <Card.Body>
               <div className="d-flex justify-content-between align-items-center mb-3">
-                <h5 className="fw-bold mb-0">Service Orders</h5>
+                <h5 className="fw-bold mb-0" style={{ color: colors.textPrimary }}>Service Orders</h5>
               </div>
-              <Table responsive hover borderless className="align-middle mb-0">
-                <thead className="table-light text-muted">
+              <Table responsive hover borderless className="align-middle mb-0" style={{ color: colors.textPrimary }}>
+                <thead style={{ background: isDark ? colors.bgCardAlt : '#f8f9fa' }}>
                   <tr>
-                    <th>Room</th>
-                    <th>Service</th>
-                    <th>Assigned To</th>
-                    <th>Status</th>
+                    <th style={{ color: colors.textSecondary, borderBottom: isDark ? `1px solid ${colors.borderCard}` : 'none' }}>Room</th>
+                    <th style={{ color: colors.textSecondary, borderBottom: isDark ? `1px solid ${colors.borderCard}` : 'none' }}>Service</th>
+                    <th style={{ color: colors.textSecondary, borderBottom: isDark ? `1px solid ${colors.borderCard}` : 'none' }}>Assigned To</th>
+                    <th style={{ color: colors.textSecondary, borderBottom: isDark ? `1px solid ${colors.borderCard}` : 'none' }}>Status</th>
                   </tr>
                 </thead>
                 <tbody>
                   {stats.serviceOrders.map((order) => (
-                    <tr key={order._id}>
-                      <td className="fw-semibold">{order.bookingId?.roomId?.roomNumber || 'N/A'}</td>
-                      <td>{order.serviceId?.name || 'Custom Service'}</td>
-                      <td>{order.assignedEmployeeId ? `${order.assignedEmployeeId.firstName} ${order.assignedEmployeeId.lastName}` : 'Unassigned'}</td>
-                      <td>
+                    <tr key={order._id} style={{ borderBottom: isDark ? `1px solid ${colors.borderCard}` : 'rgba(0,0,0,0.05)' }}>
+                      <td className="fw-semibold" style={{ color: colors.textPrimary, borderBottom: isDark ? `1px solid ${colors.borderCard}` : 'none' }}>{order.bookingId?.roomId?.roomNumber || 'N/A'}</td>
+                      <td style={{ color: colors.textPrimary, borderBottom: isDark ? `1px solid ${colors.borderCard}` : 'none' }}>{order.serviceId?.name || 'Custom Service'}</td>
+                      <td style={{ color: colors.textPrimary, borderBottom: isDark ? `1px solid ${colors.borderCard}` : 'none' }}>{order.assignedEmployeeId ? `${order.assignedEmployeeId.firstName} ${order.assignedEmployeeId.lastName}` : 'Unassigned'}</td>
+                      <td style={{ color: colors.textPrimary, borderBottom: isDark ? `1px solid ${colors.borderCard}` : 'none' }}>
                         <span className={`badge ${
                           order.status === 'Completed'
                             ? 'bg-success-subtle text-success'
