@@ -29,6 +29,14 @@ import ReviewDetailsPage from './pages/ReviewDetailsPage.jsx';
 import NotificationsPage from './pages/NotificationsPage.jsx';
 import MyBookingsPage from './pages/MyBookingsPage.jsx';
 import MyInvoicesPage from './pages/MyInvoicesPage.jsx';
+import MyRoomsPage from './pages/MyRoomsPage.jsx';
+import OrderServicePage from "./pages/OrderServicePage";
+
+
+
+
+
+
 
 const DASHBOARD_ROLES = ['Admin', 'Manager', 'Receptionist', 'Service'];
 const ADMIN_MANAGER_ROLES = ['Admin', 'Manager'];
@@ -47,8 +55,6 @@ const dashboardOnly = (element, allowedRoles = DASHBOARD_ROLES) => (
   </ProtectedRoute>
 );
 
-
-import MyRoomsPage from './pages/MyRoomsPage.jsx';
 
 function App() {
   return (
@@ -93,6 +99,10 @@ function App() {
 
         <Route path="/my-invoices" element={<GuestLayout />}>
           <Route index element={<MyInvoicesPage />} />
+        </Route>
+
+        <Route path="/order-service" element={<GuestLayout />}>
+          <Route index element={<OrderServicePage />} />
         </Route>
       </Route>
 
