@@ -60,7 +60,7 @@ function ExploreReviewCard({ rev, colors, isDark }) {
                 height: '46px',
                 borderRadius: '50%',
                 objectFit: 'cover',
-                border: `1px solid ${colors.borderCard}`,
+                border: 'none',
                 boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
                 flexShrink: 0
               }}
@@ -72,7 +72,7 @@ function ExploreReviewCard({ rev, colors, isDark }) {
               height: '46px',
               borderRadius: '50%',
               background: colors.inputBg || 'rgba(0,0,0,0.05)',
-              border: `1px solid ${colors.borderCard}`,
+              border: 'none',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -451,7 +451,7 @@ export default function ClientExplorePage() {
   return (
     <div style={{ background: colors.bgMain, color: colors.textPrimary, fontFamily: '"Playfair Display", "Georga", "Inter", sans-serif', minHeight: '100vh', paddingBottom: '120px' }}>
         {/* Hero Section */}
-      <div style={{
+      <div className="explore-hero-section" style={{
         position: 'relative',
         minHeight: '100vh',
         backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.35)), url(${IMAGES.hero})`,
@@ -532,7 +532,7 @@ export default function ClientExplorePage() {
 
         {/* Our Promise Section */}
         <div style={{ maxWidth: '1200px', width: '100%', padding: '0 24px', zIndex: 10, boxSizing: 'border-box' }}>
-          <div style={{
+          <div className="explore-promise-card" style={{
             background: isDark ? 'rgba(255, 255, 255, 0.05)' : '#f7f2eb',
             backdropFilter: isDark ? 'blur(10px)' : 'none',
             WebkitBackdropFilter: isDark ? 'blur(10px)' : 'none',
@@ -541,7 +541,7 @@ export default function ClientExplorePage() {
             padding: '48px',
             boxShadow: isDark ? '0 25px 60px rgba(0, 0, 0, 0.5)' : colors.shadow
           }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '40px', alignItems: 'center' }}>
+            <div className="explore-promise-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: '40px', alignItems: 'center' }}>
               <div>
                 <h2 style={{
                   fontSize: '14px',
@@ -566,7 +566,7 @@ export default function ClientExplorePage() {
                 </p>
               </div>
 
-              <div style={{
+              <div className="explore-stats-wrapper" style={{
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
@@ -632,6 +632,7 @@ export default function ClientExplorePage() {
                 key={room.id}
                 onMouseEnter={() => setHoveredRoomId(room.id)}
                 onMouseLeave={() => setHoveredRoomId(null)}
+                className="explore-room-card"
                 style={{
                   position: 'relative',
                   display: 'flex',
@@ -639,40 +640,77 @@ export default function ClientExplorePage() {
                   justifyContent: isEven ? 'flex-start' : 'flex-end',
                   alignItems: 'center',
                   minHeight: '480px',
-                  backgroundImage: `${gradient}, url(${room.image})`,
+                  borderRadius: '24px',
+                  overflow: 'hidden',
+                  isolation: 'isolate',
+                  WebkitMaskImage: '-webkit-radial-gradient(white, black)',
+                  backfaceVisibility: 'hidden',
+                  WebkitBackfaceVisibility: 'hidden',
+                  boxShadow: isHovered
+                    ? (isDark 
+                        ? '0 0 0 1.5px rgba(200, 90, 73, 0.45), 0 0 20px rgba(200, 90, 73, 0.25), 0 16px 36px rgba(0, 0, 0, 0.4)' 
+                        : '0 0 0 1.5px rgba(200, 90, 73, 0.35), 0 0 16px rgba(200, 90, 73, 0.15), 0 14px 32px rgba(200, 90, 73, 0.12)')
+                    : (isDark 
+                        ? '0 0 0 1px rgba(255, 255, 255, 0.08), 0 12px 36px rgba(0, 0, 0, 0.25)' 
+                        : '0 0 0 1px rgba(0, 0, 0, 0.05), 0 8px 24px rgba(0, 0, 0, 0.03)'),
+                  border: 'none',
+                  transform: isHovered ? 'translate3d(0, -6px, 0)' : 'translate3d(0, 0, 0)',
+                  WebkitTransform: isHovered ? 'translate3d(0, -6px, 0)' : 'translate3d(0, 0, 0)',
+                  transition: 'transform 0.8s cubic-bezier(0.15, 0.85, 0.35, 1), box-shadow 0.8s cubic-bezier(0.15, 0.85, 0.35, 1), border-color 0.8s cubic-bezier(0.15, 0.85, 0.35, 1)',
+                }}
+              >
+                {/* Background Zooming Photo Layer */}
+                <div style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backgroundImage: `url(${room.image})`,
                   backgroundRepeat: 'no-repeat',
                   backgroundPosition: 'center center',
                   backgroundSize: 'cover',
-                  borderRadius: '24px',
-                  overflow: 'hidden',
-                  boxShadow: isHovered
-                    ? (isDark ? '0 20px 48px rgba(0,0,0,0.45)' : '0 16px 36px rgba(200, 90, 73, 0.12)')
-                    : (isDark ? '0 12px 36px rgba(0, 0, 0, 0.25)' : '0 8px 24px rgba(0, 0, 0, 0.04)'),
-                  border: isHovered && !isDark ? '1px solid rgba(200, 90, 73, 0.22)' : 'none',
-                  transform: isHovered ? 'translateY(-6px)' : 'translateY(0)',
-                  transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-                }}
-              >
-                {/* Price Tag in top right */}
-                <div style={{
+                  transform: isHovered ? 'scale(1.04) translate3d(0, 0, 0)' : 'scale(1) translate3d(0, 0, 0)',
+                  WebkitTransform: isHovered ? 'scale(1.04) translate3d(0, 0, 0)' : 'scale(1) translate3d(0, 0, 0)',
+                  backfaceVisibility: 'hidden',
+                  WebkitBackfaceVisibility: 'hidden',
+                  transition: 'transform 1.2s cubic-bezier(0.15, 0.85, 0.35, 1)',
+                  zIndex: 0
+                }} />
+
+                {/* Background gradient overlay layer */}
+                <div className="explore-room-gradient-overlay" style={{
                   position: 'absolute',
-                  top: '24px',
-                  right: '24px',
-                  background: colors.accent,
-                  color: '#ffffff',
-                  padding: '10px 20px',
-                  borderRadius: '30px',
-                  fontWeight: 600,
-                  fontSize: '15px',
-                  fontFamily: '"Inter", sans-serif',
-                  boxShadow: isDark ? '0 4px 12px rgba(0, 0, 0, 0.2)' : '0 4px 12px rgba(200, 90, 73, 0.08)',
-                  zIndex: 2
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background: gradient,
+                  zIndex: 1,
+                  transition: 'all 0.8s cubic-bezier(0.15, 0.85, 0.35, 1)'
+                }} />
+
+                {/* Price tag positioned opposite to the rest of the content of room overview */}
+                <div className="explore-room-opposite-price" style={{
+                  left: isEven ? 'auto' : '48px',
+                  right: isEven ? '48px' : 'auto',
                 }}>
-                  ${room.price}/night
+                  <span className="explore-room-price-tag" style={{
+                    background: colors.accent,
+                    color: '#ffffff',
+                    padding: '8px 18px',
+                    borderRadius: '30px',
+                    fontWeight: 600,
+                    fontSize: '15px',
+                    fontFamily: '"Inter", sans-serif',
+                    boxShadow: isDark ? '0 4px 12px rgba(0, 0, 0, 0.3)' : '0 4px 12px rgba(200, 90, 73, 0.12)',
+                  }}>
+                    ${room.price}/night
+                  </span>
                 </div>
 
                 {/* Content Overlay */}
-                <div style={{
+                <div className="explore-room-overlay" style={{
                   padding: '48px',
                   zIndex: 2,
                   maxWidth: '550px',
@@ -700,7 +738,7 @@ export default function ClientExplorePage() {
                     {room.description}
                   </p>
                   
-                  <div style={{ 
+                  <div className="explore-room-meta" style={{ 
                     display: 'flex', 
                     gap: '24px', 
                     justifyContent: isEven ? 'flex-start' : 'flex-end',
@@ -724,7 +762,7 @@ export default function ClientExplorePage() {
                     </span>
                   </div>
 
-                  <div style={{ 
+                  <div className="explore-room-bullets" style={{ 
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: isEven ? 'flex-start' : 'flex-end',
@@ -737,22 +775,14 @@ export default function ClientExplorePage() {
                     textShadow: isDark ? '0 1px 2px rgba(0,0,0,0.6)' : 'none'
                   }}>
                     {room.bullets && room.bullets.map((bullet, bIdx) => (
-                      <div key={bIdx} style={{
+                      <div key={bIdx} className="explore-room-bullet-item" style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '8px'
+                        gap: '8px',
+                        flexDirection: isEven ? 'row' : 'row-reverse'
                       }}>
-                        {isEven ? (
-                          <>
-                            <span style={{ display: 'inline-block', width: '5px', height: '5px', borderRadius: '50%', background: isDark ? '#fca5a5' : colors.accent }} />
-                            <span>{bullet}</span>
-                          </>
-                        ) : (
-                          <>
-                            <span>{bullet}</span>
-                            <span style={{ display: 'inline-block', width: '5px', height: '5px', borderRadius: '50%', background: isDark ? '#fca5a5' : colors.accent }} />
-                          </>
-                        )}
+                        <span className="explore-room-bullet-dot" style={{ display: 'inline-block', width: '5px', height: '5px', borderRadius: '50%', background: isDark ? '#fca5a5' : colors.accent, flexShrink: 0 }} />
+                        <span>{bullet}</span>
                       </div>
                     ))}
                   </div>
@@ -812,7 +842,7 @@ export default function ClientExplorePage() {
       </div>
 
       {/* Our Services Section */}
-      <div style={{ width: '85%', maxWidth: '1200px', margin: '0 auto 120px', padding: 0 }}>
+      <div style={{ width: '100%', maxWidth: '1200px', margin: '0 auto 120px', padding: '0 24px', boxSizing: 'border-box' }}>
         <h2 style={{
           fontSize: '36px',
           fontWeight: 700,
@@ -1130,6 +1160,115 @@ export default function ClientExplorePage() {
           </div>
         </div>
       </footer>
+
+      {/* Responsive custom style injections for hero and best rooms */}
+      <style>{`
+        /* Desktop Price spacing guarantee and absolute opposite placement */
+        .explore-room-opposite-price {
+          position: absolute !important;
+          top: 48px !important;
+          z-index: 3 !important;
+        }
+
+        @media (max-width: 991.98px) {
+          .explore-hero-section {
+            padding: 100px 20px 50px 20px !important;
+            min-height: auto !important;
+          }
+
+          /* Promise section / Stats centering */
+          .explore-promise-card {
+            padding: 32px 24px !important;
+          }
+          .explore-promise-grid {
+            grid-template-columns: 1fr !important;
+            gap: 32px !important;
+            text-align: center !important;
+          }
+          .explore-stats-wrapper {
+            border-left: none !important;
+            padding-left: 0 !important;
+            border-top: 1px solid ${isDark ? 'rgba(255, 255, 255, 0.12)' : colors.borderCard} !important;
+            padding-top: 32px !important;
+            justify-content: center !important;
+            gap: 40px !important;
+            width: 100% !important;
+          }
+
+          /* Rooms Section layout - Same design but mobile-suitable */
+          .explore-room-card {
+            flex-direction: column !important;
+            justify-content: flex-end !important;
+            align-items: stretch !important;
+            min-height: 520px !important;
+            transition: transform 0.8s cubic-bezier(0.15, 0.85, 0.35, 1) !important;
+          }
+          .explore-room-gradient-overlay {
+            background: ${isDark 
+              ? 'linear-gradient(180deg, rgba(22, 22, 22, 0.1) 0%, rgba(22, 22, 22, 0.6) 60%, rgba(22, 22, 22, 0.92) 100%)' 
+              : 'linear-gradient(180deg, rgba(253, 248, 247, 0.05) 0%, rgba(253, 248, 247, 0.35) 60%, rgba(253, 248, 247, 0.82) 100%)'
+            } !important;
+          }
+          .explore-room-overlay {
+            padding: 36px 28px !important;
+            max-width: 100% !important;
+            text-align: left !important;
+            margin-top: auto !important;
+          }
+          .explore-room-opposite-price {
+            top: 28px !important;
+            left: auto !important;
+            right: 28px !important;
+          }
+          .explore-room-overlay h3 {
+            font-size: 26px !important;
+            margin-bottom: 12px !important;
+          }
+          .explore-room-overlay p {
+            font-size: 14.5px !important;
+            margin-bottom: 20px !important;
+          }
+          .explore-room-meta {
+            justify-content: flex-start !important;
+            margin-bottom: 20px !important;
+            gap: 20px !important;
+          }
+          .explore-room-bullets {
+            align-items: flex-start !important;
+            gap: 6px !important;
+          }
+          .explore-room-bullet-item {
+            flex-direction: row !important;
+          }
+        }
+
+        @media (max-width: 576px) {
+          .explore-room-card {
+            min-height: 480px !important;
+          }
+          .explore-room-overlay {
+            padding: 24px 20px !important;
+          }
+          .explore-room-overlay h3 {
+            font-size: 22px !important;
+          }
+          .explore-room-overlay p {
+            font-size: 13.5px !important;
+            margin-bottom: 16px !important;
+          }
+          .explore-room-opposite-price {
+            top: 20px !important;
+            right: 20px !important;
+          }
+          .explore-room-meta {
+            margin-bottom: 16px !important;
+            gap: 16px !important;
+          }
+          .explore-stats-wrapper {
+            gap: 24px !important;
+          }
+        }
+      `}</style>
 
     </div>
   );

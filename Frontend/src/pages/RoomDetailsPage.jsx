@@ -179,6 +179,36 @@ export default function RoomDetailsPage() {
     })();
   }, [id]);
 
+  // Construct displayImages array of exactly 6 unique/fallback images
+  const roomImages = images.map(resolveImageUrl).filter(Boolean);
+  if (roomImages.length === 0 && room) {
+    const fallbackImg = resolveImageUrl(room.images?.[0]) || resolveImageUrl(room.categoryId?.images?.[0]);
+    if (fallbackImg) roomImages.push(fallbackImg);
+  }
+
+  const displayImages = [...roomImages];
+  let fallbackIdx = 0;
+  while (displayImages.length < 6) {
+    const fallbackCandidate = LUXURY_FALLBACKS[fallbackIdx % LUXURY_FALLBACKS.length];
+    if (!displayImages.includes(fallbackCandidate)) {
+      displayImages.push(fallbackCandidate);
+    } else {
+      displayImages.push(`${fallbackCandidate}&dup=${displayImages.length}`);
+    }
+    fallbackIdx++;
+  }
+
+  const sixImages = displayImages.slice(0, 6);
+
+  // Automatically cycle through room photos every 4 seconds
+  useEffect(() => {
+    if (sixImages.length <= 1) return;
+    const timer = setInterval(() => {
+      setActiveImg((prev) => (prev + 1) % sixImages.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [sixImages.length, activeImg]);
+
   if (loading) return (
     <div style={{ minHeight: '100vh', background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Inter', system-ui, sans-serif" }}>
       <div style={{ textAlign: 'center', color: colors.textSecondary }}>
@@ -203,27 +233,6 @@ export default function RoomDetailsPage() {
   const categoryName = room.categoryId?.name || 'N/A';
   const basePrice = room.categoryId?.basePrice;
   const amenities = room.categoryId?.amenities || [];
-
-  // Construct displayImages array of exactly 6 unique/fallback images
-  const roomImages = images.map(resolveImageUrl).filter(Boolean);
-  if (roomImages.length === 0) {
-    const fallbackImg = resolveImageUrl(room.images?.[0]) || resolveImageUrl(room.categoryId?.images?.[0]);
-    if (fallbackImg) roomImages.push(fallbackImg);
-  }
-
-  const displayImages = [...roomImages];
-  let fallbackIdx = 0;
-  while (displayImages.length < 6) {
-    const fallbackCandidate = LUXURY_FALLBACKS[fallbackIdx % LUXURY_FALLBACKS.length];
-    if (!displayImages.includes(fallbackCandidate)) {
-      displayImages.push(fallbackCandidate);
-    } else {
-      displayImages.push(`${fallbackCandidate}&dup=${displayImages.length}`);
-    }
-    fallbackIdx++;
-  }
-
-  const sixImages = displayImages.slice(0, 6);
 
   if (bookingDone) return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Inter', system-ui, sans-serif", background: 'transparent', padding: 24 }}>
@@ -251,7 +260,7 @@ export default function RoomDetailsPage() {
       </div>
 
       {/* Top Main Image Area - 85% width, centered */}
-      <div style={{ width: '85%', maxWidth: '1200px', margin: '48px auto 0', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <div style={{ width: '100%', maxWidth: '1200px', margin: '48px auto 0', padding: '0 24px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <div style={{
           width: '100%',
           borderRadius: '24px',
@@ -259,18 +268,37 @@ export default function RoomDetailsPage() {
           background: colors.bgCard,
           aspectRatio: '21/9',
           position: 'relative',
-          border: `1px solid ${colors.borderCard}`,
+          border: 'none',
           boxShadow: colors.shadow
         }}>
           {sixImages.length > 0 ? (
-            <img src={sixImages[activeImg]} alt={`Room ${room.roomNumber}`} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'all 0.5s ease' }} />
+            sixImages.map((img, i) => (
+              <img
+                key={i}
+                src={img}
+                alt={`Room ${room.roomNumber} - View ${i + 1}`}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  display: 'block',
+                  opacity: i === activeImg ? 1 : 0,
+                  transform: i === activeImg ? 'scale(1.04)' : 'scale(1)',
+                  transition: 'opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1), transform 1.5s cubic-bezier(0.16, 1, 0.3, 1)',
+                  zIndex: i === activeImg ? 1 : 0,
+                }}
+              />
+            ))
           ) : (
             <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', gap: 10 }}>
               <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}><path strokeLinecap="round" strokeLinejoin="round" d="M3 12l9-9 9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9" /></svg>
               <span style={{ fontSize: 14 }}>No images available</span>
             </div>
           )}
-          <div style={{ position: 'absolute', top: 20, left: 20 }}><StatusPill status={room.status} /></div>
+          <div style={{ position: 'absolute', top: 20, left: 20, zIndex: 2 }}><StatusPill status={room.status} /></div>
         </div>
 
         {/* Center thumbnails, exactly 6 */}
@@ -283,14 +311,14 @@ export default function RoomDetailsPage() {
                 borderRadius: '12px',
                 overflow: 'hidden',
                 cursor: 'pointer',
-                border: i === activeImg ? '2.5px solid #c85a49' : `1px solid ${colors.borderCard}`,
+                border: 'none',
                 boxShadow: i === activeImg ? '0 0 12px rgba(200, 90, 73, 0.4)' : 'none',
                 opacity: i === activeImg ? 1 : 0.6,
-                transform: i === activeImg ? 'scale(1.05)' : 'scale(1)',
+                transform: i === activeImg ? 'scale(1.15)' : 'scale(1)',
                 flexShrink: 0,
-                transition: 'all 0.2s ease'
+                transition: 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
               }}
-              onMouseEnter={(e) => { if (i !== activeImg) e.currentTarget.style.opacity = '0.9'; }}
+              onMouseEnter={(e) => { if (i !== activeImg) e.currentTarget.style.opacity = '0.95'; }}
               onMouseLeave={(e) => { if (i !== activeImg) e.currentTarget.style.opacity = '0.6'; }}
             >
               <img src={img} alt={`View ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />

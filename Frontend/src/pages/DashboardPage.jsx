@@ -158,7 +158,7 @@ function DashboardPage() {
   return (
     <div className="dashboard-wrapper">
       <Row className="g-4 mb-4">
-        <Col xs={12} sm={6} xl={2.4} style={{ flex: '0 0 auto', width: '20%' }} className="custom-card-col">
+        <Col xs={12} sm={6} xl={2.4} className="custom-card-col">
           <StatCard 
             title="Occupancy Rate" 
             value={`${stats.cards.occupancyRate.value}%`} 
@@ -167,7 +167,7 @@ function DashboardPage() {
             variant="primary"
           />
         </Col>
-        <Col xs={12} sm={6} xl={2.4} style={{ flex: '0 0 auto', width: '20%' }} className="custom-card-col">
+        <Col xs={12} sm={6} xl={2.4} className="custom-card-col">
           <StatCard 
             title="Total Bookings" 
             value={stats.cards.totalBookings.value} 
@@ -176,7 +176,7 @@ function DashboardPage() {
             variant="success"
           />
         </Col>
-        <Col xs={12} sm={6} xl={2.4} style={{ flex: '0 0 auto', width: '20%' }} className="custom-card-col">
+        <Col xs={12} sm={6} xl={2.4} className="custom-card-col">
           <StatCard 
             title="Revenue" 
             value={`$${stats.cards.revenue.value.toLocaleString()}`} 
@@ -185,7 +185,7 @@ function DashboardPage() {
             variant="danger"
           />
         </Col>
-        <Col xs={12} sm={6} xl={2.4} style={{ flex: '0 0 auto', width: '20%' }} className="custom-card-col">
+        <Col xs={12} sm={6} xl={2.4} className="custom-card-col">
           <StatCard 
             title="Pending Orders" 
             value={stats.cards.pendingOrders.value} 
@@ -194,7 +194,7 @@ function DashboardPage() {
             variant="warning"
           />
         </Col>
-        <Col xs={12} sm={6} xl={2.4} style={{ flex: '0 0 auto', width: '20%' }} className="custom-card-col">
+        <Col xs={12} sm={6} xl={2.4} className="custom-card-col">
           <StatCard 
             title="Maintenance" 
             value={stats.cards.maintenanceRooms.value} 
@@ -305,8 +305,10 @@ function DashboardPage() {
                   {stats.recentBookings.map((booking) => (
                     <tr key={booking._id} style={{ borderBottom: isDark ? `1px solid ${colors.borderCard}` : 'rgba(0,0,0,0.05)' }}>
                       <td style={{ color: colors.textPrimary, borderBottom: isDark ? `1px solid ${colors.borderCard}` : 'none' }}>
-                        <div className="fw-semibold" style={{ color: colors.textPrimary }}>{booking.guestId?.firstName} {booking.guestId?.lastName}</div>
-                        <small style={{ color: colors.textSecondary }}>{booking.guestId?.email}</small>
+                        <div className="fw-semibold" style={{ color: colors.textPrimary }}>
+                          {[booking.guestId?.firstName, booking.guestId?.lastName].filter(Boolean).join(' ') || 'Guest'}
+                        </div>
+                        <small style={{ color: colors.textSecondary }}>{booking.guestId?.email || 'No email'}</small>
                       </td>
                       <td style={{ color: colors.textPrimary, borderBottom: isDark ? `1px solid ${colors.borderCard}` : 'none' }}>{booking.roomId?.roomNumber || 'N/A'}</td>
                       <td style={{ color: colors.textPrimary, borderBottom: isDark ? `1px solid ${colors.borderCard}` : 'none' }}>
@@ -356,7 +358,11 @@ function DashboardPage() {
                     <tr key={order._id} style={{ borderBottom: isDark ? `1px solid ${colors.borderCard}` : 'rgba(0,0,0,0.05)' }}>
                       <td className="fw-semibold" style={{ color: colors.textPrimary, borderBottom: isDark ? `1px solid ${colors.borderCard}` : 'none' }}>{order.bookingId?.roomId?.roomNumber || 'N/A'}</td>
                       <td style={{ color: colors.textPrimary, borderBottom: isDark ? `1px solid ${colors.borderCard}` : 'none' }}>{order.serviceId?.name || 'Custom Service'}</td>
-                      <td style={{ color: colors.textPrimary, borderBottom: isDark ? `1px solid ${colors.borderCard}` : 'none' }}>{order.assignedEmployeeId ? `${order.assignedEmployeeId.firstName} ${order.assignedEmployeeId.lastName}` : 'Unassigned'}</td>
+                      <td style={{ color: colors.textPrimary, borderBottom: isDark ? `1px solid ${colors.borderCard}` : 'none' }}>
+                        {order.assignedEmployeeId 
+                          ? ([order.assignedEmployeeId.firstName, order.assignedEmployeeId.lastName].filter(Boolean).join(' ') || 'Employee') 
+                          : 'Unassigned'}
+                      </td>
                       <td style={{ color: colors.textPrimary, borderBottom: isDark ? `1px solid ${colors.borderCard}` : 'none' }}>
                         <span className={`badge ${
                           order.status === 'Completed'

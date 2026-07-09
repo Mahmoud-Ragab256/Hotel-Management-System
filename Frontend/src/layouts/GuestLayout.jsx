@@ -4,11 +4,93 @@ import Header from '../components/Header.jsx';
 import useAdminShortcut from '../utils/AdminShortcut.jsx';
 import { useTheme } from '../context/ThemeContext.jsx';
 
+function PageSkeleton({ isDark, colors }) {
+  return (
+    <div style={{
+      width: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '24px',
+      paddingTop: '20px',
+      maxWidth: '1200px',
+      margin: '0 auto'
+    }}>
+      <style>{`
+        @keyframes shimmer {
+          0% { background-position: -200% 0; }
+          100% { background-position: 200% 0; }
+        }
+        .skeleton-shimmer {
+          background: ${isDark 
+            ? 'linear-gradient(90deg, #1e1d1d 25%, #2d2a29 37%, #1e1d1d 63%)' 
+            : 'linear-gradient(90deg, #f3eded 25%, #faf6f6 37%, #f3eded 63%)'};
+          background-size: 200% 100%;
+          animation: shimmer 1.4s infinite linear;
+        }
+      `}</style>
+
+      {/* Large Banner Shape */}
+      <div className="skeleton-shimmer" style={{
+        height: '240px',
+        width: '100%',
+        borderRadius: '24px',
+        marginBottom: '16px'
+      }} />
+
+      {/* Grid of cards */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+        gap: '24px'
+      }}>
+        {[1, 2, 3].map((i) => (
+          <div key={i} style={{
+            background: colors.bgCard,
+            border: `1px solid ${colors.borderCard}`,
+            borderRadius: '20px',
+            padding: '20px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '14px'
+          }}>
+            {/* Image Placeholder */}
+            <div className="skeleton-shimmer" style={{
+              height: '180px',
+              borderRadius: '16px',
+              width: '100%'
+            }} />
+            {/* Title Placeholder */}
+            <div className="skeleton-shimmer" style={{
+              height: '20px',
+              borderRadius: '6px',
+              width: '60%'
+            }} />
+            {/* Paragraph Placeholder */}
+            <div className="skeleton-shimmer" style={{
+              height: '12px',
+              borderRadius: '4px',
+              width: '90%'
+            }} />
+            {/* Small action placeholder */}
+            <div className="skeleton-shimmer" style={{
+              height: '12px',
+              borderRadius: '4px',
+              width: '40%'
+            }} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function GuestLayout() {
   useAdminShortcut();
   const location = useLocation();
   const navigate = useNavigate();
   const { colors, theme, isDark } = useTheme();
+
+  const [pageLoading, setPageLoading] = React.useState(false);
 
   const isHomePage = location.pathname === '/' || location.pathname === '';
 
@@ -20,18 +102,201 @@ export default function GuestLayout() {
     return location.pathname.startsWith(path);
   };
 
+  // Route loading state effect (simulating a slight content load for premium experience)
+  React.useEffect(() => {
+    setPageLoading(true);
+    const timer = setTimeout(() => {
+      setPageLoading(false);
+    }, 450); // Fast, high-quality micro-interaction (450ms)
+
+    return () => clearTimeout(timer);
+  }, [location.pathname]);
+
+  // Scroll Reveal Intersection Observer effect
+  React.useEffect(() => {
+    if (pageLoading) return;
+
+    const timer = setTimeout(() => {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('revealed');
+              observer.unobserve(entry.target);
+            }
+          });
+        },
+        {
+          threshold: 0.05,
+          rootMargin: '0px 0px -40px 0px'
+        }
+      );
+
+      // 1. Headers & Main Banners - Elegant top fade with subtle scale
+      const headers = document.querySelectorAll('main h1, main h2, .client-services-header, .help-center-header, .my-bookings-header, .explore-hero-content');
+      headers.forEach((el) => {
+        el.classList.add('reveal-item', 'reveal-header');
+        observer.observe(el);
+      });
+
+      // 2. Dual-Column Grid Containers - Animate organically from left & right to frame the viewport
+      const profileGrids = document.querySelectorAll('.profile-grid-container');
+      profileGrids.forEach((grid) => {
+        const leftCol = grid.firstElementChild;
+        const rightCol = grid.lastElementChild;
+        if (leftCol) {
+          leftCol.classList.add('reveal-item', 'reveal-left');
+          observer.observe(leftCol);
+        }
+        if (rightCol && rightCol !== leftCol) {
+          rightCol.classList.add('reveal-item', 'reveal-right');
+          observer.observe(rightCol);
+        }
+      });
+
+      // 3. Grid Cards (Rooms, Services, Bookings, Reviews, FAQs) - Stagger sequentially with tailor-made animations
+      const cards = document.querySelectorAll('.room-card, .service-card, .booking-card, .review-card, .faq-section, .card, .form-container');
+      const parentMap = new Map();
+      cards.forEach((card) => {
+        const parent = card.parentElement;
+        if (!parentMap.has(parent)) {
+          parentMap.set(parent, []);
+        }
+        parentMap.get(parent).push(card);
+      });
+
+      parentMap.forEach((group) => {
+        group.forEach((card, index) => {
+          card.classList.add('reveal-item');
+          
+          if (card.classList.contains('room-card')) {
+            card.classList.add('reveal-room');
+            card.style.transitionDelay = `${index * 140}ms`;
+          } else if (card.classList.contains('service-card')) {
+            card.classList.add('reveal-service');
+            card.style.transitionDelay = `${index * 100}ms`;
+          } else if (card.classList.contains('review-card')) {
+            card.classList.add('reveal-review');
+            card.style.transitionDelay = `${index * 100}ms`;
+          } else {
+            card.classList.add('reveal-card');
+            card.style.transitionDelay = `${Math.min(index * 60, 360)}ms`;
+          }
+          
+          observer.observe(card);
+        });
+      });
+
+      // 4. Large General Sections & Layout Containers
+      const generalContainers = document.querySelectorAll('.explore-section, .help-center-container, .room-details-container, .reviews-container');
+      generalContainers.forEach((el) => {
+        el.classList.add('reveal-item', 'reveal-general');
+        observer.observe(el);
+      });
+
+      return () => {
+        // Clean up observers
+        headers.forEach((el) => observer.unobserve(el));
+        profileGrids.forEach((grid) => {
+          if (grid.firstElementChild) observer.unobserve(grid.firstElementChild);
+          if (grid.lastElementChild) observer.unobserve(grid.lastElementChild);
+        });
+        cards.forEach((card) => observer.unobserve(card));
+        generalContainers.forEach((el) => observer.unobserve(el));
+      };
+    }, 50);
+
+    return () => clearTimeout(timer);
+  }, [location.pathname, pageLoading]);
+
   return (
     <div style={{ background: colors.bgMain, minHeight: '100vh', display: 'flex', flexDirection: 'column', color: colors.textPrimary, transition: 'background 0.5s ease, color 0.5s ease' }}>
       
+      {/* Global CSS injection for scroll reveal and general transitions */}
+      <style>{`
+        /* Base reveal state */
+        .reveal-item {
+          opacity: 0;
+          transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1), transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+          will-change: opacity, transform;
+        }
+
+        /* Elegant vertical compress & slight scale for main titles & banners */
+        .reveal-header {
+          transform: translateY(-20px) scale(0.985);
+        }
+
+        /* Smooth left-to-right entry for sidebar elements */
+        .reveal-left {
+          transform: translateX(-35px);
+        }
+
+        /* Smooth right-to-left entry for content containers */
+        .reveal-right {
+          transform: translateX(35px);
+        }
+
+        /* Room Cards: Sliding elegantly from left to right */
+        .reveal-room {
+          transform: translateX(-50px) scale(0.985);
+        }
+
+        /* Service Cards: Falling gracefully from above with premium bouncy cushion landing */
+        .reveal-service {
+          transform: translateY(-60px) scale(0.975);
+          transition-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.15) !important;
+        }
+
+        /* Review Cards: Falling gracefully from above with premium cushion landing */
+        .reveal-review {
+          transform: translateY(-50px) scale(0.98);
+          transition-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.12) !important;
+        }
+
+        /* Floating pop and scale effect for content cards and visual components */
+        .reveal-card {
+          transform: translateY(30px) scale(0.97);
+        }
+
+        /* Standard upward glide for general section blocks */
+        .reveal-general {
+          transform: translateY(20px);
+        }
+
+        /* Revealed active state reset */
+        .reveal-item.revealed {
+          opacity: 1;
+          transform: translate(0, 0) scale(1);
+        }
+
+        /* Responsive content padding helper to prevent mobile layout squeeze and overflow */
+        .guest-content-wrapper {
+          padding: 24px 12px 100px 12px;
+          max-width: 1200px;
+          margin: 0 auto;
+          width: 100%;
+          box-sizing: border-box;
+        }
+        @media (min-width: 576px) {
+          .guest-content-wrapper {
+            padding: 40px 24px 100px 24px;
+          }
+        }
+      `}</style>
+
       {/* Immersive Theme-aware Header */}
       <Header />
 
       {/* Main Content Area */}
       <main style={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-        {isHomePage ? (
+        {pageLoading ? (
+          <div className="guest-content-wrapper" style={{ paddingTop: isHomePage ? '80px' : undefined }}>
+            <PageSkeleton isDark={isDark} colors={colors} />
+          </div>
+        ) : isHomePage ? (
           <Outlet />
         ) : (
-          <div style={{ padding: '40px 24px 100px 24px', maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
+          <div className="guest-content-wrapper">
             <Outlet />
           </div>
         )}
@@ -40,9 +305,11 @@ export default function GuestLayout() {
       {/* Persistent Glassmorphism Bottom Navigation Bar */}
       <div style={{
         position: 'fixed',
-        bottom: '24px',
+        bottom: 'calc(12px + env(safe-area-inset-bottom, 12px))',
         left: '50%',
-        transform: 'translateX(-50%)',
+        transform: 'translateX(-50%) translateZ(0)',
+        WebkitTransform: 'translateX(-50%) translateZ(0)',
+        willChange: 'transform',
         zIndex: 1000,
         background: colors.bottomNavBg,
         backdropFilter: 'blur(16px)',

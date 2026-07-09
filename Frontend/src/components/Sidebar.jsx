@@ -1,13 +1,13 @@
 import { Badge, Nav } from 'react-bootstrap';
 import { NavLink } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHotel } from '@fortawesome/free-solid-svg-icons';
+import { faHotel, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { sidebarItems } from '../data/sidebarItems.js';
 
-function Sidebar() {
+function Sidebar({ isOpen, onClose }) {
   return (
-    <aside className="app-sidebar text-white d-flex flex-column">
-      <div className="px-4 py-4 border-bottom border-secondary-subtle">
+    <aside className={`app-sidebar text-white d-flex flex-column ${isOpen ? 'show' : ''}`}>
+      <div className="px-4 py-4 border-bottom border-secondary-subtle d-flex align-items-center justify-content-between">
         <div className="d-flex align-items-center gap-3">
           <span className="brand-icon d-inline-flex align-items-center justify-content-center rounded-3">
             <FontAwesomeIcon icon={faHotel} />
@@ -17,9 +17,26 @@ function Sidebar() {
             <small className="text-white-50">Management Panel</small>
           </div>
         </div>
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="btn d-lg-none border-0 p-1 rounded-circle d-flex align-items-center justify-content-center"
+            style={{ 
+              color: 'inherit', 
+              opacity: 0.8,
+              width: '32px',
+              height: '32px',
+              transition: 'all 0.2s ease'
+            }}
+            aria-label="Close sidebar"
+            id="mobile-sidebar-close"
+          >
+            <FontAwesomeIcon icon={faXmark} style={{ fontSize: '1.2rem' }} />
+          </button>
+        )}
       </div>
 
-      <Nav className="flex-column gap-1 p-3 overflow-auto sidebar-nav">
+      <Nav className="flex-column gap-1 p-3 sidebar-nav">
         {sidebarItems.map((item) => {
           const content = (
             <>

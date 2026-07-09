@@ -47,6 +47,7 @@ function RoomCard({ room }) {
 
   return (
     <div
+      className="room-card"
       onClick={handleClick}
       style={{
         background: colors.bgCard,
@@ -56,18 +57,18 @@ function RoomCard({ room }) {
         display: 'flex',
         flexDirection: 'column',
         cursor: 'pointer',
-        boxShadow: colors.shadow,
+        boxShadow: 'none',
         transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
       }}
       onMouseEnter={(e) => {
         e.currentTarget.style.transform = 'translateY(-4px)';
         e.currentTarget.style.borderColor = colors.borderHover;
-        e.currentTarget.style.boxShadow = colors.shadowHover;
+        e.currentTarget.style.boxShadow = 'none';
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.transform = 'translateY(0)';
         e.currentTarget.style.borderColor = colors.borderCard;
-        e.currentTarget.style.boxShadow = colors.shadow;
+        e.currentTarget.style.boxShadow = 'none';
       }}
     >
       <div style={{ height: 220, background: colors.inputBg, overflow: 'hidden', flexShrink: 0, position: 'relative' }}>
@@ -81,30 +82,25 @@ function RoomCard({ room }) {
             <span style={{ fontSize: 11, fontFamily: '"Inter", sans-serif' }}>No preview image</span>
           </div>
         )}
-        
-        {/* Luxury Top Right Floating Price Tag */}
-        {basePrice !== undefined && (
-          <div style={{
-            position: 'absolute',
-            top: 16,
-            right: 16,
-            background: '#c85a49',
-            color: '#ffffff',
-            padding: '6px 12px',
-            borderRadius: '20px',
-            fontSize: '13px',
-            fontWeight: '600',
-            fontFamily: '"Inter", sans-serif'
-          }}>
-            ${basePrice}/night
-          </div>
-        )}
       </div>
 
       <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '14px', flex: 1, justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <div style={{ fontSize: '20px', fontWeight: '700', color: colors.textPrimary, fontFamily: '"Playfair Display", serif' }}>
-            Room #{room.roomNumber}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ fontSize: '20px', fontWeight: '700', color: colors.textPrimary, fontFamily: '"Playfair Display", serif' }}>
+              Room #{room.roomNumber}
+            </div>
+            {basePrice !== undefined && (
+              <div style={{
+                color: colors.accent,
+                fontSize: '16px',
+                fontWeight: '700',
+                fontFamily: '"Inter", sans-serif',
+                whiteSpace: 'nowrap'
+              }}>
+                ${basePrice}/night
+              </div>
+            )}
           </div>
           <div style={{ fontSize: '13px', color: colors.accent, fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: '"Inter", sans-serif' }}>
             {categoryName}
@@ -290,11 +286,6 @@ export default function ClientRoomsPage() {
       {/* Header Banner - Room shape/photo Background */}
       <div style={{
         position: 'relative',
-        backgroundImage: isDark
-          ? `linear-gradient(to bottom, rgba(44, 22, 19, 0.5) 0%, rgba(17, 17, 17, 0.95) 100%), url('https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=1600&q=80')`
-          : `linear-gradient(to bottom, rgba(253, 248, 247, 0.3) 0%, rgba(247, 245, 242, 0.95) 100%), url('https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=1600&q=80')`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
         borderBottom: `1px solid ${colors.borderCard}`,
         boxShadow: 'none',
         padding: '120px 24px 90px',
@@ -303,16 +294,63 @@ export default function ClientRoomsPage() {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
+        overflow: 'hidden'
       }}>
-        <div style={{ fontSize: '11px', color: '#c85a49', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: '12px', textShadow: isDark ? '0 2px 4px rgba(0,0,0,0.6)' : 'none' }}>
-          Our Sanctuary
+        {/* Blurred Background Layer */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundImage: isDark
+            ? `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=1600&q=80')`
+            : `linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.55)), url('https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=1600&q=80')`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          filter: 'blur(2px)',
+          transform: 'scale(1.05)',
+          zIndex: 1
+        }} />
+
+        {/* Content Layer */}
+        <div style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <div style={{ 
+            fontSize: '11px', 
+            color: '#ff8c7a', 
+            fontWeight: '700', 
+            textTransform: 'uppercase', 
+            letterSpacing: '0.15em', 
+            marginBottom: '12px', 
+            fontFamily: '"Inter", sans-serif',
+            textShadow: '0 1px 3px rgba(0,0,0,0.5)' 
+          }}>
+            Our Sanctuary
+          </div>
+          <h1 style={{ 
+            fontSize: 'clamp(28px, 5vw, 48px)', 
+            fontWeight: '700', 
+            color: '#ffffff', 
+            margin: '0 0 16px', 
+            letterSpacing: '-0.02em', 
+            fontFamily: '"Playfair Display", serif', 
+            textShadow: '0 2px 8px rgba(0,0,0,0.6)' 
+          }}>
+            Find Your Perfect Room
+          </h1>
+          <p style={{ 
+            fontSize: '15px', 
+            color: '#f3f4f6', 
+            margin: '0 auto 24px', 
+            maxWidth: '480px', 
+            fontWeight: '300', 
+            lineHeight: '1.7', 
+            fontFamily: '"Inter", sans-serif',
+            textShadow: '0 1px 3px rgba(0,0,0,0.5)' 
+          }}>
+            Browse all available rooms and customize your luxury escape.
+          </p>
         </div>
-        <h1 style={{ fontSize: 'clamp(28px, 5vw, 48px)', fontWeight: '700', color: colors.textPrimary, margin: '0 0 16px', letterSpacing: '-0.02em', fontFamily: '"Playfair Display", serif', textShadow: isDark ? '0 2px 8px rgba(0,0,0,0.8)' : 'none' }}>
-          Find Your Perfect Room
-        </h1>
-        <p style={{ fontSize: '15px', color: colors.textSecondary, margin: '0 auto 24px', maxWidth: '480px', fontWeight: '300', lineHeight: '1.6', textShadow: isDark ? '0 2px 4px rgba(0,0,0,0.6)' : 'none' }}>
-          Browse all available rooms and customize your luxury escape.
-        </p>
       </div>
 
       {/* Stats and Filter feedback bar with Filter Trigger beside */}
@@ -370,7 +408,7 @@ export default function ClientRoomsPage() {
       </div>
 
       {/* Main Container - Split sidebar on left, card grid on right */}
-      <div style={{
+      <div className="rooms-container" style={{
         maxWidth: '1300px',
         margin: '0 auto',
         padding: '40px 24px',
@@ -404,9 +442,9 @@ export default function ClientRoomsPage() {
           )}
           
           {!loading && !error && (
-            <div style={{
+            <div className="rooms-grid" style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 280px), 1fr))',
               gap: '32px',
               transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
             }}>
@@ -660,6 +698,34 @@ export default function ClientRoomsPage() {
           </div>
         </div>
       </div>
+
+      {/* Responsive Styles for Rooms and Filters */}
+      <style>{`
+        @media (max-width: 1024px) {
+          .rooms-grid {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            gap: 24px !important;
+          }
+          .room-card {
+            flex: 1 1 290px !important;
+            max-width: 100% !important;
+          }
+        }
+        @media (max-width: 991.98px) {
+          .rooms-container {
+            flex-direction: column-reverse !important;
+            gap: 32px !important;
+            padding: 24px 16px !important;
+          }
+          .rooms-container > div:last-child {
+            width: 100% !important;
+            position: relative !important;
+            top: 0 !important;
+            transform: none !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

@@ -378,19 +378,20 @@ export default function HelpCenterPage() {
       
       {/* Header Banner */}
       <div style={{
-        background: isDark ? 'linear-gradient(135deg, #1c100e 0%, #111111 100%)' : colors.headerGradient,
-        borderBottom: `1px solid ${colors.borderHeader || 'rgba(200, 90, 73, 0.25)'}`,
-        boxShadow: isDark ? '0 8px 32px rgba(200, 90, 73, 0.1)' : '0 4px 16px rgba(0,0,0,0.02)',
-        padding: '60px 24px 48px',
-        textAlign: 'center'
+        background: colors.accent,
+        border: `1px solid ${colors.borderCard}`,
+        borderRadius: "20px",
+        boxShadow: "0 10px 30px rgba(200, 90, 73, 0.15)",
+        padding: "60px 24px 48px",
+        textAlign: "center"
       }}>
-        <div style={{ fontSize: '11px', color: colors.accent, fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: '12px' }}>
+        <div style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.9)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: '12px' }}>
           Support
         </div>
-        <h1 style={{ fontSize: 'clamp(26px, 5vw, 42px)', fontWeight: '700', color: colors.textPrimary, margin: '0 0 12px', letterSpacing: '-0.02em', fontFamily: '"Playfair Display", serif' }}>
+        <h1 style={{ fontSize: 'clamp(26px, 5vw, 42px)', fontWeight: '700', color: '#ffffff', margin: '0 0 12px', letterSpacing: '-0.02em', fontFamily: '"Playfair Display", serif' }}>
           Help Center
         </h1>
-        <p style={{ fontSize: '15px', color: colors.textSecondary, margin: '0 auto', maxWidth: '480px', fontWeight: '300', lineHeight: '1.6' }}>
+        <p style={{ fontSize: '15px', color: 'rgba(255, 255, 255, 0.95)', margin: '0 auto', maxWidth: '480px', fontWeight: '300', lineHeight: '1.6' }}>
           We are here to help. Find quick answers or reach out to our team directly.
         </p>
       </div>

@@ -4,6 +4,42 @@
   background: #111827;
 }
 
+@media (max-width: 991.98px) {
+  .app-sidebar {
+    position: fixed !important;
+    top: 0;
+    bottom: 0;
+    left: -285px;
+    z-index: 1050;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+  
+  .app-sidebar.show {
+    left: 0 !important;
+  }
+}
+
+.sidebar-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(15, 20, 35, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 1040;
+  animation: sidebarBackdropFadeIn 0.25s ease-out;
+}
+
+@keyframes sidebarBackdropFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 .brand-icon,
 .stat-icon {
   width: 44px;
@@ -15,7 +51,58 @@
 }
 
 .sidebar-nav {
-  max-height: calc(100vh - 98px);
+  /* No max-height restriction so all items render fully and remain visible at the end of the sidebar list without cutoffs */
+}
+
+/* Beautiful custom scrollbar styling for tables, appearing only when needed */
+.table-responsive::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* For dark theme components/layout */
+.theme-dark .table-responsive::-webkit-scrollbar-thumb,
+.admin-layout.theme-dark .table-responsive::-webkit-scrollbar-thumb,
+[data-theme='dark'] .table-responsive::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border-radius: 10px;
+}
+
+.theme-dark .table-responsive::-webkit-scrollbar-thumb:hover,
+.admin-layout.theme-dark .table-responsive::-webkit-scrollbar-thumb:hover,
+[data-theme='dark'] .table-responsive::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* For light theme components/layout */
+.theme-light .table-responsive::-webkit-scrollbar-thumb,
+.admin-layout.theme-light .table-responsive::-webkit-scrollbar-thumb,
+[data-theme='light'] .table-responsive::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15) !important;
+  border-radius: 10px;
+}
+
+.theme-light .table-responsive::-webkit-scrollbar-thumb:hover,
+.admin-layout.theme-light .table-responsive::-webkit-scrollbar-thumb:hover,
+[data-theme='light'] .table-responsive::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Support thin scrollbar for Firefox on table-responsive containers */
+.table-responsive {
+  scrollbar-width: thin;
+}
+
+.theme-dark .table-responsive, .admin-layout.theme-dark .table-responsive, [data-theme='dark'] .table-responsive {
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+
+.theme-light .table-responsive, .admin-layout.theme-light .table-responsive, [data-theme='light'] .table-responsive {
+  scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
 }
 
 .sidebar-link {
@@ -43,24 +130,6 @@
 
 .topbar-search {
   width: 320px;
-}
-
-@media (max-width: 991.98px) {
-  .app-sidebar {
-    width: 92px;
-    min-width: 92px;
-  }
-
-  .app-sidebar h1,
-  .app-sidebar small,
-  .sidebar-link span,
-  .sidebar-link .badge {
-    display: none;
-  }
-
-  .sidebar-link {
-    justify-content: center;
-  }
 }
 
 .feedback-card {
@@ -785,8 +854,8 @@
 }
 
 .admin-layout.theme-dark .dropdown-item:hover {
-  background-color: rgba(255, 255, 255, 0.04) !important;
-  color: #ffffff !important;
+  background-color: rgba(99, 102, 241, 0.15) !important;
+  color: #818cf8 !important;
 }
 
 .admin-layout.theme-dark .dropdown-divider {
@@ -1588,6 +1657,32 @@
   background-color: #1e2943 !important;
   color: #818cf8 !important;
 }
+
+/* Custom mobile and tablet layout optimization for Topbar elements */
+@media (max-width: 991.98px) {
+  /* Scale down the title slightly on smaller screens */
+  @media (max-width: 575.98px) {
+    .admin-topbar-title {
+      font-size: 1.15rem !important;
+    }
+  }
+  
+  /* Make the profile button circular and matches standard 40px buttons on mobile and tablet */
+  .admin-profile-toggle {
+    padding: 0 !important;
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    justify-content: center !important;
+    border-radius: 50% !important;
+    gap: 0 !important;
+  }
+  
+  .admin-profile-toggle::after {
+    display: none !important; /* Hide caret on mobile and tablet screens */
+  }
+}
+
 
 
 

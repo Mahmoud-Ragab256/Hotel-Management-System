@@ -4,6 +4,7 @@ import { isAuthenticated } from '../services/auth.js';
 import AccountMenu from './AccountMenu.jsx';
 import NotificationBell from './NotificationsBell.jsx';
 import { useTheme } from '../context/ThemeContext.jsx';
+import "../styles/header.css";
 
 export default function Header() {
   const navigate = useNavigate();
@@ -11,16 +12,31 @@ export default function Header() {
   const loggedIn = isAuthenticated();
   const { colors, theme, toggleTheme, isDark } = useTheme();
 
+  const [isScrolled, setIsScrolled] = React.useState(false);
+
+  React.useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 20) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll(); // Check initially
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const isHomePage = location.pathname === '/' || location.pathname === '';
 
   return (
-    <header style={{
-      background: isHomePage ? colors.bgHeaderHome : colors.bgHeader,
-      backdropFilter: isHomePage ? 'none' : 'blur(12px)',
-      WebkitBackdropFilter: isHomePage ? 'none' : 'blur(12px)',
-      borderBottom: isHomePage ? 'none' : `1px solid ${colors.borderHeader}`,
+    <header className="site-header" style={{
+      background: isHomePage ? (isScrolled ? colors.bgHeader : 'transparent') : colors.bgHeader,
+      backdropFilter: isHomePage ? (isScrolled ? 'blur(12px)' : 'none') : 'blur(12px)',
+      WebkitBackdropFilter: isHomePage ? (isScrolled ? 'blur(12px)' : 'none') : 'blur(12px)',
+      borderBottom: isHomePage ? (isScrolled ? `1px solid ${colors.borderHeader}` : 'none') : `1px solid ${colors.borderHeader}`,
       padding: '16px 24px',
-      position: isHomePage ? 'absolute' : 'sticky',
+      position: isHomePage ? 'fixed' : 'sticky',
       top: 0,
       left: 0,
       zIndex: 900,
@@ -29,15 +45,15 @@ export default function Header() {
       alignItems: 'center',
       justifyContent: 'space-between',
       boxSizing: 'border-box',
-      transition: 'background 0.3s ease, border-color 0.3s ease'
+      transition: 'background 0.3s ease, border-color 0.3s ease, backdrop-filter 0.3s ease'
     }}>
       {/* Brand Logo - Aethos Luxury Hotel */}
-      <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none', color: colors.textPrimary, transition: 'color 0.3s' }}>
+      <Link to="/" className="header-logo" style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none', color: colors.textPrimary, transition: 'color 0.3s' }}>
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#c85a49" strokeWidth="2" style={{ transition: 'transform 0.3s' }}>
           <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
         </svg>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <span style={{
+          <span className="header-logo-title" style={{
             fontSize: '20px',
             fontWeight: '700',
             letterSpacing: '0.08em',
@@ -46,7 +62,7 @@ export default function Header() {
           }}>
             Aethos
           </span>
-          <span style={{
+          <span className="header-logo-sub" style={{
             fontSize: '9px',
             textTransform: 'uppercase',
             letterSpacing: '0.18em',
@@ -61,9 +77,10 @@ export default function Header() {
       </Link>
 
       {/* Header Actions */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+      <div className="header-actions" style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
         {/* Search Icon */}
         <button
+          className="header-btn header-btn-search"
           style={{
             background: 'transparent',
             border: 'none',
@@ -88,6 +105,7 @@ export default function Header() {
 
         {/* Help Center Icon */}
         <button
+          className="header-btn header-btn-help"
           style={{
             background: 'transparent',
             border: 'none',
@@ -113,6 +131,7 @@ export default function Header() {
 
         {/* Elegant Theme Toggle Button */}
         <button
+          className="header-btn header-btn-theme"
           style={{
             background: 'transparent',
             border: 'none',
@@ -143,7 +162,7 @@ export default function Header() {
         </button>
 
         {loggedIn ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div className="header-logged-in-actions" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             {/* Custom Styled Notification Bell */}
             <div style={{ color: colors.textPrimary }}>
               <NotificationBell />
@@ -153,9 +172,10 @@ export default function Header() {
             <AccountMenu />
           </div>
         ) : (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div className="header-logged-out-actions" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <button
               onClick={() => navigate('/login')}
+              className="header-login-btn"
               style={{
                 background: 'transparent',
                 color: colors.textPrimary,
@@ -181,6 +201,7 @@ export default function Header() {
             </button>
             <button
               onClick={() => navigate('/signup')}
+              className="header-signup-btn"
               style={{
                 background: colors.accent,
                 color: '#ffffff',

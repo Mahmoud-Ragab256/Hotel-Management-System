@@ -90,7 +90,7 @@ const AccountMenu = ({ user: userProp }) => {
           </div>
         )}
 
-        <span style={{ fontSize: "14px", fontWeight: "600", marginRight: "2px" }}>
+        <span style={{ fontSize: "14px", fontWeight: "600", marginRight: "2px", color: colors.textPrimary }}>
           {user?.fullName?.split(" ")[0] || "Account"}
         </span>
 
@@ -100,17 +100,24 @@ const AccountMenu = ({ user: userProp }) => {
           height="6" 
           viewBox="0 0 10 6" 
           fill="none" 
-          stroke="currentColor" 
+          stroke={colors.textSecondary} 
           strokeWidth="1.8" 
           strokeLinecap="round" 
           strokeLinejoin="round"
-          style={{ opacity: 0.6 }}
+          style={{ opacity: 0.8 }}
         >
           <path d="M1 1l4 4 4-4" />
         </svg>
       </Dropdown.Toggle>
 
-      <Dropdown.Menu className="shadow-sm account-menu-dropdown" style={{ minWidth: "240px" }}>
+      <Dropdown.Menu 
+        className="shadow-sm account-menu-dropdown" 
+        style={{ 
+          minWidth: "240px",
+          background: colors.bgCard,
+          borderColor: colors.borderCard
+        }}
+      >
         {/* Profile Info Header Block */}
         <div style={{ padding: '16px 16px 12px 16px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
           {user?.avatar ? (
@@ -122,7 +129,7 @@ const AccountMenu = ({ user: userProp }) => {
                 height: 52, 
                 borderRadius: "50%", 
                 objectFit: "cover",
-                border: `2px solid ${colors.accent}`,
+                border: "none",
                 boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
                 marginBottom: '10px'
               }}
@@ -153,7 +160,7 @@ const AccountMenu = ({ user: userProp }) => {
           )}
         </div>
 
-        <Dropdown.Divider style={{ margin: '8px 0' }} />
+        <Dropdown.Divider style={{ margin: '8px 0', borderColor: colors.borderCard }} />
 
         {menuItems.map((item) => (
           <Dropdown.Item
@@ -161,18 +168,18 @@ const AccountMenu = ({ user: userProp }) => {
             onClick={() => navigate(item.path)}
             className="d-flex align-items-center gap-2"
           >
-            <FontAwesomeIcon icon={item.icon} className="text-muted" style={{ width: '16px' }} />
+            <FontAwesomeIcon icon={item.icon} className="account-menu-item-icon" style={{ width: '16px' }} />
             {item.label}
           </Dropdown.Item>
         ))}
 
-        <Dropdown.Divider style={{ margin: '8px 0' }} />
+        <Dropdown.Divider style={{ margin: '8px 0', borderColor: colors.borderCard }} />
 
         <Dropdown.Item
           onClick={handleLogout}
           className="d-flex align-items-center gap-2 text-danger"
         >
-          <FontAwesomeIcon icon={faSignOutAlt} style={{ width: '16px' }} />
+          <FontAwesomeIcon icon={faSignOutAlt} className="account-menu-item-icon" style={{ width: '16px' }} />
           Logout
         </Dropdown.Item>
       </Dropdown.Menu>
