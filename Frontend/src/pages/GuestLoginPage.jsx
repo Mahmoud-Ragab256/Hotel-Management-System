@@ -28,7 +28,7 @@ function GuestLoginPage() {
 
   const navigate = useNavigate();
   const location = useLocation();
-  const redirectTo = location.state?.from?.pathname || '/rooms';
+  const redirectTo = location.state?.from?.pathname || '/';
 
   const canSubmit = useMemo(() => {
     return form.email.trim() && form.password.trim() && !loading;

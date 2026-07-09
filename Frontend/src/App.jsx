@@ -87,10 +87,14 @@ function App() {
       >
         <Route path="/profile" element={<GuestLayout />}>
           <Route index element={<ProfilePage />} />
+
+          <Route path="service-orders" element={<ServiceOrdersPage />} />
+
         </Route>
 
         <Route path="/my-bookings" element={<GuestLayout />}>
           <Route index element={<MyBookingsPage />} />
+
         </Route>
 
         <Route path="/my-rooms" element={<GuestLayout />}>

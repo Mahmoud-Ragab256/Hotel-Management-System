@@ -1,29 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
-  Badge,
-  Button,
-  ButtonGroup,
-  Card,
-  Col,
-  Form,
-  Modal,
-  Row,
-  Spinner,
-  Table
+  Badge, Button, ButtonGroup, Card, Col, Form, Modal, Row, Spinner, Table
 } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faBan,
-  faCalendarCheck,
-  faEye,
-  faPenToSquare,
-  faPlus,
-  faRefresh,
-  faTrash,
-  faCircleCheck,
-  faCircleExclamation,
-  faTriangleExclamation,
-  faCircleInfo
+  faBan, faCalendarCheck, faEye, faPenToSquare, faPlus, faRefresh, faTrash,
+  faCircleCheck, faCircleExclamation, faTriangleExclamation, faCircleInfo
 } from '@fortawesome/free-solid-svg-icons';
 import { dashboardApi, getApiErrorMessage } from '../services/api.js';
 import { formatDisplayDate, todayDateInputValue, toDateInputValue } from '../utils/date.js';
@@ -31,20 +13,11 @@ import { formatDisplayDate, todayDateInputValue, toDateInputValue } from '../uti
 const bookingStatuses = ['Pending', 'Confirmed', 'CheckedIn', 'CheckedOut', 'Cancelled'];
 
 const initialCreateForm = {
-  guestId: '',
-  roomId: '',
-  checkInDate: '',
-  checkOutDate: '',
-  totalPrice: '',
-  specialRequests: ''
+  guestId: '', roomId: '', checkInDate: '', checkOutDate: '', totalPrice: '', specialRequests: ''
 };
 
 const initialEditForm = {
-  checkInDate: '',
-  checkOutDate: '',
-  totalPrice: '',
-  status: 'Pending',
-  specialRequests: ''
+  checkInDate: '', checkOutDate: '', totalPrice: '', status: 'Pending', specialRequests: ''
 };
 
 const statusVariant = (status = '') => {
@@ -73,7 +46,6 @@ const feedbackMeta = (type = 'info') => {
 
 function FeedbackCard({ feedback, onClose }) {
   const meta = feedbackMeta(feedback?.type);
-
   return (
     <Card className={`border-0 shadow-sm feedback-card feedback-card-${meta.tone}`}>
       <Card.Body className="p-3">
@@ -86,18 +58,12 @@ function FeedbackCard({ feedback, onClose }) {
             <div className="small text-muted">{feedback?.message}</div>
           </div>
           {onClose && (
-            <Button variant="light" size="sm" className="rounded-circle lh-1" onClick={onClose} aria-label="Close message">
-              ×
-            </Button>
+            <Button variant="light" size="sm" className="rounded-circle lh-1" onClick={onClose} aria-label="Close message">×</Button>
           )}
         </div>
       </Card.Body>
     </Card>
   );
-}
-
-function InfoCard({ message }) {
-  return <FeedbackCard feedback={{ type: 'info', message }} />;
 }
 
 function BookingsPage() {
@@ -121,6 +87,9 @@ function BookingsPage() {
   const [createForm, setCreateForm] = useState(initialCreateForm);
   const [editForm, setEditForm] = useState(initialEditForm);
   const [cancelReason, setCancelReason] = useState('');
+
+  // images state (copied from edit room images)
+  const [imageFiles, setImageFiles] = useState([]);
 
   const showFeedback = (type, message) => setFeedback({ type, message });
 
@@ -168,15 +137,10 @@ function BookingsPage() {
     const id = bookingId(booking);
     setSelectedBooking(booking);
     setDetailsLoading(true);
-
     try {
       const data = await dashboardApi.getBooking(id);
       setSelectedBooking(data || booking);
-
-      if (mode === 'view') {
-        setViewModal(true);
-      }
-
+      if (mode === 'view') setViewModal(true);
       if (mode === 'edit') {
         const source = data || booking;
         setEditForm({
@@ -197,6 +161,7 @@ function BookingsPage() {
 
   const openCreate = async () => {
     setCreateForm(initialCreateForm);
+    setImageFiles([]);
     await loadDependencies();
     setCreateModal(true);
   };
@@ -204,15 +169,50 @@ function BookingsPage() {
   const handleCreateBooking = async (event) => {
     event.preventDefault();
     setSaving(true);
-
     try {
-      const payload = {
-        ...createForm,
-        totalPrice: Number(createForm.totalPrice)
-      };
-      await dashboardApi.createBooking(payload);
+      const payload = { ...createForm, totalPrice: Number(createForm.totalPrice) };
+      const booking = await dashboardApi.createBooking(payload);
+      const newBookingId = booking?._id || booking?.id;
+
+      // 1. Create Invoice automatically
+      if (newBookingId) {
+        try {
+          await dashboardApi.createInvoice({
+            bookingId: newBookingId,
+            amount: Number(createForm.totalPrice),
+            status: 'Pending',
+          });
+        } catch (invoiceErr) {
+          console.warn('Invoice creation failed:', getApiErrorMessage(invoiceErr));
+        }
+
+        // 2. Upload images if any (copied from edit room images)
+        if (imageFiles.length > 0) {
+          try {
+            await dashboardApi.uploadRoomImages(createForm.roomId, imageFiles);
+          } catch (imgErr) {
+            console.warn('Image upload failed:', getApiErrorMessage(imgErr));
+          }
+        }
+
+        // 3. Send notification to guest
+        if (createForm.guestId) {
+          try {
+            await dashboardApi.createNotification({
+              recipientId: createForm.guestId,
+              recipientType: 'Guest',
+              type: 'Booking',
+              title: 'Booking Created Successfully',
+              message: 'Your booking is pending confirmation. We will notify you once it is confirmed.',
+            });
+          } catch (notifErr) {
+            console.warn('Notification failed:', getApiErrorMessage(notifErr));
+          }
+        }
+      }
+
       setCreateModal(false);
-      showFeedback('success', 'Booking created successfully.');
+      showFeedback('success', 'Booking created successfully. Invoice and notification sent.');
       await loadBookings();
       await loadDependencies();
     } catch (error) {
@@ -225,12 +225,8 @@ function BookingsPage() {
   const handleUpdateBooking = async (event) => {
     event.preventDefault();
     setSaving(true);
-
     try {
-      const payload = {
-        ...editForm,
-        totalPrice: Number(editForm.totalPrice)
-      };
+      const payload = { ...editForm, totalPrice: Number(editForm.totalPrice) };
       await dashboardApi.updateBooking(bookingId(selectedBooking), payload);
       setEditModal(false);
       showFeedback('success', 'Booking updated successfully.');
@@ -245,7 +241,6 @@ function BookingsPage() {
   const handleCancelBooking = async (event) => {
     event.preventDefault();
     setSaving(true);
-
     try {
       await dashboardApi.cancelBooking(bookingId(selectedBooking), cancelReason);
       setCancelModal(false);
@@ -262,7 +257,6 @@ function BookingsPage() {
 
   const handleDeleteBooking = async () => {
     setSaving(true);
-
     try {
       await dashboardApi.deleteBooking(bookingId(selectedBooking));
       setDeleteModal(false);
@@ -277,9 +271,9 @@ function BookingsPage() {
 
   const stats = useMemo(() => ({
     total: bookings.length,
-    pending: bookings.filter((booking) => booking.status === 'Pending').length,
-    confirmed: bookings.filter((booking) => ['Confirmed', 'CheckedIn'].includes(booking.status)).length,
-    cancelled: bookings.filter((booking) => booking.status === 'Cancelled').length
+    pending: bookings.filter((b) => b.status === 'Pending').length,
+    confirmed: bookings.filter((b) => ['Confirmed', 'CheckedIn'].includes(b.status)).length,
+    cancelled: bookings.filter((b) => b.status === 'Cancelled').length
   }), [bookings]);
 
   return (
@@ -304,17 +298,14 @@ function BookingsPage() {
                 Refresh
               </Button>
               <Button variant="primary" onClick={openCreate}>
-                <FontAwesomeIcon icon={faPlus} className="me-2" />
-                Add Booking
+                <FontAwesomeIcon icon={faPlus} className="me-2" />Add Booking
               </Button>
             </Col>
           </Row>
         </Card.Body>
       </Card>
 
-      {feedback && (
-        <FeedbackCard feedback={feedback} onClose={() => setFeedback(null)} />
-      )}
+      {feedback && <FeedbackCard feedback={feedback} onClose={() => setFeedback(null)} />}
 
       <Row className="g-3">
         <Col md={3}><Card className="border-0 shadow-sm h-100"><Card.Body><p className="text-muted mb-1">Total</p><h3 className="fw-bold mb-0">{stats.total}</h3></Card.Body></Card></Col>
@@ -332,11 +323,9 @@ function BookingsPage() {
             </Col>
             <Col lg={6}>
               <Row className="g-2">
-                <Col md={7}>
-                  <Form.Control value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search booking number, guest, email, or room" />
-                </Col>
+                <Col md={7}><Form.Control value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search booking, guest, email, or room" /></Col>
                 <Col md={5}>
-                  <Form.Select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
+                  <Form.Select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
                     <option value="All">All statuses</option>
                     {bookingStatuses.map((item) => <option key={item} value={item}>{item}</option>)}
                   </Form.Select>
@@ -361,14 +350,8 @@ function BookingsPage() {
                 </tr>
               </thead>
               <tbody>
-                {loading && (
-                  <tr><td colSpan="8" className="text-center py-4"><Spinner size="sm" className="me-2" />Loading bookings...</td></tr>
-                )}
-
-                {!loading && filteredBookings.length === 0 && (
-                  <tr><td colSpan="8" className="text-center text-muted py-4">No bookings found.</td></tr>
-                )}
-
+                {loading && <tr><td colSpan="8" className="text-center py-4"><Spinner size="sm" className="me-2" />Loading bookings...</td></tr>}
+                {!loading && filteredBookings.length === 0 && <tr><td colSpan="8" className="text-center text-muted py-4">No bookings found.</td></tr>}
                 {!loading && filteredBookings.map((booking) => (
                   <tr key={bookingId(booking)}>
                     <td>
@@ -383,18 +366,12 @@ function BookingsPage() {
                     <td>{displayDate(booking.checkInDate)}</td>
                     <td>{displayDate(booking.checkOutDate)}</td>
                     <td><Badge bg={statusVariant(booking.status)}>{booking.status || 'Pending'}</Badge></td>
-                    <td className="text-center fw-semibold">${Number(booking.totalPrice || 0).toLocaleString()}</td>
-                    <td className="text-center">
+                    <td className="fw-semibold">${Number(booking.totalPrice || 0).toLocaleString()}</td>
+                    <td>
                       <ButtonGroup size="sm">
                         <Button variant="outline-secondary" onClick={() => loadBookingDetails(booking, 'view')} disabled={detailsLoading}><FontAwesomeIcon icon={faEye} /></Button>
                         <Button variant="outline-primary" onClick={() => loadBookingDetails(booking, 'edit')} disabled={booking.status === 'Cancelled'}><FontAwesomeIcon icon={faPenToSquare} /></Button>
-                        <Button
-                          variant="outline-warning"
-                          onClick={() => { setSelectedBooking(booking); setCancelReason(''); setCancelModal(true); }}
-                          disabled={booking.status === 'Cancelled'}
-                        >
-                          <FontAwesomeIcon icon={faBan} />
-                        </Button>
+                        <Button variant="outline-warning" onClick={() => { setSelectedBooking(booking); setCancelReason(''); setCancelModal(true); }} disabled={booking.status === 'Cancelled'}><FontAwesomeIcon icon={faBan} /></Button>
                         <Button variant="outline-danger" onClick={() => { setSelectedBooking(booking); setDeleteModal(true); }}><FontAwesomeIcon icon={faTrash} /></Button>
                       </ButtonGroup>
                     </td>
@@ -406,6 +383,7 @@ function BookingsPage() {
         </Card.Body>
       </Card>
 
+      {/* Create Modal */}
       <Modal show={createModal} onHide={() => setCreateModal(false)} centered size="lg">
         <Form onSubmit={handleCreateBooking}>
           <Modal.Header closeButton><Modal.Title>Add Booking</Modal.Title></Modal.Header>
@@ -413,33 +391,44 @@ function BookingsPage() {
             <Row className="g-3">
               <Col md={6}>
                 <Form.Label>Guest</Form.Label>
-                <Form.Select required value={createForm.guestId} onChange={(event) => setCreateForm({ ...createForm, guestId: event.target.value })}>
+                <Form.Select required value={createForm.guestId} onChange={(e) => setCreateForm({ ...createForm, guestId: e.target.value })}>
                   <option value="">Select guest</option>
-                  {guests.map((guest) => <option key={guest._id} value={guest._id}>{guest.fullName} - {guest.email}</option>)}
+                  {guests.map((g) => <option key={g._id} value={g._id}>{g.fullName} - {g.email}</option>)}
                 </Form.Select>
               </Col>
               <Col md={6}>
                 <Form.Label>Available Room</Form.Label>
-                <Form.Select required value={createForm.roomId} onChange={(event) => setCreateForm({ ...createForm, roomId: event.target.value })}>
+                <Form.Select required value={createForm.roomId} onChange={(e) => setCreateForm({ ...createForm, roomId: e.target.value })}>
                   <option value="">Select available room</option>
                   {availableRooms.map((room) => <option key={room._id} value={room._id}>Room {room.roomNumber} - {room.categoryId?.name || 'Category'}</option>)}
                 </Form.Select>
               </Col>
               <Col md={6}>
                 <Form.Label>Check-in Date</Form.Label>
-                <Form.Control required type="date" min={todayInput} value={createForm.checkInDate} onChange={(event) => setCreateForm({ ...createForm, checkInDate: event.target.value, checkOutDate: createForm.checkOutDate && createForm.checkOutDate <= event.target.value ? '' : createForm.checkOutDate })} />
+                <Form.Control required type="date" min={todayInput} value={createForm.checkInDate}
+                  onChange={(e) => setCreateForm({ ...createForm, checkInDate: e.target.value, checkOutDate: createForm.checkOutDate && createForm.checkOutDate <= e.target.value ? '' : createForm.checkOutDate })} />
               </Col>
               <Col md={6}>
                 <Form.Label>Check-out Date</Form.Label>
-                <Form.Control required type="date" min={createForm.checkInDate || todayInput} value={createForm.checkOutDate} onChange={(event) => setCreateForm({ ...createForm, checkOutDate: event.target.value })} />
+                <Form.Control required type="date" min={createForm.checkInDate || todayInput} value={createForm.checkOutDate}
+                  onChange={(e) => setCreateForm({ ...createForm, checkOutDate: e.target.value })} />
               </Col>
               <Col md={6}>
                 <Form.Label>Total Price</Form.Label>
-                <Form.Control required type="number" min="0" step="0.01" value={createForm.totalPrice} onChange={(event) => setCreateForm({ ...createForm, totalPrice: event.target.value })} />
+                <Form.Control required type="number" min="0" step="0.01" value={createForm.totalPrice}
+                  onChange={(e) => setCreateForm({ ...createForm, totalPrice: e.target.value })} />
               </Col>
               <Col md={12}>
                 <Form.Label>Special Requests</Form.Label>
-                <Form.Control as="textarea" rows={3} maxLength={500} value={createForm.specialRequests} onChange={(event) => setCreateForm({ ...createForm, specialRequests: event.target.value })} />
+                <Form.Control as="textarea" rows={3} maxLength={500} value={createForm.specialRequests}
+                  onChange={(e) => setCreateForm({ ...createForm, specialRequests: e.target.value })} />
+              </Col>
+              {/* Images - copied from edit room images */}
+              <Col md={12}>
+                <Form.Label>Room Images (optional)</Form.Label>
+                <Form.Control type="file" accept="image/*" multiple
+                  onChange={(e) => setImageFiles(Array.from(e.target.files || []))} />
+                <small className="text-muted">Images will be uploaded to the selected room.</small>
               </Col>
             </Row>
           </Modal.Body>
@@ -450,6 +439,7 @@ function BookingsPage() {
         </Form>
       </Modal>
 
+      {/* Edit Modal */}
       <Modal show={editModal} onHide={() => setEditModal(false)} centered size="lg">
         <Form onSubmit={handleUpdateBooking}>
           <Modal.Header closeButton><Modal.Title>Edit Booking</Modal.Title></Modal.Header>
@@ -457,25 +447,29 @@ function BookingsPage() {
             <Row className="g-3">
               <Col md={6}>
                 <Form.Label>Check-in Date</Form.Label>
-                <Form.Control type="date" value={editForm.checkInDate} onChange={(event) => setEditForm({ ...editForm, checkInDate: event.target.value, checkOutDate: editForm.checkOutDate && editForm.checkOutDate <= event.target.value ? '' : editForm.checkOutDate })} />
+                <Form.Control type="date" value={editForm.checkInDate}
+                  onChange={(e) => setEditForm({ ...editForm, checkInDate: e.target.value, checkOutDate: editForm.checkOutDate && editForm.checkOutDate <= e.target.value ? '' : editForm.checkOutDate })} />
               </Col>
               <Col md={6}>
                 <Form.Label>Check-out Date</Form.Label>
-                <Form.Control type="date" min={editForm.checkInDate || undefined} value={editForm.checkOutDate} onChange={(event) => setEditForm({ ...editForm, checkOutDate: event.target.value })} />
+                <Form.Control type="date" min={editForm.checkInDate || undefined} value={editForm.checkOutDate}
+                  onChange={(e) => setEditForm({ ...editForm, checkOutDate: e.target.value })} />
               </Col>
               <Col md={6}>
                 <Form.Label>Status</Form.Label>
-                <Form.Select value={editForm.status} onChange={(event) => setEditForm({ ...editForm, status: event.target.value })}>
+                <Form.Select value={editForm.status} onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}>
                   {bookingStatuses.map((item) => <option key={item} value={item}>{item}</option>)}
                 </Form.Select>
               </Col>
               <Col md={6}>
                 <Form.Label>Total Price</Form.Label>
-                <Form.Control type="number" min="0" step="0.01" value={editForm.totalPrice} onChange={(event) => setEditForm({ ...editForm, totalPrice: event.target.value })} />
+                <Form.Control type="number" min="0" step="0.01" value={editForm.totalPrice}
+                  onChange={(e) => setEditForm({ ...editForm, totalPrice: e.target.value })} />
               </Col>
               <Col md={12}>
                 <Form.Label>Special Requests</Form.Label>
-                <Form.Control as="textarea" rows={3} maxLength={500} value={editForm.specialRequests} onChange={(event) => setEditForm({ ...editForm, specialRequests: event.target.value })} />
+                <Form.Control as="textarea" rows={3} maxLength={500} value={editForm.specialRequests}
+                  onChange={(e) => setEditForm({ ...editForm, specialRequests: e.target.value })} />
               </Col>
             </Row>
           </Modal.Body>
@@ -486,6 +480,7 @@ function BookingsPage() {
         </Form>
       </Modal>
 
+      {/* View Modal */}
       <Modal show={viewModal} onHide={() => setViewModal(false)} centered>
         <Modal.Header closeButton><Modal.Title>Booking Details</Modal.Title></Modal.Header>
         <Modal.Body>
@@ -508,12 +503,14 @@ function BookingsPage() {
         <Modal.Footer><Button variant="secondary" onClick={() => setViewModal(false)}>Close</Button></Modal.Footer>
       </Modal>
 
+      {/* Cancel Modal */}
       <Modal show={cancelModal} onHide={() => setCancelModal(false)} centered>
         <Form onSubmit={handleCancelBooking}>
           <Modal.Header closeButton><Modal.Title>Cancel Booking</Modal.Title></Modal.Header>
           <Modal.Body>
             <Form.Label>Cancel Reason</Form.Label>
-            <Form.Control required as="textarea" rows={3} value={cancelReason} onChange={(event) => setCancelReason(event.target.value)} placeholder="Write the cancel reason" />
+            <Form.Control required as="textarea" rows={3} value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)} placeholder="Write the cancel reason" />
           </Modal.Body>
           <Modal.Footer>
             <Button variant="outline-secondary" onClick={() => setCancelModal(false)}>Close</Button>
@@ -522,9 +519,10 @@ function BookingsPage() {
         </Form>
       </Modal>
 
+      {/* Delete Modal */}
       <Modal show={deleteModal} onHide={() => setDeleteModal(false)} centered>
         <Modal.Header closeButton><Modal.Title>Delete Booking</Modal.Title></Modal.Header>
-        <Modal.Body>Are you sure you want to delete this booking? This action uses the existing DELETE booking endpoint.</Modal.Body>
+        <Modal.Body>Are you sure you want to delete this booking?</Modal.Body>
         <Modal.Footer>
           <Button variant="outline-secondary" onClick={() => setDeleteModal(false)}>Close</Button>
           <Button variant="danger" onClick={handleDeleteBooking} disabled={saving}>{saving ? 'Deleting...' : 'Delete'}</Button>

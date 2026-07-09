@@ -297,9 +297,17 @@ export const dashboardApi = {
   },
 
   async createInvoice(payload) {
-    const response = await api.post('/dashboard/invoices', payload);
-    return readArray(response, 'invoice');
-  },
+  console.log("Invoice Payload:", payload);
+
+  const response = await api.post("/dashboard/invoices", {
+    bookingId: payload.bookingId,
+    totalAmount: payload.totalAmount,
+    method: payload.method,
+    status: payload.status,
+  });
+
+  return readObject(response, "invoice");
+},
 
   async getInvoices() {
     const response = await api.get('/dashboard/invoices');
