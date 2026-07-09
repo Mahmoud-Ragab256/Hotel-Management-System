@@ -1,14 +1,11 @@
 import { useEffect, useState } from 'react';
-import { dashboardApi, getApiErrorMessage } from '../services/api.js';
-
-const BASE_URL =
-  import.meta.env?.VITE_API_BASE_URL ||
-  'https://hotel-management-system-sigma-ruby.vercel.app';
+import { dashboardApi, getApiErrorMessage, API_BASE_URL } from '../services/api.js';
+import { useTheme } from '../context/ThemeContext.jsx';
 
 const resolveImageUrl = (img) => {
   if (!img) return null;
   if (typeof img === 'string' && img.startsWith('http')) return img;
-  if (typeof img === 'string') return `${BASE_URL}/${img}`;
+  if (typeof img === 'string') return `${API_BASE_URL}/${img.replace(/^\//, '')}`;
   return null;
 };
 
@@ -31,45 +28,80 @@ const formatDate = (value) => {
 function Stars({ rating }) {
   const value = Number(rating) || 0;
   return (
-    <div style={{ display: 'flex', gap: 2 }}>
+    <div style={{ display: 'flex', gap: '3px' }}>
       {[1, 2, 3, 4, 5].map((n) => (
-        <span key={n} style={{ fontSize: 15, color: n <= value ? '#f59e0b' : '#e2e8f0' }}>★</span>
+        <span key={n} style={{ fontSize: '15px', color: n <= value ? '#f59e0b' : '#374151', transition: 'color 0.2s' }}>★</span>
       ))}
     </div>
   );
 }
 
 function ReviewCard({ review, guest }) {
-  const guestName = guest?.fullName || guest?.name || 'Guest';
-  const avatarUrl = resolveImageUrl(guest?.avatar);
-  const targetLabel = review.roomId?.name || review.serviceId?.name || review.roomName || review.serviceName || null;
+  const { colors, isDark } = useTheme();
+  const [isHovered, setIsHovered] = useState(false);
+  const [imgError, setImgError] = useState(false);
+
+  const resolvedGuest = guest || (review.guestId && typeof review.guestId === 'object' ? review.guestId : null);
+  const guestName = resolvedGuest?.fullName || resolvedGuest?.name || 'Guest';
+  const avatarUrl = resolveImageUrl(resolvedGuest?.avatar);
+
+  const roomLabel = review.roomId ? (review.roomId.roomNumber ? `Room #${review.roomId.roomNumber}` : review.roomId.name) : null;
+  const serviceLabel = review.serviceId ? review.serviceId.name : null;
+  const targetLabel = roomLabel || serviceLabel || review.roomName || review.serviceName || null;
+
   const comment = review.comment || review.message || review.text || '';
   const date = formatDate(review.createdAt || review.date);
 
   return (
-    <div style={{
-      background: '#fff',
-      borderRadius: 20,
-      boxShadow: '0 2px 8px rgba(0,0,0,0.06), 0 8px 32px rgba(0,0,0,0.05)',
-      padding: '26px 28px',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 16,
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          {avatarUrl ? (
+    <div
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      style={{
+        background: colors.bgCard,
+        borderRadius: '20px',
+        border: isHovered
+          ? `1px solid ${colors.borderHover}`
+          : `1px solid ${colors.borderCard}`,
+        boxShadow: isHovered
+          ? colors.shadowHover
+          : colors.shadow,
+        padding: '28px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '18px',
+        transform: isHovered ? 'translateY(-4px)' : 'translateY(0)',
+        transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', minWidth: 0 }}>
+          {avatarUrl && !imgError ? (
             <img
               src={avatarUrl}
               alt={guestName}
-              style={{ width: 46, height: 46, borderRadius: '50%', objectFit: 'cover' }}
-              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+              style={{
+                width: '46px',
+                height: '46px',
+                borderRadius: '50%',
+                objectFit: 'cover',
+                border: `1px solid ${colors.borderCard}`,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                flexShrink: 0
+              }}
+              onError={() => setImgError(true)}
             />
           ) : (
             <div style={{
-              width: 46, height: 46, borderRadius: '50%', background: '#e2e8f0',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#94a3b8',
+              width: '46px',
+              height: '46px',
+              borderRadius: '50%',
+              background: colors.inputBg,
+              border: `1px solid ${colors.borderCard}`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: colors.accent,
+              flexShrink: 0
             }}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}>
                 <circle cx="12" cy="8" r="4" />
@@ -77,9 +109,9 @@ function ReviewCard({ review, guest }) {
               </svg>
             </div>
           )}
-          <div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: '#0f172a' }}>{guestName}</div>
-            {date && <div style={{ fontSize: 12, color: '#94a3b8' }}>{date}</div>}
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: '15px', fontWeight: '600', color: colors.textPrimary, overflowWrap: 'break-word', wordBreak: 'break-word' }}>{guestName}</div>
+            {date && <div style={{ fontSize: '12px', color: colors.textSecondary, overflowWrap: 'break-word', wordBreak: 'break-word' }}>{date}</div>}
           </div>
         </div>
         <Stars rating={review.rating} />
@@ -88,22 +120,45 @@ function ReviewCard({ review, guest }) {
       {targetLabel && (
         <span style={{
           alignSelf: 'flex-start',
-          fontSize: 11, fontWeight: 700, color: '#0ea5e9',
-          textTransform: 'uppercase', letterSpacing: '0.08em',
-          background: '#f0f9ff', padding: '4px 12px', borderRadius: 999,
+          fontSize: '11px',
+          fontWeight: '700',
+          color: colors.accent,
+          textTransform: 'uppercase',
+          letterSpacing: '0.08em',
+          background: 'rgba(200, 90, 73, 0.1)',
+          padding: '5px 12px',
+          borderRadius: '20px',
+          border: '1px solid rgba(200, 90, 73, 0.15)',
+          overflowWrap: 'break-word',
+          wordBreak: 'break-word',
+          maxWidth: '100%'
         }}>
           {targetLabel}
         </span>
       )}
 
       {comment && (
-        <p style={{ margin: 0, fontSize: 14, color: '#64748b', lineHeight: 1.7 }}>{comment}</p>
+        <p style={{
+          margin: 0,
+          fontSize: '14px',
+          color: colors.textPrimary,
+          lineHeight: '1.75',
+          fontWeight: '300',
+          fontStyle: 'italic',
+          letterSpacing: '0.01em',
+          overflowWrap: 'break-word',
+          wordBreak: 'break-word',
+          whiteSpace: 'pre-wrap'
+        }}>
+          "{comment}"
+        </p>
       )}
     </div>
   );
 }
 
 export default function GuestsReviewsPage() {
+  const { colors, isDark } = useTheme();
   const [reviews, setReviews] = useState([]);
   const [guestsById, setGuestsById] = useState({});
   const [loading, setLoading] = useState(true);
@@ -148,46 +203,102 @@ export default function GuestsReviewsPage() {
     : null;
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f8fafc', fontFamily: "'Inter', system-ui, sans-serif" }}>
-      <div style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%)', padding: '52px 24px 40px', textAlign: 'center' }}>
-        <div style={{ fontSize: 11, color: '#7dd3fc', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10 }}>Testimonials</div>
-        <h1 style={{ fontSize: 'clamp(26px, 5vw, 42px)', fontWeight: 800, color: '#fff', margin: '0 0 12px', letterSpacing: '-0.03em' }}>Guest Reviews</h1>
-        <p style={{ fontSize: 16, color: '#94a3b8', margin: '0 auto', maxWidth: 480 }}>See what our guests are saying about their stay.</p>
+    <div style={{ minHeight: '100vh', background: 'transparent', color: colors.textPrimary, fontFamily: '"Inter", sans-serif' }}>
+      {/* Header Banner - Luxury Room shape/photo Background */}
+      <div style={{
+        position: 'relative',
+        background: colors.accent,
+        borderBottom: `1px solid ${colors.borderCard}`,
+        padding: '60px 24px 50px',
+        textAlign: 'center',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        boxShadow: '0 10px 30px rgba(200, 90, 73, 0.15)',
+        borderRadius: '24px',
+        margin: '20px 24px 0',
+      }}>
+        <div style={{
+          fontSize: '11px',
+          color: 'rgba(255, 255, 255, 0.9)',
+          fontWeight: '700',
+          textTransform: 'uppercase',
+          letterSpacing: '0.15em',
+          marginBottom: '12px',
+          fontFamily: '"Inter", sans-serif',
+          textShadow: isDark ? '0 1px 2px rgba(0,0,0,0.2)' : 'none'
+        }}>
+          Testimonials & Experiences
+        </div>
+        <h1 style={{
+          fontSize: 'clamp(28px, 5vw, 48px)',
+          fontWeight: '700',
+          color: '#ffffff',
+          margin: '0 0 16px',
+          letterSpacing: '-0.02em',
+          fontFamily: '"Playfair Display", serif',
+          textShadow: isDark ? '0 2px 8px rgba(0,0,0,0.3)' : 'none'
+        }}>
+          Guest Testimonials
+        </h1>
+        <p style={{
+          fontSize: '15px',
+          color: 'rgba(255, 255, 255, 0.9)',
+          margin: '0 auto 24px',
+          maxWidth: '480px',
+          fontWeight: '300',
+          lineHeight: '1.6',
+          textShadow: isDark ? '0 2px 4px rgba(0,0,0,0.3)' : 'none'
+        }}>
+          Read genuine reviews and shared stories from our global community of luxury travellers.
+        </p>
         {averageRating && (
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, marginTop: 22, background: 'rgba(255,255,255,0.08)', padding: '10px 20px', borderRadius: 999 }}>
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '14px',
+            background: colors.bgCard,
+            backdropFilter: 'blur(10px)',
+            borderRadius: '30px',
+            padding: '10px 24px',
+            border: `1px solid ${colors.borderCard}`,
+            boxShadow: colors.shadow,
+            marginTop: '12px'
+          }}>
             <Stars rating={Math.round(averageRating)} />
-            <span style={{ color: '#fff', fontWeight: 700, fontSize: 14 }}>{averageRating} / 5</span>
-            <span style={{ color: '#94a3b8', fontSize: 13 }}>({reviews.length} reviews)</span>
+            <span style={{ color: colors.textPrimary, fontWeight: '700', fontSize: '14px' }}>{averageRating} / 5</span>
+            <span style={{ color: colors.textSecondary, fontSize: '13px', fontWeight: '500' }}>({reviews.length} verified reviews)</span>
           </div>
         )}
       </div>
 
-      <div style={{ maxWidth: 1000, margin: '0 auto', padding: '40px 24px' }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '60px 24px' }}>
         {loading && (
-          <div style={{ textAlign: 'center', padding: '80px 0', color: '#94a3b8' }}>
-            <div style={{ width: 36, height: 36, border: '3px solid #e2e8f0', borderTopColor: '#0ea5e9', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 16px' }} />
-            <p style={{ margin: 0 }}>Loading reviews...</p>
+          <div style={{ textAlign: 'center', padding: '100px 0', color: colors.textSecondary }}>
+            <div style={{ width: '36px', height: '36px', border: `3px solid ${colors.borderCard}`, borderTopColor: colors.accent, borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 16px' }} />
+            <p style={{ margin: 0, fontSize: '14px' }}>Loading guest testimonials...</p>
             <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
           </div>
         )}
 
         {error && !loading && (
-          <div style={{ background: '#fee2e2', border: '1px solid #fca5a5', borderRadius: 12, padding: '14px 18px', color: '#991b1b', fontSize: 14 }}>
-            Could not load reviews: {error}
+          <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.25)', borderRadius: '12px', padding: '16px 20px', color: '#fca5a5', fontSize: '14px' }}>
+            <strong>Could not load reviews:</strong> {error}
           </div>
         )}
 
         {!loading && !error && reviews.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '80px 0', color: '#94a3b8' }}>
-            <p style={{ margin: 0 }}>No reviews to show yet.</p>
+          <div style={{ textAlign: 'center', padding: '100px 0', color: colors.textSecondary, border: `1px dashed ${colors.borderCard}`, borderRadius: '20px' }}>
+            <p style={{ margin: 0, fontSize: '14px' }}>No reviews have been published yet.</p>
           </div>
         )}
 
         {!loading && !error && reviews.length > 0 && (
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-            gap: 24,
+            gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))',
+            gap: '32px',
           }}>
             {reviews.map((review) => {
               const guestId = typeof review.guestId === 'string' ? review.guestId : review.guestId?._id;

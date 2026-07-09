@@ -499,6 +499,18 @@ async guestLogin(payload) {
     const response = await api.post('/dashboard/notifications', payload);
     return readObject(response, 'notification');
   },
+  async getLandingPageData() {
+    const response = await api.get('/client/landing/landing');
+    return response?.data?.data || null;
+  },
+  async getLandingStatistics() {
+    const response = await api.get('/client/landing/statistics');
+    return response?.data?.data || null;
+  },
+  async getLandingFeaturedCategories() {
+    const response = await api.get('/client/landing/featured-categories');
+    return response?.data?.data || null;
+  },
 
 
 };

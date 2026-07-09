@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { dashboardApi, getApiErrorMessage } from '../services/api.js';
 import { getCurrentUser } from '../services/auth.js';
+import { useTheme } from '../context/ThemeContext.jsx';
 
 const CONTACT_INFO = [
   {
@@ -63,30 +64,36 @@ const TICKET_CATEGORIES = ['Booking', 'Payment & Invoices', 'Room & Services', '
 
 function MessageBox({ type, message, onClose }) {
   const colors = {
-    success: { bg: '#d1fae5', border: '#6ee7b7', text: '#065f46', icon: '✅' },
-    error: { bg: '#fee2e2', border: '#fca5a5', text: '#991b1b', icon: '❌' },
-    warning: { bg: '#fef3c7', border: '#fcd34d', text: '#92400e', icon: '⚠️' },
+    success: { bg: 'rgba(16, 185, 129, 0.1)', border: 'rgba(16, 185, 129, 0.3)', text: '#10b981', icon: '✅' },
+    error: { bg: 'rgba(239, 68, 68, 0.1)', border: 'rgba(239, 68, 68, 0.3)', text: '#fca5a5', icon: '❌' },
+    warning: { bg: 'rgba(245, 158, 11, 0.1)', border: 'rgba(245, 158, 11, 0.3)', text: '#f59e0b', icon: '⚠️' },
   };
   const c = colors[type] || colors.error;
   return (
-    <div style={{ background: c.bg, border: `1.5px solid ${c.border}`, borderRadius: 12, padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12 }}>
-      <span style={{ fontSize: 20 }}>{c.icon}</span>
-      <span style={{ fontSize: 14, color: c.text, fontWeight: 500, flex: 1 }}>{message}</span>
-      <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, color: c.text, lineHeight: 1 }}>×</button>
+    <div style={{ background: c.bg, border: `1px solid ${c.border}`, borderRadius: 12, padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12 }}>
+      <span style={{ fontSize: 18 }}>{c.icon}</span>
+      <span style={{ fontSize: 13, color: c.text, fontWeight: 500, flex: 1, fontFamily: '"Inter", sans-serif' }}>{message}</span>
+      <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: c.text, lineHeight: 1 }}>×</button>
     </div>
   );
 }
 
 function ContactCard({ item }) {
+  const [isHovered, setIsHovered] = useState(false);
+  const { colors } = useTheme();
+
   return (
     <a
       href={item.href}
       target={item.href.startsWith('http') ? '_blank' : undefined}
       rel={item.href.startsWith('http') ? 'noopener noreferrer' : undefined}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       style={{
-        background: '#fff',
+        background: colors.bgCard,
         borderRadius: 20,
-        boxShadow: '0 2px 8px rgba(0,0,0,0.06), 0 8px 32px rgba(0,0,0,0.05)',
+        border: isHovered ? `1px solid ${colors.borderHover}` : `1px solid ${colors.borderCard}`,
+        boxShadow: isHovered ? colors.shadowHover : colors.shadow,
         padding: '28px 26px',
         display: 'flex',
         flexDirection: 'column',
@@ -95,28 +102,31 @@ function ContactCard({ item }) {
         textDecoration: 'none',
         flex: 1,
         minWidth: 220,
-        transition: 'transform 0.15s, box-shadow 0.15s',
+        transform: isHovered ? 'translateY(-4px)' : 'translateY(0)',
+        transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
       }}
-      onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; }}
-      onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
     >
       <div style={{
-        width: 44, height: 44, borderRadius: 12, background: '#f0f9ff',
+        width: 44, height: 44, borderRadius: 12, background: 'rgba(200, 90, 73, 0.1)',
         display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20,
+        border: '1px solid rgba(200, 90, 73, 0.2)'
       }}>
         {item.icon}
       </div>
-      <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: '"Inter", sans-serif' }}>
         {item.label}
       </div>
-      <div style={{ fontSize: 16, fontWeight: 700, color: '#0f172a' }}>{item.value}</div>
-      <span style={{ fontSize: 13, fontWeight: 600, color: '#0ea5e9' }}>{item.actionLabel} →</span>
+      <div style={{ fontSize: 16, fontWeight: 700, color: colors.textPrimary, fontFamily: '"Inter", sans-serif' }}>{item.value}</div>
+      <span style={{ fontSize: 13, fontWeight: 600, color: colors.accent, fontFamily: '"Inter", sans-serif', transition: 'color 0.2s' }}>
+        {item.actionLabel} →
+      </span>
     </a>
   );
 }
 
 function FaqAccordion({ items }) {
   const [openIndex, setOpenIndex] = useState(null);
+  const { colors } = useTheme();
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -126,10 +136,11 @@ function FaqAccordion({ items }) {
           <div
             key={index}
             style={{
-              background: '#fff',
+              background: colors.bgCard,
               borderRadius: 16,
-              border: '1px solid #e2e8f0',
+              border: isOpen ? `1px solid ${colors.borderHover}` : `1px solid ${colors.borderCard}`,
               overflow: 'hidden',
+              transition: 'border-color 0.3s ease'
             }}
           >
             <button
@@ -145,29 +156,31 @@ function FaqAccordion({ items }) {
                 justifyContent: 'space-between',
                 gap: 16,
                 textAlign: 'left',
+                outline: 'none'
               }}
             >
-              <span style={{ fontSize: 15, fontWeight: 700, color: '#0f172a' }}>{item.question}</span>
+              <span style={{ fontSize: 15, fontWeight: 600, color: colors.textPrimary, fontFamily: '"Inter", sans-serif' }}>{item.question}</span>
               <span style={{
                 flexShrink: 0,
                 width: 26,
                 height: 26,
                 borderRadius: '50%',
-                background: isOpen ? '#0ea5e9' : '#f1f5f9',
-                color: isOpen ? '#fff' : '#64748b',
+                background: isOpen ? colors.accent : (colors.inputBg || '#222222'),
+                color: isOpen ? '#ffffff' : colors.textPrimary,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontSize: 16,
                 fontWeight: 700,
-                transition: 'background 0.15s, color 0.15s',
+                transition: 'background 0.2s, color 0.2s',
+                border: isOpen ? 'none' : `1px solid ${colors.borderCard}`
               }}>
                 {isOpen ? '−' : '+'}
               </span>
             </button>
             {isOpen && (
-              <div style={{ padding: '0 22px 20px' }}>
-                <p style={{ margin: 0, fontSize: 14, color: '#64748b', lineHeight: 1.7 }}>{item.answer}</p>
+              <div style={{ padding: '0 22px 20px', borderTop: `1px solid ${colors.borderCard}`, paddingTop: '16px' }}>
+                <p style={{ margin: 0, fontSize: 14, color: colors.textSecondary, lineHeight: 1.7, fontFamily: '"Inter", sans-serif', fontWeight: 300 }}>{item.answer}</p>
               </div>
             )}
           </div>
@@ -179,6 +192,7 @@ function FaqAccordion({ items }) {
 
 function SupportTicketForm() {
   const user = getCurrentUser();
+  const { colors } = useTheme();
   const [form, setForm] = useState({
     name: user?.name || '',
     email: user?.email || '',
@@ -187,6 +201,7 @@ function SupportTicketForm() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [status, setStatus] = useState(null);
+  const [isHovered, setIsHovered] = useState(false);
 
   const handleChange = (field) => (e) => {
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
@@ -221,62 +236,107 @@ function SupportTicketForm() {
     width: '100%',
     padding: '12px 14px',
     borderRadius: 12,
-    border: '1px solid #e2e8f0',
+    border: `1px solid ${colors.inputBorder || 'rgba(255,255,255,0.1)'}`,
     fontSize: 14,
-    color: '#0f172a',
-    background: '#f8fafc',
+    color: colors.textPrimary,
+    backgroundColor: colors.inputBg,
     outline: 'none',
     boxSizing: 'border-box',
+    fontFamily: '"Inter", sans-serif',
+    transition: 'border-color 0.2s, background-color 0.2s',
   };
 
   const labelStyle = {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: 700,
-    color: '#94a3b8',
+    color: colors.textSecondary,
     textTransform: 'uppercase',
-    letterSpacing: '0.06em',
+    letterSpacing: '0.08em',
     marginBottom: 8,
     display: 'block',
+    fontFamily: '"Inter", sans-serif',
   };
 
   return (
-    <div style={{
-      background: '#fff',
-      borderRadius: 20,
-      boxShadow: '0 2px 8px rgba(0,0,0,0.06), 0 8px 32px rgba(0,0,0,0.05)',
-      padding: '32px',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 20,
-    }}>
+    <div
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      style={{
+        background: colors.bgCard,
+        borderRadius: 20,
+        border: isHovered ? `1px solid ${colors.borderHover}` : `1px solid ${colors.borderCard}`,
+        boxShadow: isHovered ? colors.shadowHover : colors.shadow,
+        padding: '32px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 20,
+        transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
+      }}
+    >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
           <div style={{ flex: 1, minWidth: 200 }}>
             <label style={labelStyle}>Full name</label>
-            <input style={inputStyle} value={form.name} onChange={handleChange('name')} placeholder="Your name" />
+            <input
+              style={inputStyle}
+              value={form.name}
+              onChange={handleChange('name')}
+              placeholder="Your name"
+              onFocus={(e) => e.target.style.borderColor = colors.accent}
+              onBlur={(e) => e.target.style.borderColor = colors.inputBorder || 'rgba(255,255,255,0.1)'}
+            />
           </div>
           <div style={{ flex: 1, minWidth: 200 }}>
             <label style={labelStyle}>Email</label>
-            <input style={inputStyle} value={form.email} onChange={handleChange('email')} placeholder="you@example.com" type="email" />
+            <input
+              style={inputStyle}
+              value={form.email}
+              onChange={handleChange('email')}
+              placeholder="you@example.com"
+              type="email"
+              onFocus={(e) => e.target.style.borderColor = colors.accent}
+              onBlur={(e) => e.target.style.borderColor = colors.inputBorder || 'rgba(255,255,255,0.1)'}
+            />
           </div>
         </div>
 
         <div>
           <label style={labelStyle}>Category</label>
-          <select style={inputStyle} value={form.category} onChange={handleChange('category')}>
-            {TICKET_CATEGORIES.map((cat) => (
-              <option key={cat} value={cat}>{cat}</option>
-            ))}
-          </select>
+          <div style={{ position: 'relative' }}>
+            <select
+              style={{
+                ...inputStyle,
+                appearance: 'none',
+                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239ca3af' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E")`,
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'right 14px center',
+                backgroundSize: '14px',
+                paddingRight: '40px'
+              }}
+              value={form.category}
+              onChange={handleChange('category')}
+            >
+              {TICKET_CATEGORIES.map((cat) => (
+                <option key={cat} value={cat} style={{ background: colors.bgCard, color: colors.textPrimary }}>{cat}</option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <div>
           <label style={labelStyle}>Message</label>
           <textarea
-            style={{ ...inputStyle, minHeight: 130, resize: 'vertical', fontFamily: 'inherit' }}
+            style={{
+              ...inputStyle,
+              minHeight: 130,
+              resize: 'vertical',
+              fontFamily: 'inherit'
+            }}
             value={form.message}
             onChange={handleChange('message')}
             placeholder="Tell us how we can help..."
+            onFocus={(e) => e.target.style.borderColor = colors.accent}
+            onBlur={(e) => e.target.style.borderColor = colors.inputBorder || 'rgba(255,255,255,0.1)'}
           />
         </div>
       </div>
@@ -291,17 +351,18 @@ function SupportTicketForm() {
         style={{
           alignSelf: 'flex-start',
           padding: '12px 28px',
-          borderRadius: 12,
+          borderRadius: '24px',
           border: 'none',
-          background: submitting ? '#7dd3fc' : '#0ea5e9',
+          background: submitting ? (colors.bgCardAlt || '#2e2e2e') : colors.accent,
           color: '#fff',
-          fontWeight: 700,
+          fontWeight: 600,
           fontSize: 14,
           cursor: submitting ? 'not-allowed' : 'pointer',
-          transition: 'background 0.15s',
+          transition: 'all 0.25s',
+          fontFamily: '"Inter", sans-serif'
         }}
-        onMouseEnter={(e) => { if (!submitting) e.currentTarget.style.background = '#0284c7'; }}
-        onMouseLeave={(e) => { if (!submitting) e.currentTarget.style.background = '#0ea5e9'; }}
+        onMouseEnter={(e) => { if (!submitting) e.currentTarget.style.background = colors.accentHover; }}
+        onMouseLeave={(e) => { if (!submitting) e.currentTarget.style.background = colors.accent; }}
       >
         {submitting ? 'Sending...' : 'Send message'}
       </button>
@@ -310,12 +371,29 @@ function SupportTicketForm() {
 }
 
 export default function HelpCenterPage() {
+  const { colors, isDark } = useTheme();
+
   return (
-    <div style={{ minHeight: '100vh', background: '#f8fafc', fontFamily: "'Inter', system-ui, sans-serif" }}>
-      <div style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%)', padding: '52px 24px 40px', textAlign: 'center' }}>
-        <div style={{ fontSize: 11, color: '#7dd3fc', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10 }}>Support</div>
-        <h1 style={{ fontSize: 'clamp(26px, 5vw, 42px)', fontWeight: 800, color: '#fff', margin: '0 0 12px', letterSpacing: '-0.03em' }}>Help Center</h1>
-        <p style={{ fontSize: 16, color: '#94a3b8', margin: '0 auto', maxWidth: 480 }}>We are here to help. Find quick answers or reach out to our team directly.</p>
+    <div style={{ minHeight: '100vh', background: 'transparent', color: colors.textPrimary, fontFamily: '"Inter", sans-serif', paddingBottom: '120px' }}>
+
+      {/* Header Banner */}
+      <div style={{
+        background: colors.accent,
+        border: `1px solid ${colors.borderCard}`,
+        borderRadius: "20px",
+        boxShadow: "0 10px 30px rgba(200, 90, 73, 0.15)",
+        padding: "60px 24px 48px",
+        textAlign: "center"
+      }}>
+        <div style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.9)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: '12px' }}>
+          Support
+        </div>
+        <h1 style={{ fontSize: 'clamp(26px, 5vw, 42px)', fontWeight: '700', color: '#ffffff', margin: '0 0 12px', letterSpacing: '-0.02em', fontFamily: '"Playfair Display", serif' }}>
+          Help Center
+        </h1>
+        <p style={{ fontSize: '15px', color: 'rgba(255, 255, 255, 0.95)', margin: '0 auto', maxWidth: '480px', fontWeight: '300', lineHeight: '1.6' }}>
+          We are here to help. Find quick answers or reach out to our team directly.
+        </p>
       </div>
 
       <div style={{ maxWidth: 1000, margin: '0 auto', padding: '40px 24px', display: 'flex', flexDirection: 'column', gap: 56 }}>
@@ -328,12 +406,16 @@ export default function HelpCenterPage() {
         </section>
 
         <section>
-          <h2 style={{ fontSize: 22, fontWeight: 800, color: '#0f172a', margin: '0 0 20px' }}>Frequently Asked Questions</h2>
+          <h2 style={{ fontSize: 22, fontWeight: 700, color: colors.textPrimary, margin: '0 0 20px', fontFamily: '"Playfair Display", serif' }}>
+            Frequently Asked Questions
+          </h2>
           <FaqAccordion items={FAQ_ITEMS} />
         </section>
 
         <section>
-          <h2 style={{ fontSize: 22, fontWeight: 800, color: '#0f172a', margin: '0 0 20px' }}>Still need help?</h2>
+          <h2 style={{ fontSize: 22, fontWeight: 700, color: colors.textPrimary, margin: '0 0 20px', fontFamily: '"Playfair Display", serif' }}>
+            Still need help?
+          </h2>
           <SupportTicketForm />
         </section>
       </div>

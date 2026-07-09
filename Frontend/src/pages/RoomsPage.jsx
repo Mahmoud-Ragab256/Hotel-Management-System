@@ -25,10 +25,13 @@ import {
   faCircleCheck,
   faCircleExclamation,
   faTriangleExclamation,
-  faCircleInfo
+  faCircleInfo,
+  faWrench,
+  faDoorOpen
 } from '@fortawesome/free-solid-svg-icons';
 import { dashboardApi, getApiErrorMessage } from '../services/api.js';
 import { formatDisplayDateTime } from '../utils/date.js';
+import StatCard from '../components/StatCard';
 
 const roomStatuses = ['Available', 'Occupied', 'Maintenance'];
 
@@ -406,10 +409,42 @@ function RoomsPage() {
       )}
 
       <Row className="g-3">
-        <Col md={3}><Card className="border-0 shadow-sm h-100"><Card.Body><p className="text-muted mb-1">Displayed Rooms</p><h3 className="fw-bold mb-0">{counts.total}</h3></Card.Body></Card></Col>
-        <Col md={3}><Card className="border-0 shadow-sm h-100"><Card.Body><p className="text-muted mb-1">Available</p><h3 className="fw-bold mb-0">{counts.available}</h3></Card.Body></Card></Col>
-        <Col md={3}><Card className="border-0 shadow-sm h-100"><Card.Body><p className="text-muted mb-1">Occupied</p><h3 className="fw-bold mb-0">{counts.occupied}</h3></Card.Body></Card></Col>
-        <Col md={3}><Card className="border-0 shadow-sm h-100"><Card.Body><p className="text-muted mb-1">Maintenance</p><h3 className="fw-bold mb-0">{counts.maintenance}</h3></Card.Body></Card></Col>
+        <Col md={3}>
+          <StatCard
+            title="Displayed Rooms"
+            value={counts.total}
+            icon={faBed}
+            description="Loaded from backend"
+            variant="primary"
+          />
+        </Col>
+        <Col md={3}>
+          <StatCard
+            title="Available"
+            value={counts.available}
+            icon={faCircleCheck}
+            description="Ready for booking"
+            variant="success"
+          />
+        </Col>
+        <Col md={3}>
+          <StatCard
+            title="Occupied"
+            value={counts.occupied}
+            icon={faDoorOpen}
+            description="Guest checked in"
+            variant="danger"
+          />
+        </Col>
+        <Col md={3}>
+          <StatCard
+            title="Maintenance"
+            value={counts.maintenance}
+            icon={faWrench}
+            description="Out of service"
+            variant="warning"
+          />
+        </Col>
       </Row>
 
       <Card className="border-0 shadow-sm">
@@ -564,7 +599,7 @@ function RoomsPage() {
                 {roomImages.map((image, index) => (
                   <ListGroup.Item key={`${image}-${index}`} className="d-flex align-items-center justify-content-between gap-3">
                     <div className="text-truncate">{image}</div>
-                    <a href={image.startsWith('http') ? image : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'}/${image}`} target="_blank" rel="noreferrer" className="btn btn-sm btn-outline-secondary">Open</a>
+                    <a href={image.startsWith('http') ? image : `${import.meta.env.VITE_API_BASE_URL || 'https://hotel-management-system-sigma-ruby.vercel.app'}/${image}`} target="_blank" rel="noreferrer" className="btn btn-sm btn-outline-secondary">Open</a>
                   </ListGroup.Item>
                 ))}
               </ListGroup>

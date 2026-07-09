@@ -71,7 +71,7 @@ const shiftVariant = (shift = '') => {
 const fullAssetUrl = (path) => {
   if (!path) return '';
   if (path.startsWith('http')) return path;
-  const base = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+  const base = import.meta.env.VITE_API_BASE_URL || 'https://hotel-management-system-sigma-ruby.vercel.app';
   return `${base}/${path.replace(/^\//, '')}`;
 };
 

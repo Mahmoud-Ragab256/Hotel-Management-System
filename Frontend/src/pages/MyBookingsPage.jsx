@@ -28,7 +28,7 @@ const MyBookingsPage = () => {
       const userBookings = (allBookings || []).filter(
         (b) => b?.guestId?.email?.toLowerCase() === email.toLowerCase()
       );
-      
+
       setBookings(userBookings);
     } catch (err) {
       setError(getApiErrorMessage(err));
@@ -48,7 +48,7 @@ const MyBookingsPage = () => {
     try {
 
       await dashboardApi.updateBooking(bookingId, { status: "Confirmed" });
-      await loadPageData(); 
+      await loadPageData();
     } catch (err) {
       setError(getApiErrorMessage(err));
     } finally {
@@ -140,7 +140,7 @@ const MyBookingsPage = () => {
                   const id = booking._id || booking.id || "";
                   const roomNum = booking.roomId?.roomNumber || booking.roomNumber || "N/A";
                   const isPending = booking.status?.trim() === "Pending";
-                  
+
                   return (
                     <tr key={id}>
                       <td className="px-4 py-3 fw-mono text-muted small">
@@ -164,17 +164,17 @@ const MyBookingsPage = () => {
                       <td className="px-4 py-3 text-end">
                         {isPending ? (
                           <div className="d-flex justify-content-end gap-2">
-                            <Button 
-                              variant="success" 
-                              size="sm" 
+                            <Button
+                              variant="success"
+                              size="sm"
                               disabled={actionLoading}
                               onClick={() => handleConfirm(id)}
                             >
                               Confirm
                             </Button>
-                            <Button 
-                              variant="outline-danger" 
-                              size="sm" 
+                            <Button
+                              variant="outline-danger"
+                              size="sm"
                               disabled={actionLoading}
                               onClick={() => handleCancel(id)}
                             >

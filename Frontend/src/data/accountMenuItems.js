@@ -1,9 +1,10 @@
 import {
   faUser,
+  faCalendarCheck,
   faDoorOpen,
   faConciergeBell,
-  faCalendarCheck,
   faFileInvoiceDollar,
+  // faSignOutAlt
 } from "@fortawesome/free-solid-svg-icons";
 
 

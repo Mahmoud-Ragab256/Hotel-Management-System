@@ -34,108 +34,181 @@ import {
 import ProfileImageCropper from '../components/ProfileImageCropper.jsx';
 import { dashboardApi, getApiErrorMessage } from '../services/api.js';
 import { formatDisplayDate } from '../utils/date.js';
+import { useTheme } from '../context/ThemeContext.jsx';
 
-const PRIMARY = '#111827';
+const PRIMARY_DARK = '#111111';
+const SECONDARY_DARK = '#161616';
+const BORDER_COLOR = '#222222';
+const ACCENT_COLOR = '#c85a49';
+const ACCENT_HOVER = '#d16b5a';
 
 const vipLevelStyle = (level = '') => {
-  if (level === 'Bronze') return { background: '#cd7f32', color: '#fff', border: 'none' };
-  if (level === 'Silver') return { background: '#71717a', color: '#fff', border: 'none' };
-  if (level === 'Gold') return { background: '#ffd700', color: '#78350f', border: 'none' };
-  if (level === 'Platinum') return { background: '#94a3b8', color: '#fff', border: 'none' };
-  return { background: '#f8fafc', color: '#64748b', border: '1px solid #e2e8f0' };
+  const norm = level.toLowerCase();
+  if (norm === 'bronze') return { background: '#cd7f32', color: '#ffffff', border: 'none' };
+  if (norm === 'silver') return { background: '#71717a', color: '#ffffff', border: 'none' };
+  if (norm === 'gold') return { background: '#ffd700', color: '#78350f', border: 'none' };
+  if (norm === 'platinum') return { background: '#94a3b8', color: '#ffffff', border: 'none' };
+  return { background: '#222222', color: '#9ca3af', border: '1px solid #2e2e2e' };
 };
 
 const toDateInput = formatDisplayDate;
 
-const bookingStatusVariant = (status = '') => {
-  if (status === 'Confirmed' || status === 'CheckedIn') return 'success';
-  if (status === 'Pending') return 'warning';
-  if (status === 'CheckedOut') return 'info';
-  if (status === 'Cancelled') return 'danger';
-  return 'secondary';
+const statusColors = {
+  Confirmed: { bg: 'rgba(16, 185, 129, 0.1)', text: '#10b981', border: 'rgba(16, 185, 129, 0.2)' },
+  CheckedIn: { bg: 'rgba(59, 130, 246, 0.1)', text: '#3b82f6', border: 'rgba(59, 130, 246, 0.2)' },
+  CheckedOut: { bg: 'rgba(156, 163, 175, 0.1)', text: '#9ca3af', border: 'rgba(156, 163, 175, 0.2)' },
+  Cancelled: { bg: 'rgba(239, 68, 68, 0.1)', text: '#fca5a5', border: 'rgba(239, 68, 68, 0.2)' },
+  Pending: { bg: 'rgba(245, 158, 11, 0.1)', text: '#f59e0b', border: 'rgba(245, 158, 11, 0.2)' },
 };
 
+function StatusPill({ status }) {
+  const colors = statusColors[status] || { bg: '#222222', text: '#9ca3af', border: '#2e2e2e' };
+  return (
+    <span style={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '5px',
+      padding: '4px 12px',
+      borderRadius: '999px',
+      fontSize: '11px',
+      fontWeight: '600',
+      background: colors.bg,
+      color: colors.text,
+      border: `1px solid ${colors.border}`,
+      fontFamily: '"Inter", sans-serif'
+    }}>
+      <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: colors.text }} />
+      {status}
+    </span>
+  );
+}
+
 const feedbackMeta = (type = 'info') => {
-  if (type === 'success') return { title: 'Success', icon: faCircleCheck, tone: 'success' };
-  if (type === 'danger') return { title: 'Error', icon: faCircleExclamation, tone: 'danger' };
-  if (type === 'warning') return { title: 'Attention', icon: faTriangleExclamation, tone: 'warning' };
-  return { title: 'Info', icon: faCircleInfo, tone: 'info' };
+  if (type === 'success') return { title: 'Success', icon: faCircleCheck, tone: 'success', bg: 'rgba(16, 185, 129, 0.1)', border: 'rgba(16, 185, 129, 0.2)', text: '#10b981' };
+  if (type === 'danger') return { title: 'Error', icon: faCircleExclamation, tone: 'danger', bg: 'rgba(239, 68, 68, 0.1)', border: 'rgba(239, 68, 68, 0.2)', text: '#fca5a5' };
+  if (type === 'warning') return { title: 'Attention', icon: faTriangleExclamation, tone: 'warning', bg: 'rgba(245, 158, 11, 0.1)', border: 'rgba(245, 158, 11, 0.2)', text: '#f59e0b' };
+  return { title: 'Info', icon: faCircleInfo, tone: 'info', bg: 'rgba(59, 130, 246, 0.1)', border: 'rgba(59, 130, 246, 0.2)', text: '#3b82f6' };
 };
 
 function FeedbackCard({ feedback, onClose }) {
+  const { colors } = useTheme();
   const meta = feedbackMeta(feedback?.type);
   return (
-    <Card className={`border-0 shadow-sm feedback-card feedback-card-${meta.tone}`}>
-      <Card.Body className="p-3">
-        <div className="d-flex align-items-start gap-3">
-          <span className={`feedback-icon bg-${meta.tone}-subtle text-${meta.tone} rounded-circle d-inline-flex align-items-center justify-content-center flex-shrink-0`}>
-            <FontAwesomeIcon icon={meta.icon} />
-          </span>
-          <div className="flex-grow-1">
-            <div className="fw-semibold">{meta.title}</div>
-            <div className="small text-muted">{feedback?.message}</div>
-          </div>
-          {onClose && (
-            <Button variant="light" size="sm" className="rounded-circle lh-1" onClick={onClose} aria-label="Close">×</Button>
-          )}
-        </div>
-      </Card.Body>
-    </Card>
+    <div style={{
+      background: meta.bg,
+      border: `1px solid ${meta.border}`,
+      borderRadius: '12px',
+      padding: '14px 18px',
+      display: 'flex',
+      alignItems: 'start',
+      gap: '14px',
+      marginBottom: '20px'
+    }}>
+      <span style={{ color: meta.text, fontSize: '18px', marginTop: '2px' }}>
+        <FontAwesomeIcon icon={meta.icon} />
+      </span>
+      <div style={{ flex: 1 }}>
+        <div style={{ fontWeight: 600, color: colors.textPrimary, fontSize: '14px' }}>{meta.title}</div>
+        <div style={{ fontSize: '13px', color: colors.textSecondary, fontWeight: 300 }}>{feedback?.message}</div>
+      </div>
+      {onClose && (
+        <button
+          onClick={onClose}
+          style={{ background: 'none', border: 'none', color: meta.text, cursor: 'pointer', fontSize: '18px', lineHeight: 1 }}
+        >
+          &times;
+        </button>
+      )}
+    </div>
   );
 }
 
 function PasswordField({ label, value, onChange, placeholder, required = false }) {
   const [show, setShow] = useState(false);
+  const { colors } = useTheme();
   return (
     <div>
-      <Form.Label className="text-muted small fw-semibold">{label}{required && <span className="text-danger ms-1">*</span>}</Form.Label>
-      <div className="input-group">
-        <Form.Control
+      <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: colors.textSecondary, marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+        {label}{required && <span style={{ color: colors.accent, marginLeft: '4px' }}>*</span>}
+      </label>
+      <div style={{ display: 'flex', position: 'relative' }}>
+        <input
           type={show ? 'text' : 'password'}
           value={value}
           onChange={onChange}
           placeholder={placeholder}
           required={required}
-          className="border-end-0"
-          style={{ borderRadius: '8px 0 0 8px' }}
+          style={{
+            flex: 1,
+            background: colors.inputBg,
+            border: `1px solid ${colors.inputBorder}`,
+            color: colors.textPrimary,
+            padding: '12px 48px 12px 14px',
+            borderRadius: '12px',
+            outline: 'none',
+            fontSize: '14px',
+            boxSizing: 'border-box',
+            fontFamily: '"Inter", sans-serif'
+          }}
+          className="form-control-custom"
         />
-        <Button
-          variant="outline-secondary"
+        <button
+          type="button"
           onClick={() => setShow((s) => !s)}
-          style={{ borderRadius: '0 8px 8px 0', borderLeft: 'none' }}
+          style={{
+            position: 'absolute',
+            right: '12px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            background: 'none',
+            border: 'none',
+            color: colors.textSecondary,
+            cursor: 'pointer',
+            padding: '4px 8px'
+          }}
           tabIndex={-1}
         >
           <FontAwesomeIcon icon={show ? faEyeSlash : faEye} />
-        </Button>
+        </button>
       </div>
     </div>
   );
 }
 
 function InfoRow({ icon, label, value }) {
+  const { colors } = useTheme();
   return (
-    <div className="d-flex align-items-start gap-3 py-3" style={{ borderBottom: '1px solid #f1f5f9' }}>
-      <span
-        className="d-inline-flex align-items-center justify-content-center flex-shrink-0 rounded-2"
-        style={{ width: 36, height: 36, background: '#f8fafc', color: '#64748b' }}
-      >
+    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '16px 0', borderBottom: `1px solid ${colors.borderCard}`, width: '100%', minWidth: 0 }}>
+      <span style={{
+        width: '38px',
+        height: '38px',
+        borderRadius: '10px',
+        background: 'rgba(200, 90, 73, 0.1)',
+        color: colors.accent,
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0
+      }}>
         <FontAwesomeIcon icon={icon} size="sm" />
       </span>
-      <div>
-        <div className="text-muted small">{label}</div>
-        <div className="fw-semibold" style={{ color: PRIMARY }}>{value || '—'}</div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: '11px', color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</div>
+        <div style={{ fontSize: '14.5px', fontWeight: '600', color: colors.textPrimary, marginTop: '2px', wordBreak: 'break-all', overflowWrap: 'break-word' }}>{value || '—'}</div>
       </div>
     </div>
   );
 }
 
 function ProfilePage() {
+  const { colors, isDark } = useTheme();
   const fileRef = useRef(null);
 
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState(null);
+  const [activeTab, setActiveTab] = useState('profile');
 
   const [editModal, setEditModal] = useState(false);
   const [editForm, setEditForm] = useState({
@@ -289,394 +362,807 @@ function ProfilePage() {
     : '?';
 
   return (
-    <div className="d-flex flex-column gap-4">
-      <Card className="border-0 shadow-sm">
-        <Card.Body className="p-4">
-          <div className="d-flex align-items-center gap-3">
-            <span
-              className="d-inline-flex align-items-center justify-content-center rounded-3"
-              style={{ width: 44, height: 44, background: '#f0f4ff', color: PRIMARY, flexShrink: 0 }}
-            >
-              <FontAwesomeIcon icon={faUser} />
-            </span>
-            <div>
-              <h1 className="h3 fw-bold mb-1">My Profile</h1>
-              <p className="text-muted mb-0">View and manage your account details.</p>
-            </div>
-          </div>
-        </Card.Body>
-      </Card>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '30px', color: colors.textPrimary, fontFamily: '"Inter", sans-serif', width: '100%', maxWidth: '100%', boxSizing: 'border-box', minWidth: 0 }}>
+
+      {/* Dynamic Modal theme-styling helper */}
+      <style>{`
+        .modal-content {
+          background-color: ${colors.bgCard} !important;
+          border: 1px solid ${colors.borderCard} !important;
+          color: ${colors.textPrimary} !important;
+          border-radius: 20px !important;
+          box-shadow: ${isDark ? '0 25px 50px rgba(0,0,0,0.8)' : '0 12px 40px rgba(0,0,0,0.1)'} !important;
+        }
+        .modal-header {
+          border-bottom: 1px solid ${colors.borderCard} !important;
+          padding: 24px !important;
+        }
+        .modal-title {
+          font-family: "Playfair Display", serif !important;
+          font-weight: 700 !important;
+          font-size: 20px !important;
+        }
+        .modal-footer {
+          border-top: 1px solid ${colors.borderCard} !important;
+          padding: 16px 24px !important;
+        }
+        .modal-header .btn-close {
+          filter: ${isDark ? 'invert(1)' : 'none'} !important;
+          opacity: 0.6;
+        }
+        .modal-header .btn-close:hover {
+          opacity: 1;
+        }
+        .form-control-dark {
+          background-color: ${colors.inputBg} !important;
+          border: 1px solid ${colors.inputBorder} !important;
+          color: ${colors.textPrimary} !important;
+          border-radius: 12px !important;
+          padding: 12px 14px !important;
+          font-size: 14px !important;
+          outline: none !important;
+          transition: border-color 0.2s !important;
+        }
+        .form-control-dark:focus {
+          border-color: ${colors.accent} !important;
+          box-shadow: none !important;
+        }
+        .form-control-dark[readonly], .form-control-dark:disabled {
+          background-color: ${colors.bgCardAlt} !important;
+          border-color: ${colors.inputBorder} !important;
+          color: ${colors.textSecondary} !important;
+        }
+        
+        /* Premium Responsive Layout and Padding Helper */
+        .profile-grid-container {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr);
+          gap: 24px;
+          align-items: start;
+          padding-top: 12px;
+          width: 100%;
+          max-width: 100%;
+          box-sizing: border-box;
+        }
+        @media (min-width: 992px) {
+          .profile-grid-container {
+            grid-template-columns: 320px minmax(0, 1fr);
+            gap: 32px;
+          }
+        }
+        .profile-card-responsive {
+          padding: 20px !important;
+          box-sizing: border-box !important;
+          min-width: 0 !important;
+          overflow: hidden !important;
+        }
+        @media (min-width: 768px) {
+          .profile-card-responsive {
+            padding: 32px !important;
+          }
+        }
+        @media (max-width: 576px) {
+          .booking-card-image {
+            width: 100% !important;
+            height: 180px !important;
+          }
+          .profile-grid-container {
+            padding-left: 0px;
+            padding-right: 0px;
+          }
+          .profile-card-responsive {
+            padding: 16px !important;
+          }
+          .booking-card-content {
+            padding: 16px !important;
+          }
+        }
+      `}</style>
 
       {feedback && <FeedbackCard feedback={feedback} onClose={() => setFeedback(null)} />}
 
       {loading && !profile ? (
-        <div className="text-center py-5"><Spinner /></div>
+        <div style={{ textAlign: "center", padding: "100px 0", color: colors.textSecondary }}>
+          <div style={{ width: "36px", height: "36px", border: `3px solid ${colors.borderCard}`, borderTopColor: colors.accent, borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto 16px" }} />
+          <p style={{ margin: 0, fontSize: "14px" }}>Loading sanctuary details...</p>
+        </div>
       ) : (
-        <>
-          <Card className="border-0 shadow-sm">
-            <Card.Body className="p-4">
-              <div className="d-flex flex-wrap align-items-center gap-4">
-                <div className="position-relative flex-shrink-0">
+        <div className="profile-grid-container">
+
+          {/* LEFT: Premium VIP Sidebar Card */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', minWidth: 0, width: '100%', boxSizing: 'border-box' }}>
+            <div style={{
+              background: colors.bgCard,
+              borderRadius: '20px',
+              border: `1px solid ${colors.borderCard}`,
+              padding: '32px 20px 24px',
+              boxShadow: colors.shadow,
+              textAlign: 'center',
+              position: 'relative',
+              boxSizing: 'border-box',
+              overflow: 'hidden',
+              minWidth: 0,
+              width: '100%'
+            }}>
+
+              {/* Overlapping Avatar Container */}
+              <div style={{ position: 'relative', width: '108px', height: '108px', margin: '0 auto 20px', zIndex: 3 }}>
+                <div style={{
+                  width: '100%',
+                  height: '100%',
+                  borderRadius: '50%',
+                  overflow: 'hidden',
+                  border: `4px solid ${colors.bgCard}`,
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+                  background: colors.inputBg,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
                   {profile?.avatar ? (
                     <img
                       src={profile.avatar}
                       alt="Profile"
-                      style={{ width: 96, height: 96, borderRadius: '50%', objectFit: 'cover', border: '3px solid #e2e8f0' }}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
                   ) : (
-                    <div
-                      className="d-flex align-items-center justify-content-center fw-bold fs-3"
-                      style={{ width: 96, height: 96, borderRadius: '50%', background: '#e2e8f0', color: PRIMARY, border: '3px solid #cbd5e1', userSelect: 'none' }}
-                    >
+                    <div style={{
+                      fontWeight: 700,
+                      fontSize: '32px',
+                      color: colors.accent,
+                      fontFamily: '"Playfair Display", serif'
+                    }}>
                       {initials}
                     </div>
                   )}
                 </div>
 
-                <div className="flex-grow-1">
-                  <div className="d-flex flex-wrap align-items-center gap-2 mb-1">
-                    <h2 className="h4 fw-bold mb-0" style={{ color: PRIMARY }}>{profile?.fullName || 'No Name'}</h2>
-                    {profile?.vipLevel && (
-                      <span style={{ ...vipLevelStyle(profile.vipLevel), fontWeight: 600, fontSize: '0.7rem', padding: '1px 8px', borderRadius: '5px', whiteSpace: 'nowrap', display: 'inline-block', lineHeight: '1.6', flexShrink: 0 }}>
-                        {profile.vipLevel.toUpperCase()}
+                {/* VIP Micro Badge */}
+                {profile?.vipLevel && (
+                  <span style={{
+                    position: 'absolute',
+                    bottom: '0',
+                    right: '0',
+                    ...vipLevelStyle(profile.vipLevel),
+                    fontSize: '9px',
+                    fontWeight: '800',
+                    padding: '3px 8px',
+                    borderRadius: '10px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+                  }}>
+                    {profile.vipLevel}
+                  </span>
+                )}
+              </div>
+
+              {/* Name and Basic details */}
+              <h2 style={{ fontSize: '20px', fontWeight: '700', color: colors.textPrimary, margin: '0 0 6px', fontFamily: '"Playfair Display", serif' }}>
+                {profile?.fullName || 'Valued Guest'}
+              </h2>
+              <div style={{ fontSize: '13px', color: colors.textSecondary, marginBottom: '24px', fontWeight: 300, wordBreak: 'break-all' }}>
+                {profile?.email}
+              </div>
+
+              {/* Stats Highlights Grid */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '24px', borderTop: `1px solid ${colors.borderCard}`, paddingTop: '20px' }}>
+                <div style={{ background: colors.bgCardAlt, padding: '12px', borderRadius: '12px', border: `1px solid ${colors.borderCard}` }}>
+                  <div style={{ fontSize: '11px', fontWeight: 600, color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '4px' }}>Stays</div>
+                  <div style={{ fontSize: '18px', fontWeight: 700, color: colors.accent }}>{bookings.length}</div>
+                </div>
+                <div style={{ background: colors.bgCardAlt, padding: '12px', borderRadius: '12px', border: `1px solid ${colors.borderCard}` }}>
+                  <div style={{ fontSize: '11px', fontWeight: 600, color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '4px' }}>Reviews</div>
+                  <div style={{ fontSize: '18px', fontWeight: 700, color: colors.accent }}>{reviews.length}</div>
+                </div>
+              </div>
+
+              {/* Photo Upload Actions */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhotoChange} />
+                <button
+                  onClick={() => fileRef.current?.click()}
+                  style={{
+                    width: '100%',
+                    background: colors.inputBg,
+                    border: `1px solid ${colors.inputBorder}`,
+                    color: colors.textPrimary,
+                    borderRadius: '12px',
+                    padding: '8px 16px',
+                    fontSize: '13px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px'
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = colors.accent; e.currentTarget.style.color = colors.accent; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = colors.inputBorder; e.currentTarget.style.color = colors.textPrimary; }}
+                >
+                  <FontAwesomeIcon icon={faCamera} />
+                  Change Image
+                </button>
+                {profile?.avatar && (
+                  <button
+                    onClick={handleRemovePhoto}
+                    style={{
+                      width: '100%',
+                      background: 'transparent',
+                      border: 'none',
+                      color: '#ef4444',
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                      fontWeight: '600',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px',
+                      padding: '4px 0'
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.color = '#f87171'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.color = '#ef4444'; }}
+                  >
+                    <FontAwesomeIcon icon={faTrash} />
+                    Remove Image
+                  </button>
+                )}
+              </div>
+
+            </div>
+          </div>
+
+          {/* RIGHT: Dynamic Tab Workspace */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%', minWidth: 0, boxSizing: 'border-box' }}>
+
+            {/* Elegant Luxury Tabs Selector */}
+            <div style={{
+              display: 'flex',
+              gap: '24px',
+              borderBottom: `1px solid ${colors.borderCard}`,
+              paddingBottom: '2px',
+              marginBottom: '4px',
+              overflowX: 'auto'
+            }} className="no-scrollbar">
+              {[
+                { id: 'profile', label: 'Overview', badge: null },
+                { id: 'bookings', label: 'Reservations', badge: bookings.length > 0 ? bookings.length : null },
+                { id: 'reviews', label: 'Guestbook Reviews', badge: reviews.length > 0 ? reviews.length : null }
+              ].map(tab => {
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      borderBottom: isActive ? `2.5px solid ${colors.accent}` : '2.5px solid transparent',
+                      padding: '12px 6px',
+                      color: isActive ? colors.textPrimary : colors.textMuted,
+                      fontWeight: isActive ? '700' : '500',
+                      fontSize: '14.5px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      transition: 'all 0.2s',
+                      whiteSpace: 'nowrap',
+                      marginBottom: '-2px'
+                    }}
+                    onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.color = colors.textPrimary; }}
+                    onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.color = colors.textMuted; }}
+                  >
+                    {tab.label}
+                    {tab.badge !== null && (
+                      <span style={{
+                        fontSize: '10.5px',
+                        background: isActive ? colors.accent : (isDark ? '#222222' : '#e5e7eb'),
+                        color: isActive ? '#ffffff' : colors.textSecondary,
+                        fontWeight: '700',
+                        padding: '1.5px 6.5px',
+                        borderRadius: '10px',
+                        marginLeft: '2px'
+                      }}>
+                        {tab.badge}
                       </span>
                     )}
-                  </div>
-                  <div className="text-muted small d-flex align-items-center gap-2">
-                    <FontAwesomeIcon icon={faEnvelope} size="xs" />
-                    {profile?.email || '—'}
-                  </div>
-                  <div className="d-flex gap-2 mt-3">
-                    <input ref={fileRef} type="file" accept="image/*" className="d-none" onChange={handlePhotoChange} />
-                    <Button
-                      size="sm"
-                      variant="outline-secondary"
-                      onClick={() => fileRef.current?.click()}
-                      style={{ borderRadius: 8 }}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* TAB CONTENTS 1: Overview & Personal Details */}
+            {activeTab === 'profile' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+
+                {/* Personal Information */}
+                <div style={{
+                  background: colors.bgCard,
+                  borderRadius: '20px',
+                  border: `1px solid ${colors.borderCard}`,
+                  boxShadow: colors.shadow
+                }} className="profile-card-responsive">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: `1px solid ${colors.borderCard}`, paddingBottom: '16px', marginBottom: '8px' }}>
+                    <div>
+                      <h3 style={{ fontSize: '18px', fontWeight: '700', color: colors.textPrimary, margin: '0 0 4px', fontFamily: '"Playfair Display", serif' }}>
+                        Personal Information
+                      </h3>
+                      <p style={{ fontSize: '13px', color: colors.textSecondary, margin: 0, fontWeight: 300 }}>
+                        Your registered contact details and identity information.
+                      </p>
+                    </div>
+                    <button
+                      onClick={openEdit}
+                      style={{
+                        background: 'transparent',
+                        border: `1px solid ${colors.inputBorder}`,
+                        borderRadius: '20px',
+                        padding: '6px 16px',
+                        color: colors.textPrimary,
+                        fontSize: '13px',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px'
+                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = colors.accent; e.currentTarget.style.color = colors.accent; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = colors.inputBorder; e.currentTarget.style.color = colors.textPrimary; }}
                     >
-                      <FontAwesomeIcon icon={faCamera} className="me-2" />
-                      Change Photo
-                    </Button>
-                    {profile?.avatar && (
-                      <Button size="sm" variant="link" className="text-danger p-0 ms-1" onClick={handleRemovePhoto}>
-                        <FontAwesomeIcon icon={faTrash} className="me-1" />
-                        Remove
-                      </Button>
-                    )}
+                      <FontAwesomeIcon icon={faPenToSquare} />
+                      Edit Details
+                    </button>
+                  </div>
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+                    gap: '0 24px',
+                    width: '100%',
+                    boxSizing: 'border-box'
+                  }}>
+                    <div style={{ minWidth: 0, width: '100%' }}>
+                      <InfoRow icon={faUser} label="Full Name" value={profile?.fullName} />
+                      <InfoRow icon={faEnvelope} label="Email Address" value={profile?.email} />
+                      <InfoRow icon={faPhone} label="Phone Number" value={profile?.phone} />
+                    </div>
+                    <div style={{ minWidth: 0, width: '100%' }}>
+                      <InfoRow icon={faBriefcase} label="National ID / Passport" value={profile?.nationalId} />
+                      <InfoRow icon={faBuilding} label="VIP Account Class" value={profile?.vipLevel} />
+                    </div>
                   </div>
                 </div>
-              </div>
-            </Card.Body>
-          </Card>
 
-          <Card className="border-0 shadow-sm">
-            <Card.Header className="bg-white border-0 p-4 pb-3">
-              <div className="d-flex align-items-start justify-content-between gap-3">
-                <div>
-                  <h2 className="h5 fw-bold mb-1">Personal Information</h2>
-                  <p className="text-muted mb-0 small">Your contact details and role.</p>
-                </div>
-                <Button
-                  variant="outline-secondary"
-                  size="sm"
-                  onClick={openEdit}
-                  style={{ borderRadius: 8, flexShrink: 0 }}
-                >
-                  <FontAwesomeIcon icon={faPenToSquare} className="me-2" />
-                  Edit
-                </Button>
-              </div>
-            </Card.Header>
-            <Card.Body className="px-4 pb-4 pt-0">
-              <Row>
-                <Col md={6}>
-                  <InfoRow icon={faUser} label="Full Name" value={profile?.fullName} />
-                  <InfoRow icon={faEnvelope} label="Email" value={profile?.email} />
-                  <InfoRow icon={faPhone} label="Phone" value={profile?.phone} />
-                </Col>
-                <Col md={6}>
-                  <InfoRow icon={faBriefcase} label="National ID" value={profile?.nationalId} />
-                  <InfoRow icon={faBuilding} label="VIP Level" value={profile?.vipLevel} />
-                </Col>
-              </Row>
-            </Card.Body>
-          </Card>
+                {/* Security Section */}
+                <div style={{
+                  background: colors.bgCard,
+                  borderRadius: '20px',
+                  border: `1px solid ${colors.borderCard}`,
+                  boxShadow: colors.shadow
+                }} className="profile-card-responsive">
+                  <h3 style={{ fontSize: '18px', fontWeight: '700', color: colors.textPrimary, margin: '0 0 4px', fontFamily: '"Playfair Display", serif' }}>
+                    Security & Credentials
+                  </h3>
+                  <p style={{ fontSize: '13px', color: colors.textSecondary, margin: '0 0 24px', fontWeight: 300 }}>
+                    Manage login authentication methods and password credentials.
+                  </p>
 
-          <Card className="border-0 shadow-sm">
-            <Card.Header className="bg-white border-0 p-4 pb-3">
-              <h2 className="h5 fw-bold mb-1">Security & Privacy</h2>
-              <p className="text-muted mb-0 small">Manage how you authenticate and protect your account.</p>
-            </Card.Header>
-            <Card.Body className="px-4 pb-4 pt-0">
-              <div
-                className="d-flex flex-wrap align-items-center justify-content-between gap-3 py-3"
-                style={{ borderBottom: '1px solid #f1f5f9' }}
-              >
-                <div className="d-flex align-items-center gap-3">
-                  <span
-                    className="d-inline-flex align-items-center justify-content-center rounded-2 flex-shrink-0"
-                    style={{ width: 40, height: 40, background: '#f8fafc', color: '#64748b' }}
-                  >
-                    <FontAwesomeIcon icon={faLock} />
-                  </span>
-                  <div>
-                    <div className="fw-semibold" style={{ color: PRIMARY }}>Password Authentication</div>
-                    {profile?.passwordUpdatedAt ? (
-                      <div className="text-muted small">
-                        Last updated {formatDisplayDate(profile.passwordUpdatedAt, { month: 'long', year: 'numeric' })}.
-                        {' '}We recommend changing it every 6 months.
+                  <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '20px', padding: '16px 0', borderTop: `1px solid ${colors.borderCard}`, width: '100%', minWidth: 0, boxSizing: 'border-box' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', minWidth: 0, flex: 1 }}>
+                      <span style={{
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '10px',
+                        background: 'rgba(200, 90, 73, 0.1)',
+                        color: colors.accent,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0
+                      }}>
+                        <FontAwesomeIcon icon={faLock} />
+                      </span>
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <div style={{ fontSize: '14.5px', fontWeight: '600', color: colors.textPrimary, wordBreak: 'break-word', overflowWrap: 'break-word' }}>Password Authentication</div>
+                        <div style={{ fontSize: '12.5px', color: colors.textSecondary, fontWeight: 300, marginTop: '2px', wordBreak: 'break-word', overflowWrap: 'break-word' }}>
+                          {profile?.passwordUpdatedAt ? (
+                            `Last updated ${formatDisplayDate(profile.passwordUpdatedAt, { month: 'long', year: 'numeric' })}.`
+                          ) : (
+                            'We recommend updating your password periodically to keep your account secure.'
+                          )}
+                        </div>
                       </div>
-                    ) : (
-                      <div className="text-muted small">We recommend changing it every 6 months.</div>
-                    )}
+                    </div>
+                    <button
+                      onClick={() => { setPasswordForm({ current: '', next: '', confirm: '' }); setPasswordError(''); setPasswordModal(true); }}
+                      style={{
+                        background: 'transparent',
+                        border: `1px solid ${colors.inputBorder}`,
+                        borderRadius: '20px',
+                        padding: '6px 16px',
+                        color: colors.textPrimary,
+                        fontSize: '13px',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        whiteSpace: 'nowrap'
+                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = colors.accent; e.currentTarget.style.color = colors.accent; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = colors.inputBorder; e.currentTarget.style.color = colors.textPrimary; }}
+                    >
+                      Change Password
+                    </button>
                   </div>
                 </div>
-                <Button
-                  variant="outline-secondary"
-                  size="sm"
-                  style={{ borderRadius: 8, flexShrink: 0 }}
-                  onClick={() => { setPasswordForm({ current: '', next: '', confirm: '' }); setPasswordError(''); setPasswordModal(true); }}
-                >
-                  Change
-                </Button>
-              </div>
-            </Card.Body>
-          </Card>
 
-          <Card className="border-0 shadow-sm">
-            <Card.Header className="bg-white border-0 p-4 pb-3">
-              <div className="d-flex align-items-center gap-3">
-                <span
-                  className="d-inline-flex align-items-center justify-content-center rounded-2 flex-shrink-0"
-                  style={{ width: 36, height: 36, background: '#f0f4ff', color: PRIMARY }}
-                >
-                  <FontAwesomeIcon icon={faCalendarCheck} size="sm" />
-                </span>
-                <div>
-                  <h2 className="h5 fw-bold mb-0">My Bookings</h2>
-                  <p className="text-muted mb-0 small">All reservations linked to your account.</p>
-                </div>
               </div>
-            </Card.Header>
-            <Card.Body className="p-4 pt-0">
-              {bookingsLoading ? (
-                <div className="text-center py-4"><Spinner size="sm" className="me-2" />Loading bookings...</div>
-              ) : bookings.length === 0 ? (
-                <div className="text-muted text-center py-4 small">No bookings found.</div>
-              ) : (
-                <div className="table-responsive">
-                  <Table hover className="align-middle mb-0 text-center admin-table-centered">
-                    <thead className="table-light">
-                      <tr>
-                        <th>Booking ID</th>
-                        <th>Room</th>
-                        <th>Check-in</th>
-                        <th>Check-out</th>
-                        <th>Status</th>
-                        <th>Total</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {bookings.map((b) => {
-                        const id = b?._id || b?.id || '';
-                        return (
-                          <tr key={id}>
-                            <td className="fw-semibold">{id.slice(-8)}</td>
-                            <td>
-                              <div className="d-flex align-items-center justify-content-center gap-2">
-                                <FontAwesomeIcon icon={faBed} className="text-muted" size="sm" />
-                                {b?.roomId?.roomNumber || b?.roomNumber || 'N/A'}
-                              </div>
-                            </td>
-                            <td>{toDateInput(b.checkInDate)}</td>
-                            <td>{toDateInput(b.checkOutDate)}</td>
-                            <td>
-                              <Badge bg={bookingStatusVariant(b.status)}>{b.status || 'Pending'}</Badge>
-                            </td>
-                            <td className="fw-semibold">${Number(b.totalPrice || 0).toLocaleString()}</td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </Table>
-                </div>
-              )}
-            </Card.Body>
-          </Card>
+            )}
 
-          <Card className="border-0 shadow-sm">
-            <Card.Header className="bg-white border-0 p-4 pb-3">
-              <div className="d-flex align-items-center gap-3">
-                <span
-                  className="d-inline-flex align-items-center justify-content-center rounded-2 flex-shrink-0"
-                  style={{ width: 36, height: 36, background: '#fffbeb', color: '#b45309' }}
-                >
-                  <FontAwesomeIcon icon={faStar} size="sm" />
-                </span>
-                <div>
-                  <h2 className="h5 fw-bold mb-0">My Reviews</h2>
-                  <p className="text-muted mb-0 small">Feedback you've left on your stays.</p>
+            {/* TAB CONTENTS 2: Reservations styled in gorgeous cards */}
+            {activeTab === 'bookings' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div style={{ marginBottom: '4px' }}>
+                  <h3 style={{ fontSize: '18px', fontWeight: '700', color: colors.textPrimary, margin: '0 0 4px', fontFamily: '"Playfair Display", serif' }}>
+                    My Reservations
+                  </h3>
+                  <p style={{ fontSize: '13px', color: colors.textSecondary, margin: 0, fontWeight: 300 }}>
+                    A summary of your upcoming stays and history at Aethos.
+                  </p>
                 </div>
-              </div>
-            </Card.Header>
-            <Card.Body className="p-4 pt-0">
-              {reviewsLoading ? (
-                <div className="text-center py-4"><Spinner size="sm" className="me-2" />Loading reviews...</div>
-              ) : reviews.length === 0 ? (
-                <div className="text-muted text-center py-4 small">No reviews yet.</div>
-              ) : (
-                <div className="d-flex flex-column gap-3">
-                  {reviews.map((r) => {
-                    const id = r?._id || r?.id || '';
+
+                {bookingsLoading ? (
+                  <div style={{ textAlign: 'center', padding: '48px 0', background: colors.bgCard, borderRadius: '20px', border: `1px solid ${colors.borderCard}` }}>
+                    <div style={{ width: '28px', height: '28px', border: `2px solid ${colors.borderCard}`, borderTopColor: colors.accent, borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 12px' }} />
+                    <span style={{ fontSize: '13px', color: colors.textSecondary }}>Retrieving bookings...</span>
+                  </div>
+                ) : bookings.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '60px 24px', background: colors.bgCard, borderRadius: '20px', border: `1px solid ${colors.borderCard}` }}>
+                    <FontAwesomeIcon icon={faCalendarCheck} size="2x" style={{ color: colors.textMuted, marginBottom: '16px' }} />
+                    <h4 style={{ fontSize: '16px', fontWeight: '600', color: colors.textPrimary, marginBottom: '6px' }}>No stays booked yet</h4>
+                    <p style={{ fontSize: '13px', color: colors.textSecondary, maxWidth: '320px', margin: '0 auto' }}>
+                      Embark on your next sensory journey by booking a luxury room.
+                    </p>
+                  </div>
+                ) : (
+                  bookings.map((b) => {
+                    const id = b?._id || b?.id || '';
+                    const rNum = b?.roomId?.roomNumber || b?.roomNumber || 'N/A';
+                    const catName = b?.roomId?.categoryId?.name || 'Luxury Suite';
+                    const rImg = b?.roomId?.images?.[0] || 'https://images.unsplash.com/photo-1540518614846-7eded433c457?auto=format&fit=crop&w=400&q=80';
+
                     return (
                       <div
                         key={id}
-                        className="p-3 rounded-3"
-                        style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}
+                        style={{
+                          background: colors.bgCard,
+                          borderRadius: '16px',
+                          border: `1px solid ${colors.borderCard}`,
+                          boxShadow: colors.shadow,
+                          display: 'flex',
+                          overflow: 'hidden',
+                          flexWrap: 'wrap',
+                          transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.borderColor = colors.accent; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.borderColor = colors.borderCard; }}
+                        className="luxury-booking-card"
                       >
-                        <div className="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-2">
-                          <div className="fw-semibold" style={{ color: PRIMARY }}>
-                            {r?.roomId?.roomNumber ? `Room ${r.roomId.roomNumber}` : r?.title || 'Review'}
-                          </div>
-                          <div className="d-flex align-items-center gap-1">
-                            {Array.from({ length: 5 }).map((_, i) => (
-                              <FontAwesomeIcon
-                                key={i}
-                                icon={faStar}
-                                size="xs"
-                                style={{ color: i < (r.rating || 0) ? '#f59e0b' : '#e2e8f0' }}
-                              />
-                            ))}
-                            <span className="text-muted small ms-1">{r.rating || 0}/5</span>
+                        {/* Room Preview Side */}
+                        <div style={{
+                          width: '180px',
+                          background: `url("${rImg}") center/cover no-repeat`,
+                          minHeight: '140px',
+                          position: 'relative'
+                        }} className="booking-card-image">
+                          <div style={{
+                            position: 'absolute',
+                            top: '12px',
+                            left: '12px',
+                            zIndex: 2
+                          }}>
+                            <StatusPill status={b.status} />
                           </div>
                         </div>
-                        {r.comment && (
-                          <p className="text-muted small mb-1">{r.comment}</p>
-                        )}
-                        <div className="text-muted" style={{ fontSize: '0.75rem' }}>
-                          {toDateInput(r.createdAt)}
+
+                        {/* Content Side */}
+                        <div style={{ flex: 1, padding: '24px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '16px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
+                            <div>
+                              <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.06em', color: colors.accent, fontWeight: '700', marginBottom: '2px' }}>
+                                {catName}
+                              </div>
+                              <h4 style={{ fontSize: '19px', fontWeight: '700', fontFamily: '"Playfair Display", serif', color: colors.textPrimary, margin: 0 }}>
+                                Room #{rNum}
+                              </h4>
+                              <div style={{ fontSize: '11px', color: colors.textMuted, fontFamily: 'monospace', marginTop: '3px' }}>
+                                ID: #{id.slice(-8).toUpperCase()}
+                              </div>
+                            </div>
+
+                            <div style={{ textAlign: 'right' }}>
+                              <div style={{ fontSize: '11px', color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                                Total Stay Price
+                              </div>
+                              <div style={{ fontSize: '18px', fontWeight: '800', color: colors.textPrimary, marginTop: '2px' }}>
+                                ${Number(b.totalPrice || 0).toLocaleString()}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Divider */}
+                          <div style={{ height: '1px', background: colors.borderCard, width: '100%' }} />
+
+                          {/* Date Range Details */}
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                              <div>
+                                <span style={{ fontSize: '10px', color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block' }}>Check-in</span>
+                                <span style={{ fontSize: '13.5px', fontWeight: '600', color: colors.textPrimary }}>{toDateInput(b.checkInDate)}</span>
+                              </div>
+                              <span style={{ fontSize: '16px', color: colors.textMuted }}>&rarr;</span>
+                              <div>
+                                <span style={{ fontSize: '10px', color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block' }}>Check-out</span>
+                                <span style={{ fontSize: '13.5px', fontWeight: '600', color: colors.textPrimary }}>{toDateInput(b.checkOutDate)}</span>
+                              </div>
+                            </div>
+
+                            {/* Booking Action Buttons */}
+                            <button
+                              onClick={() => {
+                                // Scroll or redirect user to support if needed, or simply display details
+                                showFeedback('info', `Your reservation details are saved. If you have inquiries about stay #${id.slice(-8).toUpperCase()}, please mention it to our front desk.`);
+                              }}
+                              style={{
+                                background: 'transparent',
+                                border: `1px solid ${colors.inputBorder}`,
+                                color: colors.textPrimary,
+                                borderRadius: '12px',
+                                padding: '6px 14px',
+                                fontSize: '12px',
+                                fontWeight: '600',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s'
+                              }}
+                              onMouseEnter={(e) => { e.currentTarget.style.borderColor = colors.accent; }}
+                              onMouseLeave={(e) => { e.currentTarget.style.borderColor = colors.inputBorder; }}
+                            >
+                              Inquire Concierge
+                            </button>
+                          </div>
                         </div>
+
                       </div>
                     );
-                  })}
+                  })
+                )}
+              </div>
+            )}
+
+            {/* TAB CONTENTS 3: Reviews Left in guestbook card style */}
+            {activeTab === 'reviews' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div style={{ marginBottom: '4px' }}>
+                  <h3 style={{ fontSize: '18px', fontWeight: '700', color: colors.textPrimary, margin: '0 0 4px', fontFamily: '"Playfair Display", serif' }}>
+                    Guestbook Reviews
+                  </h3>
+                  <p style={{ fontSize: '13px', color: colors.textSecondary, margin: 0, fontWeight: 300 }}>
+                    Your notes, feedback, and shared experience chronicles at Aethos.
+                  </p>
                 </div>
-              )}
-            </Card.Body>
-          </Card>
-        </>
+
+                {reviewsLoading ? (
+                  <div style={{ textAlign: 'center', padding: '48px 0', background: colors.bgCard, borderRadius: '20px', border: `1px solid ${colors.borderCard}` }}>
+                    <div style={{ width: '28px', height: '28px', border: `2px solid ${colors.borderCard}`, borderTopColor: colors.accent, borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 12px' }} />
+                    <span style={{ fontSize: '13px', color: colors.textSecondary }}>Retrieving reviews...</span>
+                  </div>
+                ) : reviews.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '60px 24px', background: colors.bgCard, borderRadius: '20px', border: `1px solid ${colors.borderCard}` }}>
+                    <FontAwesomeIcon icon={faStar} size="2x" style={{ color: colors.textMuted, marginBottom: '16px' }} />
+                    <h4 style={{ fontSize: '16px', fontWeight: '600', color: colors.textPrimary, marginBottom: '6px' }}>No reviews left yet</h4>
+                    <p style={{ fontSize: '13px', color: colors.textSecondary, maxWidth: '320px', margin: '0 auto' }}>
+                      After concluding a stay, you can leave a review directly from your past reservations to catalog your feedback.
+                    </p>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    {reviews.map((r) => {
+                      const id = r?._id || r?.id || '';
+                      return (
+                        <div
+                          key={id}
+                          style={{
+                            padding: '24px',
+                            borderRadius: '16px',
+                            background: colors.bgCard,
+                            border: `1px solid ${colors.borderCard}`,
+                            boxShadow: colors.shadow
+                          }}
+                        >
+                          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '14px' }}>
+                            <div>
+                              <div style={{ fontSize: '11px', textTransform: 'uppercase', color: colors.accent, fontWeight: '700', letterSpacing: '0.04em', marginBottom: '2px' }}>
+                                Verified Stay Review
+                              </div>
+                              <div style={{ fontSize: '15px', fontWeight: '700', color: colors.textPrimary, fontFamily: '"Playfair Display", serif' }}>
+                                {r?.roomId?.roomNumber ? `Accomodation Room #${r.roomId.roomNumber}` : r?.title || 'Luxury Room Review'}
+                              </div>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)', padding: '4px 10px', borderRadius: '12px', border: `1px solid ${colors.borderCard}` }}>
+                              {Array.from({ length: 5 }).map((_, i) => (
+                                <FontAwesomeIcon
+                                  key={i}
+                                  icon={faStar}
+                                  size="xs"
+                                  style={{ color: i < (r.rating || 0) ? '#f59e0b' : (isDark ? '#2e2e2e' : 'rgba(0,0,0,0.1)') }}
+                                />
+                              ))}
+                              <span style={{ color: colors.textPrimary, fontSize: '12px', fontWeight: '700', marginLeft: '6px' }}>{r.rating || 0}.0</span>
+                            </div>
+                          </div>
+
+                          {r.comment && (
+                            <p style={{ margin: '0 0 16px 0', fontSize: '14px', color: colors.textPrimary, lineHeight: 1.6, fontWeight: 300, fontStyle: 'italic', opacity: 0.9 }}>
+                              "{r.comment}"
+                            </p>
+                          )}
+                          <div style={{ fontSize: '11px', color: colors.textMuted, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span>Chronicle Saved</span>
+                            <span style={{ fontWeight: 500 }}>{toDateInput(r.createdAt)}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+          </div>
+
+        </div>
       )}
 
+      {/* Edit Profile Modal */}
       <Modal show={editModal} onHide={() => setEditModal(false)} centered size="lg">
         <Form onSubmit={handleSaveProfile}>
           <Modal.Header closeButton>
-            <Modal.Title>Edit Profile</Modal.Title>
+            <Modal.Title>Edit Profile Settings</Modal.Title>
           </Modal.Header>
-          <Modal.Body>
+          <Modal.Body style={{ padding: '24px' }}>
             <Row className="g-3">
               <Col md={12}>
-                <Form.Label className="text-muted small fw-semibold">
-                  Full Name <span className="text-danger">*</span>
+                <Form.Label style={{ fontSize: '11px', fontWeight: '700', color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Full Name <span style={{ color: colors.accent }}>*</span>
                 </Form.Label>
                 <Form.Control
                   required
                   value={editForm.fullName}
                   onChange={(e) => setEditForm({ ...editForm, fullName: e.target.value })}
-                  placeholder="Full name"
-                  style={{ borderRadius: 8 }}
+                  placeholder="Enter full name"
+                  className="form-control-dark"
                 />
               </Col>
               <Col md={6}>
-                <Form.Label className="text-muted small fw-semibold">Email Address</Form.Label>
+                <Form.Label style={{ fontSize: '11px', fontWeight: '700', color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Email Address</Form.Label>
                 <Form.Control
                   readOnly
                   value={editForm.email}
-                  className="bg-light"
-                  style={{ borderRadius: 8 }}
+                  className="form-control-dark"
                 />
               </Col>
               <Col md={6}>
-                <Form.Label className="text-muted small fw-semibold">Phone Number</Form.Label>
+                <Form.Label style={{ fontSize: '11px', fontWeight: '700', color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Phone Number</Form.Label>
                 <Form.Control
                   value={editForm.phone}
                   onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
                   placeholder="+1 (555) 000-0000"
-                  style={{ borderRadius: 8 }}
+                  className="form-control-dark"
                 />
               </Col>
-              <Col md={6}>
-                <Form.Label className="text-muted small fw-semibold">National ID</Form.Label>
+              <Col md={12}>
+                <Form.Label style={{ fontSize: '11px', fontWeight: '700', color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: '0.05em' }}>National ID / Passport</Form.Label>
                 <Form.Control
                   readOnly
                   value={editForm.nationalId}
-                  className="bg-light"
-                  style={{ borderRadius: 8 }}
+                  className="form-control-dark"
                 />
               </Col>
             </Row>
           </Modal.Body>
-          <Modal.Footer className="border-0 pt-0">
-            <Button variant="outline-secondary" onClick={() => setEditModal(false)} style={{ borderRadius: 8 }}>
-              Discard Changes
+          <Modal.Footer>
+            <Button
+              variant="outline-secondary"
+              onClick={() => setEditModal(false)}
+              style={{
+                borderRadius: '20px',
+                padding: '8px 20px',
+                fontSize: '13px',
+                fontWeight: '600',
+                background: 'transparent',
+                borderColor: colors.borderCard,
+                color: colors.textSecondary
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = colors.textSecondary; e.currentTarget.style.color = colors.textPrimary; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = colors.borderCard; e.currentTarget.style.color = colors.textSecondary; }}
+            >
+              Cancel
             </Button>
             <Button
               type="submit"
               disabled={saving}
-              style={{ borderRadius: 8, background: PRIMARY, border: 'none', minWidth: 140 }}
+              style={{ borderRadius: '20px', padding: '8px 24px', fontSize: '13px', fontWeight: '600', background: colors.accent, border: 'none' }}
+              onMouseEnter={(e) => e.currentTarget.style.background = colors.accentHover}
+              onMouseLeave={(e) => e.currentTarget.style.background = colors.accent}
             >
-              {saving ? <Spinner size="sm" className="me-2" /> : null}
-              {saving ? 'Saving...' : 'Save Settings'}
+              {saving ? 'Saving...' : 'Save Changes'}
             </Button>
           </Modal.Footer>
         </Form>
       </Modal>
 
+      {/* Change Password Modal */}
       <Modal show={passwordModal} onHide={() => setPasswordModal(false)} centered>
         <Form onSubmit={handleChangePassword}>
           <Modal.Header closeButton>
             <Modal.Title>Change Password</Modal.Title>
           </Modal.Header>
-          <Modal.Body>
-            <div className="d-flex flex-column gap-3">
-              <PasswordField
-                label="Current Password"
-                required
-                value={passwordForm.current}
-                onChange={(e) => setPasswordForm({ ...passwordForm, current: e.target.value })}
-                placeholder="Enter current password"
-              />
-              <PasswordField
-                label="New Password"
-                required
-                value={passwordForm.next}
-                onChange={(e) => setPasswordForm({ ...passwordForm, next: e.target.value })}
-                placeholder="At least 8 characters"
-              />
-              <PasswordField
-                label="Confirm New Password"
-                required
-                value={passwordForm.confirm}
-                onChange={(e) => setPasswordForm({ ...passwordForm, confirm: e.target.value })}
-                placeholder="Repeat new password"
-              />
-              {passwordError && (
-                <div className="text-danger small d-flex align-items-center gap-2">
-                  <FontAwesomeIcon icon={faCircleExclamation} />
-                  {passwordError}
-                </div>
-              )}
-            </div>
+          <Modal.Body style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <PasswordField
+              label="Current Password"
+              required
+              value={passwordForm.current}
+              onChange={(e) => setPasswordForm({ ...passwordForm, current: e.target.value })}
+              placeholder="Enter current password"
+            />
+            <PasswordField
+              label="New Password"
+              required
+              value={passwordForm.next}
+              onChange={(e) => setPasswordForm({ ...passwordForm, next: e.target.value })}
+              placeholder="Min 8 characters"
+            />
+            <PasswordField
+              label="Confirm New Password"
+              required
+              value={passwordForm.confirm}
+              onChange={(e) => setPasswordForm({ ...passwordForm, confirm: e.target.value })}
+              placeholder="Repeat new password"
+            />
+            {passwordError && (
+              <div style={{ color: '#ef4444', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <FontAwesomeIcon icon={faCircleExclamation} />
+                {passwordError}
+              </div>
+            )}
           </Modal.Body>
-          <Modal.Footer className="border-0 pt-0">
-            <Button variant="outline-secondary" onClick={() => setPasswordModal(false)} style={{ borderRadius: 8 }}>
-              Discard Changes
+          <Modal.Footer>
+            <Button
+              variant="outline-secondary"
+              onClick={() => setPasswordModal(false)}
+              style={{
+                borderRadius: '20px',
+                padding: '8px 20px',
+                fontSize: '13px',
+                fontWeight: '600',
+                background: 'transparent',
+                borderColor: colors.borderCard,
+                color: colors.textSecondary
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = colors.textSecondary; e.currentTarget.style.color = colors.textPrimary; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = colors.borderCard; e.currentTarget.style.color = colors.textSecondary; }}
+            >
+              Cancel
             </Button>
             <Button
               type="submit"
               disabled={saving}
-              style={{ borderRadius: 8, background: PRIMARY, border: 'none', minWidth: 140 }}
+              style={{ borderRadius: '20px', padding: '8px 24px', fontSize: '13px', fontWeight: '600', background: colors.accent, border: 'none' }}
+              onMouseEnter={(e) => e.currentTarget.style.background = colors.accentHover}
+              onMouseLeave={(e) => e.currentTarget.style.background = colors.accent}
             >
-              {saving ? <Spinner size="sm" className="me-2" /> : null}
-              {saving ? 'Saving...' : 'Save Settings'}
+              {saving ? 'Saving...' : 'Change Password'}
             </Button>
           </Modal.Footer>
         </Form>

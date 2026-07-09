@@ -29,9 +29,12 @@ import {
   faShirt,
   faUtensils,
   faCar,
-  faBoxOpen
+  faBoxOpen,
+  faClock,
+  faSpinner
 } from '@fortawesome/free-solid-svg-icons';
 import { dashboardApi, getApiErrorMessage } from '../services/api.js';
+import StatCard from '../components/StatCard';
 
 const getEmployeeFromToken = () => {
   try {
@@ -351,24 +354,40 @@ function ServiceOrdersPage() {
       {/* Stats */}
       <Row className="g-3">
         <Col md={3}>
-          <Card className="border-0 shadow-sm h-100">
-            <Card.Body><p className="text-muted mb-1">Total</p><h3 className="fw-bold mb-0">{stats.total}</h3></Card.Body>
-          </Card>
+          <StatCard
+            title="Total Orders"
+            value={stats.total}
+            icon={faConciergeBell}
+            description="Service request total"
+            variant="primary"
+          />
         </Col>
         <Col md={3}>
-          <Card className="border-0 shadow-sm h-100">
-            <Card.Body><p className="text-muted mb-1">Pending</p><h3 className="fw-bold mb-0">{stats.pending}</h3></Card.Body>
-          </Card>
+          <StatCard
+            title="Pending"
+            value={stats.pending}
+            icon={faClock}
+            description="Awaiting assignment"
+            variant="warning"
+          />
         </Col>
         <Col md={3}>
-          <Card className="border-0 shadow-sm h-100">
-            <Card.Body><p className="text-muted mb-1">In Progress</p><h3 className="fw-bold mb-0">{stats.inProgress}</h3></Card.Body>
-          </Card>
+          <StatCard
+            title="In Progress"
+            value={stats.inProgress}
+            icon={faSpinner}
+            description="Under fulfillment"
+            variant="info"
+          />
         </Col>
         <Col md={3}>
-          <Card className="border-0 shadow-sm h-100">
-            <Card.Body><p className="text-muted mb-1">Completed</p><h3 className="fw-bold mb-0">{stats.completed}</h3></Card.Body>
-          </Card>
+          <StatCard
+            title="Completed"
+            value={stats.completed}
+            icon={faCircleCheck}
+            description="Flipped/Delivered"
+            variant="success"
+          />
         </Col>
       </Row>
 

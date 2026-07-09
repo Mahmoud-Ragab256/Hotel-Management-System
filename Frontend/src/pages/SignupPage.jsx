@@ -29,6 +29,7 @@ import {
 import FeedbackCard from '../components/FeedbackCard.jsx';
 import { dashboardApi, getApiErrorMessage } from '../services/api.js';
 import { saveAuthSession } from '../services/auth.js';
+import { useTheme } from '../context/ThemeContext.jsx';
 
 const initialForm = {
   fullName: '',
@@ -41,6 +42,7 @@ const initialForm = {
 
 function SignupPage() {
   const navigate = useNavigate();
+  const { colors, isDark } = useTheme();
 
   const [form, setForm] = useState(initialForm);
   const [loading, setLoading] = useState(false);
@@ -124,10 +126,10 @@ function SignupPage() {
                     <FontAwesomeIcon icon={faHotel} />
                   </span>
 
-                  <h2 className="fw-bold">Guest Sign Up</h2>
+                  <h1 style={{ fontSize: '28px', fontWeight: '700', fontFamily: '"Playfair Display", serif', color: colors.textPrimary, margin: '0 0 8px' }}>Guest Sign Up</h1>
 
-                  <p className="text-muted">
-                    Create your hotel account
+                  <p className="text-muted" style={{ fontSize: '14px', fontWeight: '300' }}>
+                    Create your luxury hotel account
                   </p>
                 </div>
 
@@ -139,156 +141,154 @@ function SignupPage() {
                 )}
 
                 <Form onSubmit={handleSubmit}>
-                    <Form.Group className="mb-3">
-  <Form.Label>Full Name</Form.Label>
-  <InputGroup>
-    <InputGroup.Text>
-      <FontAwesomeIcon icon={faUser} />
-    </InputGroup.Text>
-    <Form.Control
-      name="fullName"
-      value={form.fullName}
-      onChange={handleChange}
-      placeholder="Enter full name"
-    />
-  </InputGroup>
-</Form.Group>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Full Name</Form.Label>
+                    <InputGroup>
+                      <InputGroup.Text>
+                        <FontAwesomeIcon icon={faUser} />
+                      </InputGroup.Text>
+                      <Form.Control
+                        name="fullName"
+                        value={form.fullName}
+                        onChange={handleChange}
+                        placeholder="Enter full name"
+                      />
+                    </InputGroup>
+                  </Form.Group>
 
-<Form.Group className="mb-3">
-  <Form.Label>Email</Form.Label>
-  <InputGroup>
-    <InputGroup.Text>
-      <FontAwesomeIcon icon={faEnvelope} />
-    </InputGroup.Text>
-    <Form.Control
-      type="email"
-      name="email"
-      value={form.email}
-      onChange={handleChange}
-      placeholder="Enter email"
-    />
-  </InputGroup>
-</Form.Group>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Email</Form.Label>
+                    <InputGroup>
+                      <InputGroup.Text>
+                        <FontAwesomeIcon icon={faEnvelope} />
+                      </InputGroup.Text>
+                      <Form.Control
+                        type="email"
+                        name="email"
+                        value={form.email}
+                        onChange={handleChange}
+                        placeholder="Enter email"
+                      />
+                    </InputGroup>
+                  </Form.Group>
 
-<Form.Group className="mb-3">
-  <Form.Label>Phone</Form.Label>
-  <InputGroup>
-    <InputGroup.Text>
-      <FontAwesomeIcon icon={faPhone} />
-    </InputGroup.Text>
-    <Form.Control
-      name="phone"
-      value={form.phone}
-      onChange={handleChange}
-      placeholder="Enter phone"
-    />
-  </InputGroup>
-</Form.Group>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Phone</Form.Label>
+                    <InputGroup>
+                      <InputGroup.Text>
+                        <FontAwesomeIcon icon={faPhone} />
+                      </InputGroup.Text>
+                      <Form.Control
+                        name="phone"
+                        value={form.phone}
+                        onChange={handleChange}
+                        placeholder="Enter phone"
+                      />
+                    </InputGroup>
+                  </Form.Group>
 
-<Form.Group className="mb-3">
-  <Form.Label>National ID</Form.Label>
-  <InputGroup>
-    <InputGroup.Text>
-      <FontAwesomeIcon icon={faIdCard} />
-    </InputGroup.Text>
-    <Form.Control
-      name="nationalId"
-      value={form.nationalId}
-      onChange={handleChange}
-      placeholder="Enter National ID"
-    />
-  </InputGroup>
-</Form.Group>
+                  <Form.Group className="mb-3">
+                    <Form.Label>National ID</Form.Label>
+                    <InputGroup>
+                      <InputGroup.Text>
+                        <FontAwesomeIcon icon={faIdCard} />
+                      </InputGroup.Text>
+                      <Form.Control
+                        name="nationalId"
+                        value={form.nationalId}
+                        onChange={handleChange}
+                        placeholder="Enter National ID"
+                      />
+                    </InputGroup>
+                  </Form.Group>
 
-<Form.Group className="mb-3">
-  <Form.Label>Password</Form.Label>
-  <InputGroup>
-    <InputGroup.Text>
-      <FontAwesomeIcon icon={faLock} />
-    </InputGroup.Text>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Password</Form.Label>
+                    <InputGroup>
+                      <InputGroup.Text>
+                        <FontAwesomeIcon icon={faLock} />
+                      </InputGroup.Text>
 
-    <Form.Control
-      type={showPassword ? 'text' : 'password'}
-      name="password"
-      value={form.password}
-      onChange={handleChange}
-      placeholder="Password"
-    />
+                      <Form.Control
+                        type={showPassword ? 'text' : 'password'}
+                        name="password"
+                        value={form.password}
+                        onChange={handleChange}
+                        placeholder="Password"
+                      />
 
-    <Button
-      type="button"
-      variant="light"
-      onClick={() => setShowPassword(!showPassword)}
-    >
-      <FontAwesomeIcon
-        icon={showPassword ? faEyeSlash : faEye}
-      />
-    </Button>
-  </InputGroup>
-</Form.Group>
+                      <Button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        style={{ borderLeft: 'none' }}
+                      >
+                        <FontAwesomeIcon
+                          icon={showPassword ? faEyeSlash : faEye}
+                        />
+                      </Button>
+                    </InputGroup>
+                  </Form.Group>
 
-<Form.Group className="mb-4">
-  <Form.Label>Confirm Password</Form.Label>
-  <InputGroup>
-    <InputGroup.Text>
-      <FontAwesomeIcon icon={faLock} />
-    </InputGroup.Text>
+                  <Form.Group className="mb-4">
+                    <Form.Label>Confirm Password</Form.Label>
+                    <InputGroup>
+                      <InputGroup.Text>
+                        <FontAwesomeIcon icon={faLock} />
+                      </InputGroup.Text>
 
-    <Form.Control
-      type={showConfirmPassword ? 'text' : 'password'}
-      name="confirmPassword"
-      value={form.confirmPassword}
-      onChange={handleChange}
-      placeholder="Confirm Password"
-    />
+                      <Form.Control
+                        type={showConfirmPassword ? 'text' : 'password'}
+                        name="confirmPassword"
+                        value={form.confirmPassword}
+                        onChange={handleChange}
+                        placeholder="Confirm Password"
+                      />
 
-    <Button
-      type="button"
-      variant="light"
-      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-    >
-      <FontAwesomeIcon
-        icon={showConfirmPassword ? faEyeSlash : faEye}
-      />
-    </Button>
-  </InputGroup>
-</Form.Group>
+                      <Button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        style={{ borderLeft: 'none' }}
+                      >
+                        <FontAwesomeIcon
+                          icon={showConfirmPassword ? faEyeSlash : faEye}
+                        />
+                      </Button>
+                    </InputGroup>
+                  </Form.Group>
 
-<Button
-  type="submit"
-  className="w-100"
-  variant="dark"
-  disabled={!canSubmit}
->
-  {loading ? (
-    <Spinner animation="border" size="sm" />
-  ) : (
-    <>
-      <FontAwesomeIcon
-        icon={faUserPlus}
-        className="me-2"
-      />
-      Sign Up
-    </>
-  )}
-</Button>
+                  <Button
+                    type="submit"
+                    className="w-100"
+                    variant="dark"
+                    disabled={!canSubmit}
+                  >
+                    {loading ? (
+                      <Spinner animation="border" size="sm" />
+                    ) : (
+                      <>
+                        <FontAwesomeIcon
+                          icon={faUserPlus}
+                          className="me-2"
+                        />
+                        Sign Up
+                      </>
+                    )}
+                  </Button>
 
-<div className="text-center mt-3">
-  Already have an account?{' '}
-  <Link to="/login">
-    Login
-  </Link>
-</div>
-
-</Form>
-
-</Card.Body>
-</Card>
-</Col>
-</Row>
-</Container>
-</main>
-);
+                  <div className="text-center mt-3" style={{ fontSize: '14px', color: '#9ca3af' }}>
+                    Already have an account?{' '}
+                    <Link to="/login" style={{ fontWeight: '500', textDecoration: 'none' }}>
+                      Login
+                    </Link>
+                  </div>
+                </Form>
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
+      </Container>
+    </main>
+  );
 }
 
 export default SignupPage;

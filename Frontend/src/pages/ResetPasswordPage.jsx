@@ -16,6 +16,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import FeedbackCard from '../components/FeedbackCard.jsx';
 import { dashboardApi, getApiErrorMessage } from '../services/api.js';
+import { useTheme } from '../context/ThemeContext.jsx';
 
 const initialForm = {
   email: '',
@@ -25,6 +26,7 @@ const initialForm = {
 };
 
 function ResetPasswordPage({ accountType = 'guest' }) {
+  const { colors, isDark } = useTheme();
   const navigate = useNavigate();
   const isEmployee = accountType === 'employee';
   const backUrl = isEmployee ? '/dashboard/login' : '/login';
@@ -120,16 +122,21 @@ function ResetPasswordPage({ accountType = 'guest' }) {
                   <span className="login-brand-icon d-inline-flex align-items-center justify-content-center rounded-4 mb-3">
                     <FontAwesomeIcon icon={faHotel} />
                   </span>
-                  <h1 className="h3 fw-bold mb-1">{title}</h1>
-                  <p className="text-muted mb-0">{subtitle}</p>
+                  <h1 style={{ fontSize: '28px', fontWeight: '700', fontFamily: '"Playfair Display", serif', color: colors.textPrimary, margin: '0 0 8px' }}>{title}</h1>
+                  <p className="text-muted mb-0" style={{ fontSize: '14px', fontWeight: '300' }}>{subtitle}</p>
                 </div>
 
                 <div className="d-flex align-items-center justify-content-center gap-2 mb-4">
                   {[1, 2, 3].map((item) => (
                     <span
                       key={item}
-                      className={`rounded-pill ${item <= step ? 'bg-dark' : 'bg-secondary-subtle'}`}
-                      style={{ width: item === step ? 34 : 22, height: 6, transition: 'all 0.2s ease' }}
+                      className="rounded-pill"
+                      style={{
+                        width: item === step ? 34 : 22,
+                        height: 6,
+                        backgroundColor: item <= step ? '#c85a49' : '#2a2a2a',
+                        transition: 'all 0.2s ease'
+                      }}
                     />
                   ))}
                 </div>
@@ -144,7 +151,7 @@ function ResetPasswordPage({ accountType = 'guest' }) {
                   <Form.Group className="mb-3" controlId="resetEmail">
                     <Form.Label className="fw-semibold">Email address</Form.Label>
                     <InputGroup>
-                      <InputGroup.Text className="bg-light">
+                      <InputGroup.Text>
                         <FontAwesomeIcon icon={faEnvelope} />
                       </InputGroup.Text>
                       <Form.Control
@@ -164,7 +171,7 @@ function ResetPasswordPage({ accountType = 'guest' }) {
                     <Form.Group className="mb-3" controlId="resetCode">
                       <Form.Label className="fw-semibold">Reset code</Form.Label>
                       <InputGroup>
-                        <InputGroup.Text className="bg-light">
+                        <InputGroup.Text>
                           <FontAwesomeIcon icon={faKey} />
                         </InputGroup.Text>
                         <Form.Control
@@ -186,7 +193,7 @@ function ResetPasswordPage({ accountType = 'guest' }) {
                       <Form.Group className="mb-3" controlId="newPassword">
                         <Form.Label className="fw-semibold">New password</Form.Label>
                         <InputGroup>
-                          <InputGroup.Text className="bg-light">
+                          <InputGroup.Text>
                             <FontAwesomeIcon icon={faLock} />
                           </InputGroup.Text>
                           <Form.Control
@@ -199,7 +206,7 @@ function ResetPasswordPage({ accountType = 'guest' }) {
                             disabled={loading}
                             required
                           />
-                          <Button type="button" variant="light" className="border" onClick={() => setShowPassword((current) => !current)} disabled={loading}>
+                          <Button type="button" onClick={() => setShowPassword((current) => !current)} disabled={loading} style={{ borderLeft: 'none' }}>
                             <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
                           </Button>
                         </InputGroup>
@@ -208,7 +215,7 @@ function ResetPasswordPage({ accountType = 'guest' }) {
                       <Form.Group className="mb-4" controlId="confirmPassword">
                         <Form.Label className="fw-semibold">Confirm password</Form.Label>
                         <InputGroup>
-                          <InputGroup.Text className="bg-light">
+                          <InputGroup.Text>
                             <FontAwesomeIcon icon={faLock} />
                           </InputGroup.Text>
                           <Form.Control
@@ -221,7 +228,7 @@ function ResetPasswordPage({ accountType = 'guest' }) {
                             disabled={loading}
                             required
                           />
-                          <Button type="button" variant="light" className="border" onClick={() => setShowConfirmPassword((current) => !current)} disabled={loading}>
+                          <Button type="button" onClick={() => setShowConfirmPassword((current) => !current)} disabled={loading} style={{ borderLeft: 'none' }}>
                             <FontAwesomeIcon icon={showConfirmPassword ? faEyeSlash : faEye} />
                           </Button>
                         </InputGroup>
@@ -235,7 +242,7 @@ function ResetPasswordPage({ accountType = 'guest' }) {
                   </Button>
 
                   <div className="text-center mt-3">
-                    <Link to={backUrl} className="text-decoration-none">
+                    <Link to={backUrl} style={{ fontSize: '14px', textDecoration: 'none', fontWeight: '500' }}>
                       <FontAwesomeIcon icon={faArrowLeft} className="me-1" /> Back to login
                     </Link>
                   </div>
@@ -246,13 +253,15 @@ function ResetPasswordPage({ accountType = 'guest' }) {
 
           <Col lg={6} xl={5} className="d-none d-lg-block">
             <div className="text-white ps-xl-5">
-              <div className="d-inline-flex align-items-center gap-2 rounded-pill px-3 py-2 mb-4 login-pill">
+              <div className="d-inline-flex align-items-center gap-2 rounded-pill px-3 py-2 mb-4 login-pill" style={{ fontSize: '13px', fontWeight: '500' }}>
                 <FontAwesomeIcon icon={faShieldHalved} />
                 Password recovery
               </div>
-              <h2 className="display-6 fw-bold mb-3">Three clean screens for password recovery.</h2>
-              <p className="lead text-white-75 mb-0">
-                Enter email, verify the code, then save the new password using the existing backend endpoints.
+              <h2 style={{ fontSize: '36px', fontWeight: '700', fontFamily: '"Playfair Display", serif', lineHeight: '1.3', color: colors.textPrimary, marginBottom: '20px' }}>
+                Simple screens for secure password recovery.
+              </h2>
+              <p className="lead text-white-75 mb-0" style={{ fontSize: '15px', fontWeight: '300', lineHeight: '1.6' }}>
+                Enter your email address, receive and verify your private security code, then save your new credentials to resume your journey.
               </p>
             </div>
           </Col>

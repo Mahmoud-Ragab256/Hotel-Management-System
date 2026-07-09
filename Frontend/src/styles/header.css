@@ -47,3 +47,59 @@
   height: 2px;
   background-color: #212529;
 }
+
+/* Responsive site header rules */
+@media (max-width: 768px) {
+  .site-header {
+    padding: 12px 16px !important;
+  }
+  .header-logo {
+    gap: 8px !important;
+  }
+  .header-logo svg {
+    width: 24px !important;
+    height: 24px !important;
+  }
+  .header-logo-title {
+    font-size: 17px !important;
+  }
+  .header-logo-sub {
+    font-size: 8px !important;
+    letter-spacing: 0.12em !important;
+  }
+  .header-actions {
+    gap: 12px !important;
+  }
+  .header-btn {
+    padding: 4px !important;
+  }
+}
+
+@media (max-width: 576px) {
+  .site-header {
+    padding: 10px 12px !important;
+  }
+  .header-logo-sub {
+    display: none !important; /* Hide subtitle to save vertical space on mobile */
+  }
+  .header-btn-help {
+    display: none !important; /* Hide help center button on mobile */
+  }
+  .header-btn-search {
+    display: none !important; /* Hide search button since they have search in /rooms */
+  }
+  .header-actions {
+    gap: 8px !important;
+  }
+  .header-login-btn {
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+  }
+  .header-signup-btn {
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+  }
+  .header-logged-in-actions {
+    gap: 10px !important;
+  }
+}

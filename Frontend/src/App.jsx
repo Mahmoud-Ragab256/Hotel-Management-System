@@ -1,6 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import GuestLayout from './layouts/GuestLayout.jsx';
-import LandingPage from './pages/LandingPage.jsx';
+import ClientExplorePage from './pages/ClientExplorePage.jsx';
 import ClientRoomsPage from './pages/ClientRoomsPage.jsx';
 import RoomDetailsPage from './pages/RoomDetailsPage.jsx';
 import SignupPage from './pages/SignupPage.jsx';
@@ -12,6 +12,7 @@ import ProfilePage from './pages/ProfilePage.jsx';
 import ServiceOrdersPage from './pages/ServiceOrdersPage.jsx';
 import HelpCenterPage from './pages/HelpCenterPage.jsx';
 import GuestsReviewsPage from './pages/GuestsReviewsPage.jsx';
+import BookStayPage from './pages/BookStayPage.jsx';
 
 import AdminLayout from './layouts/AdminLayout.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
@@ -67,13 +68,15 @@ function App() {
       <Route path="/forgot-password" element={<ResetPasswordPage accountType="guest" />} />
       <Route path="/signup" element={<SignupPage />} />
 
+
       <Route path="/" element={<GuestLayout />}>
-        <Route index element={<LandingPage />} />
+        <Route index element={<ClientExplorePage />} />
         <Route path="services" element={<ClientServicesPage />} />
         <Route path="help-center" element={<HelpCenterPage />} />
         <Route path="reviews" element={<GuestsReviewsPage />} />
         <Route path="rooms" element={<ClientRoomsPage />} />
         <Route path="rooms/:id" element={<RoomDetailsPage />} />
+        <Route path="book-stay" element={<BookStayPage />} />
       </Route>
 
       <Route
@@ -108,6 +111,7 @@ function App() {
         <Route path="/order-service" element={<GuestLayout />}>
           <Route index element={<OrderServicePage />} />
         </Route>
+
       </Route>
 
       <Route
@@ -120,25 +124,20 @@ function App() {
         )}
       >
 
-
-
-
-        <Route element={<ProtectedRoute redirectTo="/dashboard/login" />}>
-          <Route path="/dashboard" element={<AdminLayout />}>
-            <Route index element={dashboardOnly(<DashboardPage />)} />
-            <Route path="bookings" element={dashboardOnly(<BookingsPage />, OPERATIONS_ROLES)} />
-            <Route path="rooms" element={dashboardOnly(<RoomsPage />, ROOM_ROLES)} />
-            <Route path="room-categories" element={dashboardOnly(<RoomCategoriesPage />, ADMIN_MANAGER_ROLES)} />
-            <Route path="guests" element={dashboardOnly(<GuestsPage />, OPERATIONS_ROLES)} />
-            <Route path="employees" element={dashboardOnly(<EmployeesPage />, ADMIN_MANAGER_ROLES)} />
-            <Route path="invoices" element={dashboardOnly(<InvoicesPage />, OPERATIONS_ROLES)} />
-            <Route path="services" element={dashboardOnly(<ServicesPage />, SERVICE_ROLES)} />
-            <Route path="services/add" element={dashboardOnly(<AddServicePage />, SERVICE_ROLES)} />
-            <Route path="service-orders" element={dashboardOnly(<ServiceOrdersPage />, SERVICE_ROLES)} />
-            <Route path="reviews" element={dashboardOnly(<ReviewsPage />, OPERATIONS_ROLES)} />
-            <Route path="reviews/:id" element={dashboardOnly(<ReviewDetailsPage />, OPERATIONS_ROLES)} />
-            <Route path="notifications" element={dashboardOnly(<NotificationsPage />)} />
-          </Route>
+        <Route path="/dashboard" element={<AdminLayout />}>
+          <Route index element={dashboardOnly(<DashboardPage />)} />
+          <Route path="bookings" element={dashboardOnly(<BookingsPage />, OPERATIONS_ROLES)} />
+          <Route path="rooms" element={dashboardOnly(<RoomsPage />, ROOM_ROLES)} />
+          <Route path="room-categories" element={dashboardOnly(<RoomCategoriesPage />, ADMIN_MANAGER_ROLES)} />
+          <Route path="guests" element={dashboardOnly(<GuestsPage />, OPERATIONS_ROLES)} />
+          <Route path="employees" element={dashboardOnly(<EmployeesPage />, ADMIN_MANAGER_ROLES)} />
+          <Route path="invoices" element={dashboardOnly(<InvoicesPage />, OPERATIONS_ROLES)} />
+          <Route path="services" element={dashboardOnly(<ServicesPage />, SERVICE_ROLES)} />
+          <Route path="services/add" element={dashboardOnly(<AddServicePage />, SERVICE_ROLES)} />
+          <Route path="service-orders" element={dashboardOnly(<ServiceOrdersPage />, SERVICE_ROLES)} />
+          <Route path="reviews" element={dashboardOnly(<ReviewsPage />, OPERATIONS_ROLES)} />
+          <Route path="reviews/:id" element={dashboardOnly(<ReviewDetailsPage />, OPERATIONS_ROLES)} />
+          <Route path="notifications" element={dashboardOnly(<NotificationsPage />)} />
         </Route>
       </Route>
 

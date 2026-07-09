@@ -1,30 +1,170 @@
+/* Remove default Bootstrap caret */
+.account-menu-toggle::after {
+  display: none !important;
+}
+
+/* Base styles for the premium capsule */
 .account-menu-toggle {
-  background-color: #fff !important;
+  border-radius: 40px !important;
+  padding: 6px 14px 6px 6px !important;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
   border: none !important;
   box-shadow: none !important;
 }
 
-.account-menu-toggle:hover,
-.account-menu-toggle:focus,
-.account-menu-toggle:active {
-  background-color: #fff !important;
-  border: none !important;
-  box-shadow: none !important;
+[data-theme="dark"] .account-menu-toggle {
+  background-color: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  color: #ffffff !important;
 }
 
+[data-theme="dark"] .account-menu-toggle:hover,
+[data-theme="dark"] .account-menu-toggle:focus,
+[data-theme="dark"] .account-menu-toggle:active,
+[data-theme="dark"] .show > .btn-light.dropdown-toggle {
+  background-color: rgba(255, 255, 255, 0.09) !important;
+  border-color: rgba(255, 255, 255, 0.16) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
+}
+
+[data-theme="light"] .account-menu-toggle {
+  background-color: rgba(0, 0, 0, 0.03) !important;
+  border: 1px solid rgba(0, 0, 0, 0.06) !important;
+  color: #1a1a1a !important;
+}
+
+[data-theme="light"] .account-menu-toggle:hover,
+[data-theme="light"] .account-menu-toggle:focus,
+[data-theme="light"] .account-menu-toggle:active,
+[data-theme="light"] .show > .btn-light.dropdown-toggle {
+  background-color: rgba(0, 0, 0, 0.06) !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+  color: #1a1a1a !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04) !important;
+}
+
+/* Custom styled dropdown menu */
+.account-menu-dropdown {
+  border-radius: 16px !important;
+  padding: 8px !important;
+  margin-top: 8px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
+}
+
+[data-theme="dark"] .account-menu-dropdown {
+  background-color: #161616 !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+[data-theme="light"] .account-menu-dropdown {
+  background-color: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Dropdown items */
 .account-menu-dropdown .dropdown-item {
-  margin-top: 7px;
-  margin-bottom: 7px;
-  transition: background-color 0.25s ease, color 0.25s ease;
+  border-radius: 10px !important;
+  padding: 10px 16px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  margin: 2px 0 !important;
 }
 
-.account-menu-dropdown .dropdown-item:hover,
-.account-menu-dropdown .dropdown-item:focus {
-  background-color: #212529 !important;
-  color: #fff !important;
+.account-menu-dropdown .account-menu-item-icon {
+  transition: color 0.2s ease !important;
 }
 
-.account-menu-dropdown .dropdown-item:hover svg,
-.account-menu-dropdown .dropdown-item:focus svg {
-  color: #fff !important;
+[data-theme="dark"] .account-menu-dropdown .dropdown-item {
+  color: #d1d5db !important;
+}
+
+[data-theme="dark"] .account-menu-dropdown .account-menu-item-icon {
+  color: #9ca3af !important;
+}
+
+[data-theme="dark"] .account-menu-dropdown .dropdown-item:hover,
+[data-theme="dark"] .account-menu-dropdown .dropdown-item:focus {
+  background-color: rgba(200, 90, 73, 0.15) !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .account-menu-dropdown .dropdown-item:hover .account-menu-item-icon,
+[data-theme="dark"] .account-menu-dropdown .dropdown-item:focus .account-menu-item-icon {
+  color: #ffffff !important;
+}
+
+/* Dark mode text-danger styling */
+[data-theme="dark"] .account-menu-dropdown .dropdown-item.text-danger {
+  color: #f87171 !important;
+}
+
+[data-theme="dark"] .account-menu-dropdown .dropdown-item.text-danger .account-menu-item-icon {
+  color: #f87171 !important;
+}
+
+[data-theme="dark"] .account-menu-dropdown .dropdown-item.text-danger:hover,
+[data-theme="dark"] .account-menu-dropdown .dropdown-item.text-danger:focus {
+  background-color: rgba(239, 68, 68, 0.15) !important;
+  color: #fca5a5 !important;
+}
+
+[data-theme="dark"] .account-menu-dropdown .dropdown-item.text-danger:hover .account-menu-item-icon,
+[data-theme="dark"] .account-menu-dropdown .dropdown-item.text-danger:focus .account-menu-item-icon {
+  color: #fca5a5 !important;
+}
+
+[data-theme="light"] .account-menu-dropdown .dropdown-item {
+  color: #4b5563 !important;
+}
+
+[data-theme="light"] .account-menu-dropdown .account-menu-item-icon {
+  color: #5a5a5a !important;
+}
+
+[data-theme="light"] .account-menu-dropdown .dropdown-item:hover,
+[data-theme="light"] .account-menu-dropdown .dropdown-item:focus {
+  background-color: rgba(200, 90, 73, 0.06) !important;
+  color: #c85a49 !important;
+}
+
+[data-theme="light"] .account-menu-dropdown .dropdown-item:hover .account-menu-item-icon,
+[data-theme="light"] .account-menu-dropdown .dropdown-item:focus .account-menu-item-icon {
+  color: #c85a49 !important;
+}
+
+/* Light mode text-danger styling */
+[data-theme="light"] .account-menu-dropdown .dropdown-item.text-danger {
+  color: #dc3545 !important;
+}
+
+[data-theme="light"] .account-menu-dropdown .dropdown-item.text-danger .account-menu-item-icon {
+  color: #dc3545 !important;
+}
+
+[data-theme="light"] .account-menu-dropdown .dropdown-item.text-danger:hover,
+[data-theme="light"] .account-menu-dropdown .dropdown-item.text-danger:focus {
+  background-color: rgba(220, 53, 69, 0.08) !important;
+  color: #b91c1c !important;
+}
+
+[data-theme="light"] .account-menu-dropdown .dropdown-item.text-danger:hover .account-menu-item-icon,
+[data-theme="light"] .account-menu-dropdown .dropdown-item.text-danger:focus .account-menu-item-icon {
+  color: #b91c1c !important;
+}
+
+/* Divider colors */
+[data-theme="dark"] .account-menu-dropdown .dropdown-divider {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+[data-theme="light"] .account-menu-dropdown .dropdown-divider {
+  border-color: rgba(0, 0, 0, 0.06) !important;
 }

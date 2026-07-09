@@ -15,6 +15,7 @@ import {
 import FeedbackCard from '../components/FeedbackCard.jsx';
 import { dashboardApi, getApiErrorMessage } from '../services/api.js';
 import { saveAuthSession } from '../services/auth.js';
+import { useTheme } from '../context/ThemeContext.jsx';
 
 const initialForm = {
   email: '',
@@ -22,6 +23,7 @@ const initialForm = {
 };
 
 function LoginPage() {
+  const { colors, isDark } = useTheme();
   const [form, setForm] = useState(initialForm);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -76,8 +78,8 @@ function LoginPage() {
                   <span className="login-brand-icon d-inline-flex align-items-center justify-content-center rounded-4 mb-3">
                     <FontAwesomeIcon icon={faHotel} />
                   </span>
-                  <h1 className="h3 fw-bold mb-1">Hotel Admin</h1>
-                  <p className="text-muted mb-0">Sign in to manage hotel operations</p>
+                  <h1 style={{ fontSize: '28px', fontWeight: '700', fontFamily: '"Playfair Display", serif', color: colors.textPrimary, margin: '0 0 8px' }}>Hotel Admin</h1>
+                  <p className="text-muted mb-0" style={{ fontSize: '14px', fontWeight: '300' }}>Sign in to manage hotel operations</p>
                 </div>
 
                 {feedback && (
@@ -90,7 +92,7 @@ function LoginPage() {
                   <Form.Group className="mb-3" controlId="loginEmail">
                     <Form.Label className="fw-semibold">Email address</Form.Label>
                     <InputGroup>
-                      <InputGroup.Text className="bg-light">
+                      <InputGroup.Text>
                         <FontAwesomeIcon icon={faEnvelope} />
                       </InputGroup.Text>
                       <Form.Control
@@ -108,7 +110,7 @@ function LoginPage() {
                   <Form.Group className="mb-2" controlId="loginPassword">
                     <Form.Label className="fw-semibold">Password</Form.Label>
                     <InputGroup>
-                      <InputGroup.Text className="bg-light">
+                      <InputGroup.Text>
                         <FontAwesomeIcon icon={faLock} />
                       </InputGroup.Text>
                       <Form.Control
@@ -122,11 +124,10 @@ function LoginPage() {
                       />
                       <Button
                         type="button"
-                        variant="light"
-                        className="border"
                         onClick={() => setShowPassword((current) => !current)}
                         disabled={loading}
                         aria-label={showPassword ? 'Hide password' : 'Show password'}
+                        style={{ borderLeft: 'none' }}
                       >
                         <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
                       </Button>
@@ -134,7 +135,7 @@ function LoginPage() {
                   </Form.Group>
 
                   <div className="text-end mb-4">
-                    <Link to="/dashboard/forgot-password" className="small fw-semibold text-decoration-none">
+                    <Link to="/dashboard/forgot-password" style={{ fontSize: '13px', fontWeight: '500', textDecoration: 'none' }}>
                       Forgot password?
                     </Link>
                   </div>
@@ -150,12 +151,14 @@ function LoginPage() {
 
           <Col lg={6} xl={5} className="d-none d-lg-block">
             <div className="text-white ps-xl-5">
-              <div className="d-inline-flex align-items-center gap-2 rounded-pill px-3 py-2 mb-4 login-pill">
+              <div className="d-inline-flex align-items-center gap-2 rounded-pill px-3 py-2 mb-4 login-pill" style={{ fontSize: '13px', fontWeight: '500' }}>
                 <FontAwesomeIcon icon={faShieldHalved} />
                 Secure dashboard access
               </div>
-              <h2 className="display-6 fw-bold mb-3">Manage bookings, rooms, guests and employees from one clean dashboard.</h2>
-              <p className="lead text-white-75 mb-4">
+              <h2 style={{ fontSize: '36px', fontWeight: '700', fontFamily: '"Playfair Display", serif', lineHeight: '1.3', color: colors.textPrimary, marginBottom: '20px' }}>
+                Manage bookings, rooms, guests and employees from one clean dashboard.
+              </h2>
+              <p className="lead text-white-75 mb-4" style={{ fontSize: '15px', fontWeight: '300', lineHeight: '1.6' }}>
                 This login uses the dashboard authentication endpoint already available in the backend.
               </p>
               <div className="d-flex align-items-center gap-3">
@@ -163,8 +166,8 @@ function LoginPage() {
                   <FontAwesomeIcon icon={faUserTie} />
                 </span>
                 <div>
-                  <div className="fw-semibold">Employee account access</div>
-                  <small className="text-white-75">Use an existing employee email and password.</small>
+                  <div className="fw-semibold" style={{ fontSize: '15px' }}>Employee account access</div>
+                  <small className="text-white-75" style={{ fontSize: '13px', fontWeight: '300' }}>Use an existing employee email and password.</small>
                 </div>
               </div>
             </div>
