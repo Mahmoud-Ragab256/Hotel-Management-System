@@ -46,9 +46,13 @@ const dashboardOnly = (element, allowedRoles = DASHBOARD_ROLES) => (
   </ProtectedRoute>
 );
 
+
+import MyRoomsPage from './pages/MyRoomsPage.jsx';
+
 function App() {
   return (
     <Routes>
+
       <Route path="/dashboard/login" element={<LoginPage />} />
       <Route path="/dashboard/forgot-password" element={<ResetPasswordPage accountType="employee" />} />
       <Route path="/login" element={<GuestLoginPage />} />
@@ -81,6 +85,11 @@ function App() {
         <Route path="/my-bookings" element={<GuestLayout />}>
           <Route index element={<MyBookingsPage />} />
         </Route>
+
+        <Route path="/my-rooms" element={<GuestLayout />}>
+          <Route index element={<MyRoomsPage />} />
+        </Route>
+
       </Route>
 
       <Route
@@ -92,20 +101,26 @@ function App() {
           />
         )}
       >
-        <Route path="/dashboard" element={<AdminLayout />}>
-          <Route index element={dashboardOnly(<DashboardPage />)} />
-          <Route path="bookings" element={dashboardOnly(<BookingsPage />, OPERATIONS_ROLES)} />
-          <Route path="rooms" element={dashboardOnly(<RoomsPage />, ROOM_ROLES)} />
-          <Route path="room-categories" element={dashboardOnly(<RoomCategoriesPage />, ADMIN_MANAGER_ROLES)} />
-          <Route path="guests" element={dashboardOnly(<GuestsPage />, OPERATIONS_ROLES)} />
-          <Route path="employees" element={dashboardOnly(<EmployeesPage />, ADMIN_MANAGER_ROLES)} />
-          <Route path="invoices" element={dashboardOnly(<InvoicesPage />, OPERATIONS_ROLES)} />
-          <Route path="services" element={dashboardOnly(<ServicesPage />, SERVICE_ROLES)} />
-          <Route path="services/add" element={dashboardOnly(<AddServicePage />, SERVICE_ROLES)} />
-          <Route path="service-orders" element={dashboardOnly(<ServiceOrdersPage />, SERVICE_ROLES)} />
-          <Route path="reviews" element={dashboardOnly(<ReviewsPage />, OPERATIONS_ROLES)} />
-          <Route path="reviews/:id" element={dashboardOnly(<ReviewDetailsPage />, OPERATIONS_ROLES)} />
-          <Route path="notifications" element={dashboardOnly(<NotificationsPage />)} />
+
+
+
+
+        <Route element={<ProtectedRoute redirectTo="/dashboard/login" />}>
+          <Route path="/dashboard" element={<AdminLayout />}>
+            <Route index element={dashboardOnly(<DashboardPage />)} />
+            <Route path="bookings" element={dashboardOnly(<BookingsPage />, OPERATIONS_ROLES)} />
+            <Route path="rooms" element={dashboardOnly(<RoomsPage />, ROOM_ROLES)} />
+            <Route path="room-categories" element={dashboardOnly(<RoomCategoriesPage />, ADMIN_MANAGER_ROLES)} />
+            <Route path="guests" element={dashboardOnly(<GuestsPage />, OPERATIONS_ROLES)} />
+            <Route path="employees" element={dashboardOnly(<EmployeesPage />, ADMIN_MANAGER_ROLES)} />
+            <Route path="invoices" element={dashboardOnly(<InvoicesPage />, OPERATIONS_ROLES)} />
+            <Route path="services" element={dashboardOnly(<ServicesPage />, SERVICE_ROLES)} />
+            <Route path="services/add" element={dashboardOnly(<AddServicePage />, SERVICE_ROLES)} />
+            <Route path="service-orders" element={dashboardOnly(<ServiceOrdersPage />, SERVICE_ROLES)} />
+            <Route path="reviews" element={dashboardOnly(<ReviewsPage />, OPERATIONS_ROLES)} />
+            <Route path="reviews/:id" element={dashboardOnly(<ReviewDetailsPage />, OPERATIONS_ROLES)} />
+            <Route path="notifications" element={dashboardOnly(<NotificationsPage />)} />
+          </Route>
         </Route>
       </Route>
 
