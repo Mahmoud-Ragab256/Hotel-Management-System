@@ -28,6 +28,7 @@ import ReviewsPage from './pages/ReviewsPage.jsx';
 import ReviewDetailsPage from './pages/ReviewDetailsPage.jsx';
 import NotificationsPage from './pages/NotificationsPage.jsx';
 import MyBookingsPage from './pages/MyBookingsPage.jsx';
+import MyInvoicesPage from './pages/MyInvoicesPage.jsx';
 
 const DASHBOARD_ROLES = ['Admin', 'Manager', 'Receptionist', 'Service'];
 const ADMIN_MANAGER_ROLES = ['Admin', 'Manager'];
@@ -90,6 +91,9 @@ function App() {
           <Route index element={<MyRoomsPage />} />
         </Route>
 
+        <Route path="/my-invoices" element={<GuestLayout />}>
+          <Route index element={<MyInvoicesPage />} />
+        </Route>
       </Route>
 
       <Route
