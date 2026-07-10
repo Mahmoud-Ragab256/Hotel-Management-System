@@ -42,7 +42,7 @@ function MessageBox({ type, message, onClose }) {
 function ServiceCard({ service, index, onRequest, msgRef }) {
   const { colors, isDark } = useTheme();
   const isLeft = index % 2 === 0;
-  const imageUrl = resolveImageUrl(service.image || service.imageUrl || service.img);
+  const imageUrl = resolveImageUrl(firstServiceImage(service));
   const isAvailable = service.status !== 'Unavailable' && service.isActive !== false;
   const [localMsg, setLocalMsg] = useState(null);
 

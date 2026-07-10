@@ -25,6 +25,13 @@ const CONTACT_INFO = [
     href: 'mailto:support@hotel.com',
     actionLabel: 'Send an email',
   },
+  {
+    icon: '✈️',
+    label: 'Telegram',
+    value: '@Hotel_21bot',
+    href: 'https://t.me/Hotel_21bot',
+    actionLabel: 'Chat With Bot',
+  }
 ];
 
 const FAQ_ITEMS = [

@@ -32,6 +32,7 @@ import MyBookingsPage from './pages/MyBookingsPage.jsx';
 import MyInvoicesPage from './pages/MyInvoicesPage.jsx';
 import MyRoomsPage from './pages/MyRoomsPage.jsx';
 import OrderServicePage from "./pages/OrderServicePage";
+import MyNotificationsPage from './pages/MyNotificationsPage.jsx';
 
 
 
@@ -92,6 +93,11 @@ function App() {
           <Route index element={<ProfilePage />} />
 
           <Route path="service-orders" element={<ServiceOrdersPage />} />
+
+        </Route>
+
+        <Route path="/my-notifications" element={<GuestLayout />}>
+          <Route index element={<MyNotificationsPage />} />
 
         </Route>
 

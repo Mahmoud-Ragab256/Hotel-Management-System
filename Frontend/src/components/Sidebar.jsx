@@ -21,8 +21,8 @@ function Sidebar({ isOpen, onClose }) {
           <button
             onClick={onClose}
             className="btn d-lg-none border-0 p-1 rounded-circle d-flex align-items-center justify-content-center"
-            style={{ 
-              color: 'inherit', 
+            style={{
+              color: 'inherit',
               opacity: 0.8,
               width: '32px',
               height: '32px',
@@ -52,6 +52,7 @@ function Sidebar({ isOpen, onClose }) {
                 key={item.id}
                 as={NavLink}
                 to={item.path}
+                end
                 className="sidebar-link d-flex align-items-center gap-3 rounded-3 px-3 py-2"
               >
                 {content}

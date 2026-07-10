@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBell } from "@fortawesome/free-solid-svg-icons";
+import { faBell, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { dashboardApi } from "../services/api.js";
 import { getCurrentUser } from "../services/auth.js";
 import { formatDisplayDate } from "../utils/date.js";
@@ -20,15 +20,26 @@ const NotificationBell = () => {
 
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
+  const [selectedNotification, setSelectedNotification] = useState(null);
   const userId = getStoredUserId();
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
-  useEffect(() => {
+  const loadNotifications = () => {
     if (!userId) return;
     dashboardApi.getMyNotifications(userId)
       .then((data) => setNotifications(Array.isArray(data) ? data : []))
       .catch(() => { });
+  };
+
+  useEffect(() => {
+    loadNotifications();
+  }, [userId]);
+
+  useEffect(() => {
+    const handleExternalUpdate = () => loadNotifications();
+    window.addEventListener("hotel_notifications_updated", handleExternalUpdate);
+    return () => window.removeEventListener("hotel_notifications_updated", handleExternalUpdate);
   }, [userId]);
 
   useEffect(() => {
@@ -48,25 +59,23 @@ const NotificationBell = () => {
         setNotifications((prev) =>
           prev.map((n) => n._id === notification._id ? { ...n, isRead: true } : n)
         );
+        window.dispatchEvent(new Event("hotel_notifications_updated"));
       } catch { }
     }
     setOpen(false);
-    navigate(`/notifications/${notification._id}`);
+    navigate("/my-notifications", { state: { openNotificationId: notification._id } });
   };
 
-  const handleViewAll = async () => {
-    try {
-      await dashboardApi.readAllMineNotifications(userId);
-      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
-    } catch { }
+  const handleViewAll = () => {
     setOpen(false);
-    navigate("/notifications");
+    navigate("/my-notifications");
   };
 
   const handleReadAll = async () => {
     try {
       await dashboardApi.readAllMineNotifications(userId);
       setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+      window.dispatchEvent(new Event("hotel_notifications_updated"));
     } catch { }
   };
 
@@ -260,6 +269,55 @@ const NotificationBell = () => {
             >
               Read All
             </button>
+          </div>
+        </div>
+      )}
+
+      {selectedNotification && (
+        <div
+          onClick={() => setSelectedNotification(null)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0, 0, 0, 0.4)",
+            zIndex: 1100,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center"
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: "380px",
+              maxWidth: "90vw",
+              background: colors.bgCard,
+              border: `1px solid ${colors.borderCard}`,
+              borderRadius: "12px",
+              boxShadow: colors.shadow,
+              padding: "20px"
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "12px" }}>
+              <span style={{ fontSize: "11px", fontWeight: 700, color: colors.accent, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                {selectedNotification.type}
+              </span>
+              <button
+                onClick={() => setSelectedNotification(null)}
+                style={{ background: "none", border: "none", cursor: "pointer", color: colors.textMuted, fontSize: "16px" }}
+              >
+                <FontAwesomeIcon icon={faTimes} />
+              </button>
+            </div>
+            <h5 style={{ fontSize: "16px", fontWeight: 700, color: colors.textPrimary, marginBottom: "10px" }}>
+              {selectedNotification.title}
+            </h5>
+            <p style={{ fontSize: "13px", color: colors.textSecondary, lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
+              {selectedNotification.message}
+            </p>
+            <div style={{ fontSize: "11px", color: colors.textMuted, marginTop: "12px" }}>
+              {formatDisplayDate(selectedNotification.createdAt)}
+            </div>
           </div>
         </div>
       )}
