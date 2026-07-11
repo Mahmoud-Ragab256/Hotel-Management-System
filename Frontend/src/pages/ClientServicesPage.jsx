@@ -15,8 +15,6 @@ const resolveImageUrl = (img) => {
   return null;
 };
 
-const DETAILS_TEXT =
-  'Available around the clock with a specialized, certified hotel team that ensures fast execution and consistently high quality.';
 
 const firstServiceImage = (service) => {
   if (Array.isArray(service?.images) && service.images.length) return service.images.find(Boolean) || '';
@@ -40,6 +38,7 @@ function MessageBox({ type, message, onClose }) {
 }
 
 function ServiceCard({ service, index, onRequest, msgRef }) {
+  const DETAILS_TEXT = service.details || 'Available around the clock with a specialized, certified hotel team that ensures fast execution and consistently high quality.';
   const { colors, isDark } = useTheme();
   const isLeft = index % 2 === 0;
   const imageUrl = resolveImageUrl(firstServiceImage(service));
