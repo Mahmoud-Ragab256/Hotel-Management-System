@@ -3,10 +3,11 @@ import { useNavigate, Link } from 'react-router-dom';
 import { API_BASE_URL, dashboardApi } from '../services/api.js';
 import { isAuthenticated } from '../services/auth.js';
 import { useTheme } from '../context/ThemeContext.jsx';
+import heroImage from '../assets/luxury_hotel_hero.jpg';
 
 // Premium high-res images to match the exact look of the video
 const IMAGES = {
-  hero: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=1600&q=80',
+  hero: heroImage,
   deluxeSuite: 'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=800&q=80',
   oceanView: 'https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=800&q=80',
   gardenRoom: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80',

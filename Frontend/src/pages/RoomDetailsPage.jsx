@@ -119,6 +119,7 @@ function BookingForm({ room, onSuccess }) {
           <label style={{ fontSize: 12, fontWeight: 600, color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 6 }}>Check-in</label>
           <input type="date" required min={today} value={form.checkInDate}
             onChange={(e) => setForm({ ...form, checkInDate: e.target.value })}
+            className="date-input-custom"
             style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: `1px solid ${colors.borderCard}`, background: colors.inputBg, fontSize: 14, color: colors.textPrimary, outline: 'none', boxSizing: 'border-box' }}
           />
         </div>
@@ -126,6 +127,7 @@ function BookingForm({ room, onSuccess }) {
           <label style={{ fontSize: 12, fontWeight: 600, color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 6 }}>Check-out</label>
           <input type="date" required min={form.checkInDate || today} value={form.checkOutDate}
             onChange={(e) => setForm({ ...form, checkOutDate: e.target.value })}
+            className="date-input-custom"
             style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: `1px solid ${colors.borderCard}`, background: colors.inputBg, fontSize: 14, color: colors.textPrimary, outline: 'none', boxSizing: 'border-box' }}
           />
         </div>
@@ -429,6 +431,26 @@ export default function RoomDetailsPage() {
       <style>{`
         @media (max-width: 768px) {
           .room-details-grid { grid-template-columns: 1fr !important; }
+        }
+        
+        .date-input-custom {
+          transition: border-color 0.2s, box-shadow 0.2s !important;
+        }
+        
+        .date-input-custom:focus {
+          border-color: ${colors.accent} !important;
+          box-shadow: 0 0 0 3px ${isDark ? 'rgba(200, 90, 73, 0.25)' : 'rgba(200, 90, 73, 0.15)'} !important;
+        }
+        
+        .date-input-custom::-webkit-calendar-picker-indicator {
+          filter: ${isDark ? 'invert(1) brightness(1)' : 'invert(0.2)'} !important;
+          cursor: pointer;
+          opacity: 0.8;
+          transition: opacity 0.2s;
+        }
+        
+        .date-input-custom::-webkit-calendar-picker-indicator:hover {
+          opacity: 1;
         }
       `}</style>
     </div >

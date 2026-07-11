@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Row, Col, Card, Form, Button, Table, Spinner, Alert } from "react-bootstrap";
 import { dashboardApi, getApiErrorMessage } from "../services/api.js";
+import { useTheme } from "../context/ThemeContext.jsx";
 
 const OrderServicePage = () => {
+  const { colors, isDark } = useTheme();
   const [services, setServices] = useState([]);
   const [myBookings, setMyBookings] = useState([]);
   const [orders, setOrders] = useState([]);
@@ -126,189 +128,324 @@ const OrderServicePage = () => {
     }
   };
 
-  const getStatusBadgeClass = (status) => {
-    switch (status) {
-      case "Pending":
-        return "bg-warning text-dark";
-      case "Completed":
-        return "bg-success";
-      case "Cancelled":
-        return "bg-danger";
-      default:
-        return "bg-primary";
-    }
+  const statusColors = {
+    Completed: { bg: 'rgba(16, 185, 129, 0.1)', text: '#10b981', border: 'rgba(16, 185, 129, 0.2)' },
+    Pending: { bg: 'rgba(245, 158, 11, 0.1)', text: '#f59e0b', border: 'rgba(245, 158, 11, 0.2)' },
+    Cancelled: { bg: 'rgba(239, 68, 68, 0.1)', text: '#fca5a5', border: 'rgba(239, 68, 68, 0.2)' },
+  };
+
+  const getStatusPill = (status) => {
+    const currentStatus = status || "Pending";
+    const colorsObj = statusColors[currentStatus] || { bg: 'rgba(59, 130, 246, 0.1)', text: '#3b82f6', border: 'rgba(59, 130, 246, 0.2)' };
+    return (
+      <span style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '5px',
+        padding: '4px 12px',
+        borderRadius: '999px',
+        fontSize: '11px',
+        fontWeight: '600',
+        background: colorsObj.bg,
+        color: colorsObj.text,
+        border: `1px solid ${colorsObj.border}`,
+        fontFamily: '"Inter", sans-serif'
+      }}>
+        <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: colorsObj.text }} />
+        {currentStatus}
+      </span>
+    );
   };
 
   if (loading) {
     return (
-      <div className="d-flex justify-content-center align-items-center min-vh-50 py-5">
-        <Spinner animation="border" variant="primary" />
+      <div className="d-flex justify-content-center align-items-center py-5" style={{ minHeight: '200px' }}>
+        <div style={{ width: '32px', height: '32px', border: `2px solid ${colors.borderCard}`, borderTopColor: colors.accent, borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
       </div>
     );
   }
 
   return (
-    <div className="container-fluid px-0 text-dark">
+    <div className="container-fluid px-0" style={{ color: colors.textPrimary }}>
       <div className="mb-4">
-        <h2 className="fw-bold m-0">Order a Service</h2>
-        <p className="text-muted m-0">Request hotel services directly to your room</p>
+        <h2 className="fw-bold m-0" style={{ color: colors.textPrimary }}>Order a Service</h2>
+        <p className="m-0" style={{ color: colors.textSecondary }}>Request hotel services directly to your room</p>
       </div>
 
       {error && <Alert variant="danger" onClose={() => setError("")} dismissible>{error}</Alert>}
       {successMsg && <Alert variant="success" onClose={() => setSuccessMsg("")} dismissible>{successMsg}</Alert>}
 
-      <Card className="border-0 shadow-sm rounded mb-5">
-        <Card.Body className="p-4">
-          <h4 className="fw-bold mb-4 text-dark" style={{ fontSize: "1.25rem" }}>Request New Service</h4>
-          
-          {myBookings.length === 0 ? (
-            <Alert variant="warning">
-              You need an active hotel booking or checked-in room to order services.
-            </Alert>
-          ) : (
-            <Form onSubmit={handleOrderSubmit}>
-              <Row className="g-3">
-                <Col md={6}>
-                  <Form.Group>
-                    <Form.Label className="fw-semibold">Select Room / Booking</Form.Label>
-                    <Form.Select
-                      value={selectedBooking}
-                      onChange={(e) => setSelectedBooking(e.target.value)}
-                      required
-                    >
-                      {myBookings.map((b) => (
-                        <option key={b._id || b.id} value={b._id || b.id}>
-                          Room #{b.roomId?.roomNumber || b.roomNumber || "N/A"} ({b.roomId?.type || "Stay"})
-                        </option>
-                      ))}
-                    </Form.Select>
-                  </Form.Group>
-                </Col>
+      <div
+        style={{
+          background: colors.bgCard,
+          borderRadius: '20px',
+          border: `1px solid ${colors.borderCard}`,
+          boxShadow: colors.shadow,
+          padding: '24px',
+          boxSizing: 'border-box',
+          marginBottom: '40px'
+        }}
+      >
+        <h4 className="fw-bold mb-4" style={{ fontSize: "1.25rem", color: colors.textPrimary }}>Request New Service</h4>
+        
+        {myBookings.length === 0 ? (
+          <Alert variant="warning">
+            You need an active hotel booking or checked-in room to order services.
+          </Alert>
+        ) : (
+          <Form onSubmit={handleOrderSubmit}>
+            <Row className="g-3">
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label className="fw-semibold" style={{ color: colors.textSecondary }}>Select Room / Booking</Form.Label>
+                  <Form.Select
+                    value={selectedBooking}
+                    onChange={(e) => setSelectedBooking(e.target.value)}
+                    required
+                    style={{
+                      backgroundColor: colors.inputBg,
+                      color: colors.textPrimary,
+                      borderColor: colors.inputBorder,
+                      borderRadius: '12px',
+                      padding: '10px 14px',
+                      outline: 'none',
+                      fontSize: '14.5px'
+                    }}
+                  >
+                    {myBookings.map((b) => (
+                      <option key={b._id || b.id} value={b._id || b.id}>
+                        Room #{b.roomId?.roomNumber || b.roomNumber || "N/A"} ({b.roomId?.type || "Stay"})
+                      </option>
+                    ))}
+                  </Form.Select>
+                </Form.Group>
+              </Col>
 
-                <Col md={6}>
-                  <Form.Group>
-                    <Form.Label className="fw-semibold">Available Services</Form.Label>
-                    <Form.Select
-                      value={selectedService}
-                      onChange={(e) => setSelectedService(e.target.value)}
-                      required
-                    >
-                      <option value="">-- Choose a Service --</option>
-                      {services.map((s) => (
-                        <option key={s._id || s.id} value={s._id || s.id}>
-                          {s.name} - ${s.price} ({s.category || "General"})
-                        </option>
-                      ))}
-                    </Form.Select>
-                  </Form.Group>
-                </Col>
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label className="fw-semibold" style={{ color: colors.textSecondary }}>Available Services</Form.Label>
+                  <Form.Select
+                    value={selectedService}
+                    onChange={(e) => setSelectedService(e.target.value)}
+                    required
+                    style={{
+                      backgroundColor: colors.inputBg,
+                      color: colors.textPrimary,
+                      borderColor: colors.inputBorder,
+                      borderRadius: '12px',
+                      padding: '10px 14px',
+                      outline: 'none',
+                      fontSize: '14.5px'
+                    }}
+                  >
+                    <option value="" style={{ backgroundColor: colors.bgCard, color: colors.textSecondary }}>-- Choose a Service --</option>
+                    {services.map((s) => (
+                      <option key={s._id || s.id} value={s._id || s.id} style={{ backgroundColor: colors.bgCard, color: colors.textPrimary }}>
+                        {s.name} - ${s.price} ({s.category || "General"})
+                      </option>
+                    ))}
+                  </Form.Select>
+                </Form.Group>
+              </Col>
 
-                <Col md={4}>
-                  <Form.Group>
-                    <Form.Label className="fw-semibold">Quantity</Form.Label>
-                    <Form.Control
-                      type="number"
-                      min="1"
-                      value={quantity}
-                      onChange={(e) => setQuantity(e.target.value)}
-                      required
-                    />
-                  </Form.Group>
-                </Col>
+              <Col md={4}>
+                <Form.Group>
+                  <Form.Label className="fw-semibold" style={{ color: colors.textSecondary }}>Quantity</Form.Label>
+                  <Form.Control
+                    type="number"
+                    min="1"
+                    value={quantity}
+                    onChange={(e) => setQuantity(e.target.value)}
+                    required
+                    style={{
+                      backgroundColor: colors.inputBg,
+                      color: colors.textPrimary,
+                      borderColor: colors.inputBorder,
+                      borderRadius: '12px',
+                      padding: '10px 14px',
+                      outline: 'none',
+                      fontSize: '14.5px'
+                    }}
+                  />
+                </Form.Group>
+              </Col>
 
-                <Col md={8}>
-                  <Form.Group>
-                    <Form.Label className="fw-semibold">Special Instructions / Notes</Form.Label>
-                    <Form.Control
-                      type="text"
-                      placeholder="e.g., Please bring extra towels, deliver at 4 PM..."
-                      value={notes}
-                      onChange={(e) => setNotes(e.target.value)}
-                    />
-                  </Form.Group>
-                </Col>
+              <Col md={8}>
+                <Form.Group>
+                  <Form.Label className="fw-semibold" style={{ color: colors.textSecondary }}>Special Instructions / Notes</Form.Label>
+                  <Form.Control
+                    type="text"
+                    placeholder="e.g., Please bring extra towels, deliver at 4 PM..."
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    style={{
+                      backgroundColor: colors.inputBg,
+                      color: colors.textPrimary,
+                      borderColor: colors.inputBorder,
+                      borderRadius: '12px',
+                      padding: '10px 14px',
+                      outline: 'none',
+                      fontSize: '14.5px'
+                    }}
+                  />
+                </Form.Group>
+              </Col>
 
-                <Col md={12} className="text-end mt-4">
-                  <Button type="submit" variant="primary" disabled={submitLoading}>
-                    {submitLoading ? <Spinner animation="border" size="sm" /> : "Confirm Order"}
-                  </Button>
-                </Col>
-              </Row>
-            </Form>
-          )}
-        </Card.Body>
-      </Card>
+              <Col md={12} className="text-end mt-4">
+                <button
+                  type="submit"
+                  disabled={submitLoading}
+                  style={{
+                    background: colors.accent,
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '12px',
+                    padding: '10px 24px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    display: 'inline-flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    minWidth: '120px'
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.9'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
+                >
+                  {submitLoading ? (
+                    <div style={{ width: '16px', height: '16px', border: '1.5px solid #ffffff', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />
+                  ) : (
+                    "Confirm Order"
+                  )}
+                </button>
+              </Col>
+            </Row>
+          </Form>
+        )}
+      </div>
 
       <div className="mb-3">
-        <h4 className="fw-bold m-0 text-dark" style={{ fontSize: "1.25rem" }}>Orders Log</h4>
-        <p className="text-muted small m-0">History of your requested services</p>
+        <h4 className="fw-bold m-0" style={{ fontSize: "1.25rem", color: colors.textPrimary }}>Orders Log</h4>
+        <p className="m-0" style={{ color: colors.textSecondary }}>History of your requested services</p>
       </div>
 
       {orders.length === 0 ? (
-        <Alert variant="info" className="text-center py-4">
-          You haven't ordered any services yet.
-        </Alert>
+        <div
+          style={{
+            textAlign: 'center',
+            padding: '48px 24px',
+            background: colors.bgCard,
+            borderRadius: '20px',
+            border: `1px solid ${colors.borderCard}`,
+            boxShadow: colors.shadow
+          }}
+        >
+          <p className="m-0" style={{ color: colors.textSecondary }}>You haven't ordered any services yet.</p>
+        </div>
       ) : (
-        <Card className="border-0 shadow-sm rounded overflow-hidden">
+        <div
+          style={{
+            background: colors.bgCard,
+            borderRadius: '20px',
+            border: `1px solid ${colors.borderCard}`,
+            boxShadow: colors.shadow,
+            overflow: 'hidden'
+          }}
+        >
           <div className="table-responsive">
-            <Table hover className="align-middle mb-0 text-dark">
-              <thead className="bg-light text-secondary small fw-bold text-uppercase">
-                <tr>
-                  <th className="px-4 py-3">Order ID</th>
-                  <th className="py-3">Service</th>
-                  <th className="py-3">Qty</th>
-                  <th className="py-3">Total Price</th>
-                  <th className="py-3">Status</th>
-                  <th className="py-3">Notes</th>
-                  <th className="px-4 py-3 text-end">Actions</th>
+            <table
+              style={{
+                width: '100%',
+                borderCollapse: 'collapse',
+                color: colors.textPrimary,
+                fontSize: '14.5px'
+              }}
+            >
+              <thead>
+                <tr
+                  style={{
+                    backgroundColor: isDark ? 'rgba(255, 255, 255, 0.02)' : 'rgba(0, 0, 0, 0.02)',
+                    borderBottom: `1px solid ${colors.borderCard}`,
+                    textAlign: 'left'
+                  }}
+                >
+                  <th className="px-4 py-3 text-uppercase small fw-bold" style={{ color: colors.textSecondary, width: '15%' }}>Order ID</th>
+                  <th className="py-3 text-uppercase small fw-bold" style={{ color: colors.textSecondary }}>Service</th>
+                  <th className="py-3 text-uppercase small fw-bold text-center" style={{ color: colors.textSecondary }}>Qty</th>
+                  <th className="py-3 text-uppercase small fw-bold" style={{ color: colors.textSecondary }}>Total Price</th>
+                  <th className="py-3 text-uppercase small fw-bold text-center" style={{ color: colors.textSecondary }}>Status</th>
+                  <th className="py-3 text-uppercase small fw-bold" style={{ color: colors.textSecondary }}>Notes</th>
+                  <th className="px-4 py-3 text-uppercase small fw-bold text-end" style={{ color: colors.textSecondary }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {orders.map((order) => {
                   const id = order._id || order.id || "";
                   return (
-                    <tr key={id}>
-                      <td className="px-4 py-3 fw-mono text-muted small">
-                        #{id ? id.substring(0, 8) : "N/A"}...
+                    <tr
+                      key={id}
+                      style={{
+                        borderBottom: `1px solid ${colors.borderCard}`,
+                        transition: 'background-color 0.2s'
+                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = isDark ? 'rgba(255, 255, 255, 0.015)' : 'rgba(0, 0, 0, 0.01)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+                    >
+                      <td className="px-4 py-3 fw-mono small" style={{ color: colors.textSecondary }}>
+                        #{id ? id.substring(0, 8).toUpperCase() : "N/A"}
                       </td>
-                      <td className="py-3 fw-semibold">
+                      <td className="py-3 fw-semibold" style={{ color: colors.textPrimary }}>
                         {order.serviceId?.name || "Custom Service"}
                       </td>
-                      <td className="py-3">
+                      <td className="py-3 text-center" style={{ color: colors.textSecondary }}>
                         {order.quantity || 1}
                       </td>
-                      <td className="py-3 fw-bold text-dark">
-                        ${order.totalPrice || 0}
+                      <td className="py-3 fw-bold" style={{ color: colors.accent }}>
+                        ${Number(order.totalPrice || 0).toLocaleString()}
                       </td>
-                      <td className="py-3">
-                        <span className={`badge ${getStatusBadgeClass(order.status)}`}>
-                          {order.status || "Pending"}
-                        </span>
+                      <td className="py-3 text-center">
+                        {getStatusPill(order.status)}
                       </td>
-                      <td className="py-3 text-muted small text-truncate" style={{ maxWidth: "200px" }}>
+                      <td className="py-3 small text-truncate" style={{ color: colors.textSecondary, maxWidth: "200px" }}>
                         {order.notes || "—"}
                       </td>
                       <td className="px-4 py-3 text-end">
-                        <Button
-                          variant={order.status === "Pending" ? "danger" : "secondary"}
-                          size="sm"
+                        <button
                           disabled={order.status !== "Pending" || actionLoading !== null}
                           onClick={() => handleCancelOrder(id)}
+                          style={{
+                            background: 'transparent',
+                            color: order.status === "Pending" ? '#ef4444' : colors.textSecondary,
+                            border: `1px solid ${order.status === "Pending" ? '#ef4444' : colors.borderCard}`,
+                            borderRadius: '12px',
+                            padding: '6px 14px',
+                            fontSize: '12.5px',
+                            fontWeight: '600',
+                            cursor: order.status === "Pending" ? 'pointer' : 'default',
+                            transition: 'all 0.2s',
+                            opacity: order.status === "Pending" ? '1' : '0.5',
+                            minWidth: '70px',
+                            display: 'inline-flex',
+                            justifyContent: 'center',
+                            alignItems: 'center'
+                          }}
+                          onMouseEnter={(e) => { if (order.status === "Pending") e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.05)'; }}
+                          onMouseLeave={(e) => { if (order.status === "Pending") e.currentTarget.style.backgroundColor = 'transparent'; }}
                         >
                           {actionLoading === id ? (
-                            <Spinner animation="border" size="sm" />
+                            <div style={{ width: '12px', height: '12px', border: '1.5px solid #ef4444', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />
                           ) : (
                             "Cancel"
                           )}
-                        </Button>
+                        </button>
                       </td>
                     </tr>
                   );
                 })}
               </tbody>
-            </Table>
+            </table>
           </div>
-        </Card>
+        </div>
       )}
     </div>
   );

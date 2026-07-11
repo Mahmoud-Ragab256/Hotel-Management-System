@@ -4,15 +4,20 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHotel, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { sidebarItems } from '../data/sidebarItems.js';
 
-function Sidebar({ isOpen, onClose }) {
+function Sidebar({ isOpen, isCollapsed, onClose }) {
   return (
-    <aside className={`app-sidebar text-white d-flex flex-column ${isOpen ? 'show' : ''}`}>
-      <div className="px-4 py-4 border-bottom border-secondary-subtle d-flex align-items-center justify-content-between">
+    <aside className={`app-sidebar text-white d-flex flex-column ${isOpen ? 'show' : ''} ${isCollapsed ? 'collapsed' : ''}`}>
+      <div 
+        className="px-4 py-4 border-bottom border-secondary-subtle d-flex align-items-center justify-content-between brand-header-wrapper"
+        style={{ height: '93px', boxSizing: 'border-box' }}
+      >
         <div className="d-flex align-items-center gap-3">
-          <span className="brand-icon d-inline-flex align-items-center justify-content-center rounded-3">
-            <FontAwesomeIcon icon={faHotel} />
+          <span className="brand-icon d-inline-flex align-items-center justify-content-center rounded-3" style={{ flexShrink: 0 }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+            </svg>
           </span>
-          <div>
+          <div className="brand-text-container">
             <h1 className="h5 mb-0 fw-bold">Hotel Admin</h1>
             <small className="text-white-50">Management Panel</small>
           </div>

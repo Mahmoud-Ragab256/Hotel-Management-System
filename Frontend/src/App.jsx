@@ -101,18 +101,11 @@ function App() {
 
         </Route>
 
-        <Route path="/my-bookings" element={<GuestLayout />}>
-          <Route index element={<MyBookingsPage />} />
+        <Route path="/my-bookings" element={<Navigate to="/profile?tab=bookings" replace />} />
 
-        </Route>
+        <Route path="/my-rooms" element={<Navigate to="/profile?tab=rooms" replace />} />
 
-        <Route path="/my-rooms" element={<GuestLayout />}>
-          <Route index element={<MyRoomsPage />} />
-        </Route>
-
-        <Route path="/my-invoices" element={<GuestLayout />}>
-          <Route index element={<MyInvoicesPage />} />
-        </Route>
+        <Route path="/my-invoices" element={<Navigate to="/profile?tab=invoices" replace />} />
 
         <Route path="/order-service" element={<GuestLayout />}>
           <Route index element={<OrderServicePage />} />

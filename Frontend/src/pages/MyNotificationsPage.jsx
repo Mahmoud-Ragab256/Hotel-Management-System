@@ -117,9 +117,27 @@ function MyNotificationsPage() {
           <h1 className="h2 fw-bold mb-1" style={{ color: colors.textPrimary }}>My Notifications</h1>
           <p className="mb-0" style={{ color: colors.textSecondary }}>All updates and alerts related to your account.</p>
         </div>
-        <Button variant="outline-primary" onClick={handleMarkAllRead}>
-          <FontAwesomeIcon icon={faCheckDouble} className="me-2" /> Mark All as Read
-        </Button>
+        <button
+          onClick={handleMarkAllRead}
+          style={{
+            background: 'transparent',
+            border: `1px solid ${colors.accent}`,
+            color: colors.accent,
+            borderRadius: '20px',
+            padding: '8px 20px',
+            fontSize: '13.5px',
+            fontWeight: '600',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = colors.accent; e.currentTarget.style.color = '#ffffff'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = colors.accent; }}
+        >
+          <FontAwesomeIcon icon={faCheckDouble} /> Mark All as Read
+        </button>
       </div>
 
       {feedback && <FeedbackCard feedback={feedback} onClose={() => setFeedback(null)} />}
@@ -139,9 +157,10 @@ function MyNotificationsPage() {
                 key={tab}
                 variant="none"
                 style={{
-                  backgroundColor: statusTab === tab ? (isDark ? '#2a3554' : '#ffffff') : 'transparent',
-                  color: statusTab === tab ? colors.textPrimary : colors.textSecondary,
-                  borderRadius: '6px'
+                  backgroundColor: statusTab === tab ? colors.accent : 'transparent',
+                  color: statusTab === tab ? '#ffffff' : colors.textSecondary,
+                  borderRadius: '6px',
+                  transition: 'all 0.2s'
                 }}
                 className={`px-3 border-0 small fw-medium ${statusTab === tab ? 'shadow-sm' : ''}`}
                 onClick={() => setStatusTab(tab)}
@@ -153,98 +172,125 @@ function MyNotificationsPage() {
         </Card.Body>
       </Card>
 
-      <Card
-        className="border-0 shadow-sm"
-        style={{
-          borderRadius: '12px',
-          overflow: 'hidden',
-          backgroundColor: colors.bgCard,
-          border: isDark ? `1px solid ${colors.borderCard}` : 'none'
-        }}
-      >
-        <div className="table-responsive">
-          <Table
-            className="align-middle mb-0"
-            style={{
-              '--bs-table-hover-bg': isDark ? 'rgba(255, 255, 255, 0.03)' : '#f8f9fa',
-              color: colors.textPrimary
-            }}
-            hover
-          >
-            <thead style={{ backgroundColor: isDark ? colors.bgCardAlt : '#f8f9fa', borderBottom: isDark ? `1px solid ${colors.borderCard}` : '1px solid #edf2f7' }}>
-              <tr>
-                <th className="text-uppercase px-4 py-3 small fw-bold" style={{ width: '80px', color: colors.textSecondary, borderBottom: 'none' }}>Status</th>
-                <th className="text-uppercase px-3 py-3 small fw-bold" style={{ color: colors.textSecondary, borderBottom: 'none' }}>Message</th>
-                <th className="text-uppercase px-3 py-3 small fw-bold" style={{ width: '120px', color: colors.textSecondary, borderBottom: 'none' }}>Type</th>
-                <th className="text-uppercase px-4 py-3 small fw-bold text-end" style={{ width: '160px', color: colors.textSecondary, borderBottom: 'none' }}>Received</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading && (
-                <tr>
-                  <td colSpan="4" className="text-center py-5" style={{ color: colors.textSecondary, borderBottom: 'none' }}>
-                    <Spinner animation="border" size="sm" className="me-2" /> Loading notifications...
-                  </td>
-                </tr>
-              )}
-              {!loading && filteredNotifications.length === 0 && (
-                <tr>
-                  <td colSpan="4" className="text-center py-5 small" style={{ color: colors.textMuted, borderBottom: 'none' }}>
-                    <FontAwesomeIcon icon={faBell} className="mb-2 d-block mx-auto" style={{ fontSize: '24px', opacity: 0.4 }} />
-                    No notifications match the active filter.
-                  </td>
-                </tr>
-              )}
-              {!loading && filteredNotifications.map((notif) => {
-                const tc = typeColors(notif.type);
-                return (
-                  <tr
-                    key={notif._id}
-                    onClick={() => handleOpenDetails(notif)}
-                    style={{
-                      cursor: 'pointer',
-                      borderBottom: isDark ? `1px solid ${colors.borderCard}` : '1px solid #edf2f7',
-                      backgroundColor: !notif.isRead ? (isDark ? 'rgba(200, 90, 73, 0.06)' : 'rgba(200, 90, 73, 0.03)') : 'transparent'
-                    }}
-                  >
-                    <td className="px-4 py-3 text-center" style={{ borderBottom: 'none' }}>
-                      {!notif.isRead ? (
-                        <span className="d-inline-block bg-primary rounded-circle" style={{ width: '8px', height: '8px' }}></span>
-                      ) : (
-                        <span className="d-inline-block rounded-circle border" style={{ width: '8px', height: '8px', backgroundColor: 'transparent', borderColor: isDark ? colors.borderCard : '#cbd5e1' }}></span>
-                      )}
-                    </td>
-                    <td className="px-3 py-3" style={{ borderBottom: 'none' }}>
-                      <div className="fw-bold" style={{ fontSize: '15px', color: !notif.isRead ? colors.textPrimary : colors.textSecondary }}>
-                        {notif.title}
-                      </div>
-                      <div className="small mt-1" style={{ color: colors.textMuted, maxWidth: '550px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {notif.message}
-                      </div>
-                    </td>
-                    <td className="px-3 py-3" style={{ borderBottom: 'none' }}>
-                      <span
-                        className="fw-medium px-3 py-1 d-inline-block"
-                        style={{ fontSize: '13px', borderRadius: '50px', backgroundColor: tc.bg, color: tc.text }}
-                      >
-                        {notif.type}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-end small" style={{ color: colors.textSecondary, borderBottom: 'none' }}>
-                      {formatTimeAgo(notif.createdAt)}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </Table>
+      {loading && (
+        <div className="d-flex justify-content-center align-items-center py-5" style={{ minHeight: '200px' }}>
+          <div style={{ width: '32px', height: '32px', border: `2px solid ${colors.borderCard}`, borderTopColor: colors.accent, borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
         </div>
-      </Card>
+      )}
+
+      {!loading && filteredNotifications.length === 0 && (
+        <div
+          style={{
+            textAlign: 'center',
+            padding: '48px 24px',
+            background: colors.bgCard,
+            borderRadius: '20px',
+            border: `1px solid ${colors.borderCard}`,
+            boxShadow: colors.shadow
+          }}
+        >
+          <FontAwesomeIcon icon={faBell} className="mb-2" style={{ fontSize: '28px', color: colors.textMuted, opacity: 0.5 }} />
+          <p className="m-0" style={{ color: colors.textSecondary }}>No notifications match the active filter criteria.</p>
+        </div>
+      )}
+
+      {!loading && filteredNotifications.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {filteredNotifications.map((notif) => {
+            const tc = typeColors(notif.type);
+            return (
+              <div
+                key={notif._id}
+                onClick={() => handleOpenDetails(notif)}
+                style={{
+                  background: colors.bgCard,
+                  borderRadius: '16px',
+                  border: `1px solid ${colors.borderCard}`,
+                  borderLeft: !notif.isRead ? `4px solid ${colors.accent}` : `1px solid ${colors.borderCard}`,
+                  padding: '20px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px',
+                  boxShadow: colors.shadow,
+                  transition: 'all 0.2s ease',
+                  backgroundColor: !notif.isRead 
+                    ? (isDark ? 'rgba(200, 90, 73, 0.06)' : 'rgba(200, 90, 73, 0.02)') 
+                    : colors.bgCard
+                }}
+                onMouseEnter={(e) => { 
+                  e.currentTarget.style.borderColor = colors.accent; 
+                  e.currentTarget.style.transform = 'translateY(-2px)'; 
+                }}
+                onMouseLeave={(e) => { 
+                  e.currentTarget.style.borderColor = colors.borderCard; 
+                  e.currentTarget.style.transform = 'translateY(0)'; 
+                }}
+              >
+                {/* Header of Notification Card */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {!notif.isRead && (
+                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: colors.accent }} />
+                    )}
+                    <span
+                      style={{
+                        fontSize: '11px',
+                        fontWeight: '700',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em',
+                        borderRadius: '50px',
+                        backgroundColor: tc.bg,
+                        color: tc.text,
+                        padding: '4px 10px'
+                      }}
+                    >
+                      {notif.type}
+                    </span>
+                  </div>
+                  <span style={{ fontSize: '12.5px', color: colors.textMuted }}>
+                    {formatTimeAgo(notif.createdAt)}
+                  </span>
+                </div>
+
+                {/* Content */}
+                <div>
+                  <h4 style={{ fontSize: '16px', fontWeight: '700', color: colors.textPrimary, margin: '0 0 6px', fontFamily: '"Playfair Display", serif' }}>
+                    {notif.title}
+                  </h4>
+                  <p style={{ fontSize: '13.5px', color: colors.textSecondary, margin: 0, lineHeight: 1.6 }}>
+                    {notif.message}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       <Modal show={!!selectedNotif} onHide={() => setSelectedNotif(null)} centered>
-        <Modal.Header closeButton style={{ backgroundColor: colors.bgCard, borderColor: isDark ? colors.borderCard : '#dee2e6' }}>
-          <Modal.Title className="fw-bold" style={{ color: colors.textPrimary }}>Notification Details</Modal.Title>
-        </Modal.Header>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: '20px 24px',
+          borderBottom: `1px solid ${colors.borderCard}`,
+          backgroundColor: colors.bgCard
+        }}>
+          <h5 style={{ margin: 0, fontWeight: '700', fontSize: '18px', color: colors.textPrimary }}>Notification Details</h5>
+          <button
+            onClick={() => setSelectedNotif(null)}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: colors.textMuted,
+              fontSize: '24px',
+              cursor: 'pointer',
+              lineHeight: 1,
+              padding: 0
+            }}
+          >&times;</button>
+        </div>
         {selectedNotif && (
           <Modal.Body className="p-4" style={{ backgroundColor: colors.bgCard, color: colors.textPrimary }}>
             <div className="d-flex align-items-center gap-2 mb-3">
@@ -269,9 +315,32 @@ function MyNotificationsPage() {
             </p>
           </Modal.Body>
         )}
-        <Modal.Footer style={{ backgroundColor: colors.bgCard, borderColor: isDark ? colors.borderCard : '#dee2e6' }}>
-          <Button variant="secondary" onClick={() => setSelectedNotif(null)}>Close</Button>
-        </Modal.Footer>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'flex-end',
+          padding: '16px 24px',
+          borderTop: `1px solid ${colors.borderCard}`,
+          backgroundColor: colors.bgCard
+        }}>
+          <button
+            onClick={() => setSelectedNotif(null)}
+            style={{
+              background: colors.accent,
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '12px',
+              padding: '8px 24px',
+              fontSize: '13.5px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.9'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
+          >
+            Close
+          </button>
+        </div>
       </Modal>
     </div>
   );

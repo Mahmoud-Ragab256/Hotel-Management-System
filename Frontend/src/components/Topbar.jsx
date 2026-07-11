@@ -15,7 +15,7 @@ import {
 import { clearAuthSession, getCurrentUser } from '../services/auth.js';
 import { useTheme } from '../context/ThemeContext.jsx';
 
-function Topbar({ onToggleSidebar }) {
+function Topbar({ onToggleSidebar, onToggleCollapse }) {
   const navigate = useNavigate();
   const user = getCurrentUser('dashboard');
   const { isDark, toggleTheme } = useTheme();
@@ -27,8 +27,19 @@ function Topbar({ onToggleSidebar }) {
     navigate('/dashboard/login', { replace: true });
   };
 
+  const handleToggle = () => {
+    if (window.innerWidth >= 992) {
+      if (onToggleCollapse) onToggleCollapse();
+    } else {
+      if (onToggleSidebar) onToggleSidebar();
+    }
+  };
+
   return (
-    <Navbar className="admin-topbar border-bottom px-3 px-md-4 py-3 sticky-top">
+    <Navbar 
+      className="admin-topbar border-bottom px-3 px-md-4 py-3 sticky-top"
+      style={{ height: '93px', boxSizing: 'border-box' }}
+    >
       <div className="d-flex align-items-center justify-content-between w-100 gap-3">
         {isSearchExpanded ? (
           <div className="d-flex align-items-center w-100 gap-2">
@@ -60,8 +71,8 @@ function Topbar({ onToggleSidebar }) {
             <div className="d-flex align-items-center gap-1 gap-sm-2 gap-md-3">
               <Button
                 variant="light"
-                className="topbar-btn border border-secondary-subtle d-lg-none"
-                onClick={onToggleSidebar}
+                className="topbar-btn border border-secondary-subtle"
+                onClick={handleToggle}
                 title="Toggle Sidebar"
                 id="mobile-sidebar-toggle"
                 style={{ width: '40px', height: '40px', padding: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}

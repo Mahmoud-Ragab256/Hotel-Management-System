@@ -31,7 +31,11 @@ import {
   faStar,
   faBed
 } from '@fortawesome/free-solid-svg-icons';
+import { useSearchParams } from 'react-router-dom';
 import ProfileImageCropper from '../components/ProfileImageCropper.jsx';
+import MyRoomsPage from './MyRoomsPage.jsx';
+import MyBookingsPage from './MyBookingsPage.jsx';
+import MyInvoicesPage from './MyInvoicesPage.jsx';
 import { dashboardApi, getApiErrorMessage } from '../services/api.js';
 import { formatDisplayDate } from '../utils/date.js';
 import { useTheme } from '../context/ThemeContext.jsx';
@@ -208,7 +212,21 @@ function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState(null);
-  const [activeTab, setActiveTab] = useState('profile');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const queryTab = searchParams.get('tab') || 'profile';
+  const [activeTab, setActiveTab] = useState(queryTab);
+
+  useEffect(() => {
+    const qTab = searchParams.get('tab');
+    if (qTab && qTab !== activeTab) {
+      setActiveTab(qTab);
+    }
+  }, [searchParams]);
+
+  const handleTabChange = (tabId) => {
+    setActiveTab(tabId);
+    setSearchParams({ tab: tabId });
+  };
 
   const [editModal, setEditModal] = useState(false);
   const [editForm, setEditForm] = useState({
@@ -413,6 +431,28 @@ function ProfilePage() {
           color: ${colors.textSecondary} !important;
         }
         
+        /* Darker shade thin scrollbar/slider for profile navigations */
+        .no-scrollbar::-webkit-scrollbar {
+          height: 5px !important;
+          display: block !important;
+        }
+        .no-scrollbar::-webkit-scrollbar-track {
+          background: ${isDark ? '#111111' : '#f5f3ef'} !important;
+          border-radius: 99px !important;
+        }
+        .no-scrollbar::-webkit-scrollbar-thumb {
+          background: ${isDark ? '#333333' : '#c1b4ac'} !important;
+          border-radius: 99px !important;
+        }
+        .no-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: ${colors.accent} !important;
+        }
+        .no-scrollbar {
+          scrollbar-width: thin !important;
+          scrollbar-color: ${isDark ? '#333333 #111111' : '#c1b4ac #f5f3ef'} !important;
+          -webkit-overflow-scrolling: touch !important;
+        }
+
         /* Premium Responsive Layout and Padding Helper */
         .profile-grid-container {
           display: grid;
@@ -627,14 +667,16 @@ function ProfilePage() {
             }} className="no-scrollbar">
               {[
                 { id: 'profile', label: 'Overview', badge: null },
+                { id: 'rooms', label: 'My Rooms', badge: null },
                 { id: 'bookings', label: 'Reservations', badge: bookings.length > 0 ? bookings.length : null },
+                { id: 'invoices', label: 'My Invoices', badge: null },
                 { id: 'reviews', label: 'Guestbook Reviews', badge: reviews.length > 0 ? reviews.length : null }
               ].map(tab => {
                 const isActive = activeTab === tab.id;
                 return (
                   <button
                     key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
+                    onClick={() => handleTabChange(tab.id)}
                     style={{
                       background: 'transparent',
                       border: 'none',
@@ -800,144 +842,16 @@ function ProfilePage() {
               </div>
             )}
 
-            {/* TAB CONTENTS 2: Reservations styled in gorgeous cards */}
+            {activeTab === 'rooms' && (
+              <MyRoomsPage hideHeader={true} />
+            )}
+
             {activeTab === 'bookings' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <div style={{ marginBottom: '4px' }}>
-                  <h3 style={{ fontSize: '18px', fontWeight: '700', color: colors.textPrimary, margin: '0 0 4px', fontFamily: '"Playfair Display", serif' }}>
-                    My Reservations
-                  </h3>
-                  <p style={{ fontSize: '13px', color: colors.textSecondary, margin: 0, fontWeight: 300 }}>
-                    A summary of your upcoming stays and history at Aethos.
-                  </p>
-                </div>
+              <MyBookingsPage hideHeader={true} />
+            )}
 
-                {bookingsLoading ? (
-                  <div style={{ textAlign: 'center', padding: '48px 0', background: colors.bgCard, borderRadius: '20px', border: `1px solid ${colors.borderCard}` }}>
-                    <div style={{ width: '28px', height: '28px', border: `2px solid ${colors.borderCard}`, borderTopColor: colors.accent, borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 12px' }} />
-                    <span style={{ fontSize: '13px', color: colors.textSecondary }}>Retrieving bookings...</span>
-                  </div>
-                ) : bookings.length === 0 ? (
-                  <div style={{ textAlign: 'center', padding: '60px 24px', background: colors.bgCard, borderRadius: '20px', border: `1px solid ${colors.borderCard}` }}>
-                    <FontAwesomeIcon icon={faCalendarCheck} size="2x" style={{ color: colors.textMuted, marginBottom: '16px' }} />
-                    <h4 style={{ fontSize: '16px', fontWeight: '600', color: colors.textPrimary, marginBottom: '6px' }}>No stays booked yet</h4>
-                    <p style={{ fontSize: '13px', color: colors.textSecondary, maxWidth: '320px', margin: '0 auto' }}>
-                      Embark on your next sensory journey by booking a luxury room.
-                    </p>
-                  </div>
-                ) : (
-                  bookings.map((b) => {
-                    const id = b?._id || b?.id || '';
-                    const rNum = b?.roomId?.roomNumber || b?.roomNumber || 'N/A';
-                    const catName = b?.roomId?.categoryId?.name || 'Luxury Suite';
-                    const rImg = b?.roomId?.images?.[0] || 'https://images.unsplash.com/photo-1540518614846-7eded433c457?auto=format&fit=crop&w=400&q=80';
-
-                    return (
-                      <div
-                        key={id}
-                        style={{
-                          background: colors.bgCard,
-                          borderRadius: '16px',
-                          border: `1px solid ${colors.borderCard}`,
-                          boxShadow: colors.shadow,
-                          display: 'flex',
-                          overflow: 'hidden',
-                          flexWrap: 'wrap',
-                          transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
-                        }}
-                        onMouseEnter={(e) => { e.currentTarget.style.borderColor = colors.accent; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.borderColor = colors.borderCard; }}
-                        className="luxury-booking-card"
-                      >
-                        {/* Room Preview Side */}
-                        <div style={{
-                          width: '180px',
-                          background: `url("${rImg}") center/cover no-repeat`,
-                          minHeight: '140px',
-                          position: 'relative'
-                        }} className="booking-card-image">
-                          <div style={{
-                            position: 'absolute',
-                            top: '12px',
-                            left: '12px',
-                            zIndex: 2
-                          }}>
-                            <StatusPill status={b.status} />
-                          </div>
-                        </div>
-
-                        {/* Content Side */}
-                        <div style={{ flex: 1, padding: '24px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '16px' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
-                            <div>
-                              <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.06em', color: colors.accent, fontWeight: '700', marginBottom: '2px' }}>
-                                {catName}
-                              </div>
-                              <h4 style={{ fontSize: '19px', fontWeight: '700', fontFamily: '"Playfair Display", serif', color: colors.textPrimary, margin: 0 }}>
-                                Room #{rNum}
-                              </h4>
-                              <div style={{ fontSize: '11px', color: colors.textMuted, fontFamily: 'monospace', marginTop: '3px' }}>
-                                ID: #{id.slice(-8).toUpperCase()}
-                              </div>
-                            </div>
-
-                            <div style={{ textAlign: 'right' }}>
-                              <div style={{ fontSize: '11px', color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                                Total Stay Price
-                              </div>
-                              <div style={{ fontSize: '18px', fontWeight: '800', color: colors.textPrimary, marginTop: '2px' }}>
-                                ${Number(b.totalPrice || 0).toLocaleString()}
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Divider */}
-                          <div style={{ height: '1px', background: colors.borderCard, width: '100%' }} />
-
-                          {/* Date Range Details */}
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                              <div>
-                                <span style={{ fontSize: '10px', color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block' }}>Check-in</span>
-                                <span style={{ fontSize: '13.5px', fontWeight: '600', color: colors.textPrimary }}>{toDateInput(b.checkInDate)}</span>
-                              </div>
-                              <span style={{ fontSize: '16px', color: colors.textMuted }}>&rarr;</span>
-                              <div>
-                                <span style={{ fontSize: '10px', color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block' }}>Check-out</span>
-                                <span style={{ fontSize: '13.5px', fontWeight: '600', color: colors.textPrimary }}>{toDateInput(b.checkOutDate)}</span>
-                              </div>
-                            </div>
-
-                            {/* Booking Action Buttons */}
-                            <button
-                              onClick={() => {
-                                // Scroll or redirect user to support if needed, or simply display details
-                                showFeedback('info', `Your reservation details are saved. If you have inquiries about stay #${id.slice(-8).toUpperCase()}, please mention it to our front desk.`);
-                              }}
-                              style={{
-                                background: 'transparent',
-                                border: `1px solid ${colors.inputBorder}`,
-                                color: colors.textPrimary,
-                                borderRadius: '12px',
-                                padding: '6px 14px',
-                                fontSize: '12px',
-                                fontWeight: '600',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s'
-                              }}
-                              onMouseEnter={(e) => { e.currentTarget.style.borderColor = colors.accent; }}
-                              onMouseLeave={(e) => { e.currentTarget.style.borderColor = colors.inputBorder; }}
-                            >
-                              Inquire Concierge
-                            </button>
-                          </div>
-                        </div>
-
-                      </div>
-                    );
-                  })
-                )}
-              </div>
+            {activeTab === 'invoices' && (
+              <MyInvoicesPage hideHeader={true} />
             )}
 
             {/* TAB CONTENTS 3: Reviews Left in guestbook card style */}

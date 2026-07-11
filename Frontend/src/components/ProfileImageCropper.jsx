@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Button, Form, Modal } from 'react-bootstrap';
+import { useTheme } from '../context/ThemeContext.jsx';
 
 const VIEWPORT_SIZE = 360;
 const CROP_SIZE = 300;
@@ -70,6 +71,7 @@ function ProfileImageCropper({
   onCancel,
   onConfirm
 }) {
+  const { colors, isDark } = useTheme();
   const canvasRef = useRef(null);
   const dragStateRef = useRef({ active: false, x: 0, y: 0 });
 
@@ -134,10 +136,10 @@ function ProfileImageCropper({
     });
 
     context.clearRect(0, 0, VIEWPORT_SIZE, VIEWPORT_SIZE);
-    context.fillStyle = '#f8fafc';
+    context.fillStyle = isDark ? '#161616' : '#f8fafc';
     context.fillRect(0, 0, VIEWPORT_SIZE, VIEWPORT_SIZE);
     context.drawImage(imageElement, drawX, drawY, displayWidth, displayHeight);
-  }, [imageElement, offset, zoom]);
+  }, [imageElement, offset, zoom, isDark]);
 
   useEffect(() => {
     drawPreview();
@@ -219,12 +221,14 @@ function ProfileImageCropper({
       <Modal.Body>
         <div className="d-flex flex-column align-items-center gap-3">
           <div
-            className="position-relative overflow-hidden bg-light border shadow-sm rounded-4"
+            className="position-relative overflow-hidden border shadow-sm rounded-4"
             style={{
               width: VIEWPORT_SIZE,
               height: VIEWPORT_SIZE,
               maxWidth: '86vw',
               maxHeight: '86vw',
+              backgroundColor: isDark ? '#161616' : '#f8fafc',
+              borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.1)',
               cursor: imageElement ? (dragging ? 'grabbing' : 'grab') : 'default',
               userSelect: 'none',
               touchAction: 'none'

@@ -873,58 +873,58 @@
 
 
 /* Modals Overrides - Support portals rendering outside root */
-.theme-dark .modal-content,
-[data-theme='dark'] .modal-content {
+.in-admin-layout.theme-dark .modal-content,
+.in-admin-layout[data-theme='dark'] .modal-content {
   background-color: #151c2f !important;
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
   color: #ffffff !important;
 }
 
-.theme-dark .modal-header,
-.theme-dark .modal-footer,
-[data-theme='dark'] .modal-header,
-[data-theme='dark'] .modal-footer {
+.in-admin-layout.theme-dark .modal-header,
+.in-admin-layout.theme-dark .modal-footer,
+.in-admin-layout[data-theme='dark'] .modal-header,
+.in-admin-layout[data-theme='dark'] .modal-footer {
   border-color: rgba(255, 255, 255, 0.06) !important;
   background-color: #151c2f !important;
   color: #ffffff !important;
 }
 
-.theme-dark .modal-header .modal-title,
-[data-theme='dark'] .modal-header .modal-title {
+.in-admin-layout.theme-dark .modal-header .modal-title,
+.in-admin-layout[data-theme='dark'] .modal-header .modal-title {
   color: #ffffff !important;
   font-weight: 600 !important;
 }
 
-.theme-dark .modal-header .btn-close,
-[data-theme='dark'] .modal-header .btn-close {
+.in-admin-layout.theme-dark .modal-header .btn-close,
+.in-admin-layout[data-theme='dark'] .modal-header .btn-close {
   filter: invert(1) grayscale(1) brightness(2) !important;
   opacity: 0.8 !important;
 }
 
-.theme-dark .modal-header .btn-close:hover,
-[data-theme='dark'] .modal-header .btn-close:hover {
+.in-admin-layout.theme-dark .modal-header .btn-close:hover,
+.in-admin-layout[data-theme='dark'] .modal-header .btn-close:hover {
   opacity: 1 !important;
 }
 
-.theme-dark .modal-body,
-[data-theme='dark'] .modal-body {
+.in-admin-layout.theme-dark .modal-body,
+.in-admin-layout[data-theme='dark'] .modal-body {
   background-color: #151c2f !important;
   color: #ffffff !important;
 }
 
 /* Form fields within dark modals */
-.theme-dark .modal-body label,
-.theme-dark .modal-body .form-label,
-[data-theme='dark'] .modal-body label,
-[data-theme='dark'] .modal-body .form-label {
+.in-admin-layout.theme-dark .modal-body label,
+.in-admin-layout.theme-dark .modal-body .form-label,
+.in-admin-layout[data-theme='dark'] .modal-body label,
+.in-admin-layout[data-theme='dark'] .modal-body .form-label {
   color: #cbd5e1 !important;
   font-weight: 500 !important;
 }
 
-.theme-dark .modal-body .form-control,
-.theme-dark .modal-body .form-select,
-[data-theme='dark'] .modal-body .form-control,
-[data-theme='dark'] .modal-body .form-select {
+.in-admin-layout.theme-dark .modal-body .form-control,
+.in-admin-layout.theme-dark .modal-body .form-select,
+.in-admin-layout[data-theme='dark'] .modal-body .form-control,
+.in-admin-layout[data-theme='dark'] .modal-body .form-select {
   background-color: #1e273e !important;
   color: #ffffff !important;
   border: 1.5px solid rgba(255, 255, 255, 0.08) !important;
@@ -932,99 +932,99 @@
   padding: 10px 16px !important;
 }
 
-.theme-dark .modal-body .form-select,
-[data-theme='dark'] .modal-body .form-select {
+.in-admin-layout.theme-dark .modal-body .form-select,
+.in-admin-layout[data-theme='dark'] .modal-body .form-select {
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23818cf8' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.5' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
   background-size: 14px 14px !important;
   background-position: right 14px center !important;
   padding-right: 40px !important;
 }
 
-.theme-dark .modal-body .form-control:focus,
-.theme-dark .modal-body .form-select:focus,
-[data-theme='dark'] .modal-body .form-control:focus,
-[data-theme='dark'] .modal-body .form-select:focus {
+.in-admin-layout.theme-dark .modal-body .form-control:focus,
+.in-admin-layout.theme-dark .modal-body .form-select:focus,
+.in-admin-layout[data-theme='dark'] .modal-body .form-control:focus,
+.in-admin-layout[data-theme='dark'] .modal-body .form-select:focus {
   background-color: #242f4c !important;
   color: #ffffff !important;
   border-color: #6366f1 !important;
   box-shadow: 0 0 0 3.5px rgba(99, 102, 241, 0.25) !important;
 }
 
-.theme-dark .modal-body .form-control::placeholder,
-[data-theme='dark'] .modal-body .form-control::placeholder {
+.in-admin-layout.theme-dark .modal-body .form-control::placeholder,
+.in-admin-layout[data-theme='dark'] .modal-body .form-control::placeholder {
   color: #64748b !important;
 }
 
 /* Ensure Select dropdown options in dark mode have dark background */
-.theme-dark .modal-body select option,
-[data-theme='dark'] .modal-body select option {
+.in-admin-layout.theme-dark .modal-body select option,
+.in-admin-layout[data-theme='dark'] .modal-body select option {
   background-color: #1e273e !important;
   color: #ffffff !important;
   padding: 12px !important;
 }
 
 /* Secondary info text or small notes in modal body */
-.theme-dark .modal-body .text-muted,
-.theme-dark .modal-body p,
-.theme-dark .modal-body small,
-[data-theme='dark'] .modal-body .text-muted,
-[data-theme='dark'] .modal-body p,
-[data-theme='dark'] .modal-body small {
+.in-admin-layout.theme-dark .modal-body .text-muted,
+.in-admin-layout.theme-dark .modal-body p,
+.in-admin-layout.theme-dark .modal-body small,
+.in-admin-layout[data-theme='dark'] .modal-body .text-muted,
+.in-admin-layout[data-theme='dark'] .modal-body p,
+.in-admin-layout[data-theme='dark'] .modal-body small {
   color: #94a3b8 !important;
 }
 
 /* Table or details key-values inside modals */
-.theme-dark .modal-body .table,
-[data-theme='dark'] .modal-body .table {
+.in-admin-layout.theme-dark .modal-body .table,
+.in-admin-layout[data-theme='dark'] .modal-body .table {
   color: #ffffff !important;
 }
 
-.theme-dark .modal-body .table th,
-[data-theme='dark'] .modal-body .table th {
+.in-admin-layout.theme-dark .modal-body .table th,
+.in-admin-layout[data-theme='dark'] .modal-body .table th {
   color: #94a3b8 !important;
   border-color: rgba(255, 255, 255, 0.06) !important;
 }
 
-.theme-dark .modal-body .table td,
-[data-theme='dark'] .modal-body .table td {
+.in-admin-layout.theme-dark .modal-body .table td,
+.in-admin-layout[data-theme='dark'] .modal-body .table td {
   border-color: rgba(255, 255, 255, 0.06) !important;
 }
 
 /* Custom details groups or list-groups inside dark modals */
-.theme-dark .modal-body .list-group-item,
-[data-theme='dark'] .modal-body .list-group-item {
+.in-admin-layout.theme-dark .modal-body .list-group-item,
+.in-admin-layout[data-theme='dark'] .modal-body .list-group-item {
   background-color: #1e273e !important;
   color: #ffffff !important;
   border-color: rgba(255, 255, 255, 0.06) !important;
 }
 
-.theme-dark .modal-body .list-group-item .text-muted,
-[data-theme='dark'] .modal-body .list-group-item .text-muted {
+.in-admin-layout.theme-dark .modal-body .list-group-item .text-muted,
+.in-admin-layout[data-theme='dark'] .modal-body .list-group-item .text-muted {
   color: #94a3b8 !important;
 }
 
 /* Buttons inside dark modals */
-.theme-dark .modal-footer .btn-light,
-.theme-dark .modal-footer .btn-outline-secondary,
-.theme-dark .modal-body .btn-light,
-.theme-dark .modal-body .btn-outline-secondary,
-[data-theme='dark'] .modal-footer .btn-light,
-[data-theme='dark'] .modal-footer .btn-outline-secondary,
-[data-theme='dark'] .modal-body .btn-light,
-[data-theme='dark'] .modal-body .btn-outline-secondary {
+.in-admin-layout.theme-dark .modal-footer .btn-light,
+.in-admin-layout.theme-dark .modal-footer .btn-outline-secondary,
+.in-admin-layout.theme-dark .modal-body .btn-light,
+.in-admin-layout.theme-dark .modal-body .btn-outline-secondary,
+.in-admin-layout[data-theme='dark'] .modal-footer .btn-light,
+.in-admin-layout[data-theme='dark'] .modal-footer .btn-outline-secondary,
+.in-admin-layout[data-theme='dark'] .modal-body .btn-light,
+.in-admin-layout[data-theme='dark'] .modal-body .btn-outline-secondary {
   background-color: #1e273e !important;
   color: #ffffff !important;
   border-color: rgba(255, 255, 255, 0.1) !important;
 }
 
-.theme-dark .modal-footer .btn-light:hover,
-.theme-dark .modal-footer .btn-outline-secondary:hover,
-.theme-dark .modal-body .btn-light:hover,
-.theme-dark .modal-body .btn-outline-secondary:hover,
-[data-theme='dark'] .modal-footer .btn-light:hover,
-[data-theme='dark'] .modal-footer .btn-outline-secondary:hover,
-[data-theme='dark'] .modal-body .btn-light:hover,
-[data-theme='dark'] .modal-body .btn-outline-secondary:hover {
+.in-admin-layout.theme-dark .modal-footer .btn-light:hover,
+.in-admin-layout.theme-dark .modal-footer .btn-outline-secondary:hover,
+.in-admin-layout.theme-dark .modal-body .btn-light:hover,
+.in-admin-layout.theme-dark .modal-body .btn-outline-secondary:hover,
+.in-admin-layout[data-theme='dark'] .modal-footer .btn-light:hover,
+.in-admin-layout[data-theme='dark'] .modal-footer .btn-outline-secondary:hover,
+.in-admin-layout[data-theme='dark'] .modal-body .btn-light:hover,
+.in-admin-layout[data-theme='dark'] .modal-body .btn-outline-secondary:hover {
   background-color: #2a3554 !important;
   border-color: rgba(255, 255, 255, 0.2) !important;
   color: #ffffff !important;
@@ -1032,13 +1032,13 @@
 
 
 /* Alert components */
-.admin-layout.theme-dark .alert-info {
+.in-admin-layout.theme-dark .alert-info {
   background-color: rgba(59, 130, 246, 0.1) !important;
   border-color: rgba(59, 130, 246, 0.2) !important;
   color: #93c5fd !important;
 }
 
-.admin-layout.theme-dark .alert-success {
+.in-admin-layout.theme-dark .alert-success {
   background-color: rgba(16, 185, 129, 0.1) !important;
   border-color: rgba(16, 185, 129, 0.2) !important;
   color: #6ee7b7 !important;
@@ -1479,18 +1479,18 @@
 }
 
 /* Modals matching light theme */
-.admin-layout.theme-light .modal-content {
+.in-admin-layout.theme-light .modal-content {
   background-color: #ffffff !important;
   border: 1px solid rgba(200, 90, 73, 0.08) !important;
   border-radius: 16px !important;
   box-shadow: 0 15px 45px rgba(200, 90, 73, 0.08) !important;
 }
 
-.admin-layout.theme-light .modal-header {
+.in-admin-layout.theme-light .modal-header {
   border-bottom: 1px solid rgba(200, 90, 73, 0.08) !important;
 }
 
-.admin-layout.theme-light .modal-footer {
+.in-admin-layout.theme-light .modal-footer {
   border-top: 1px solid rgba(200, 90, 73, 0.08) !important;
 }
 
@@ -1683,8 +1683,42 @@
   }
 }
 
+/* Collapsed Sidebar Styles (Desktop only) */
+@media (min-width: 992px) {
+  .app-sidebar.collapsed {
+    width: 80px !important;
+    min-width: 80px !important;
+  }
+  
+  .app-sidebar.collapsed .brand-text-container {
+    display: none !important;
+  }
+  
+  .app-sidebar.collapsed .sidebar-link span {
+    display: none !important;
+  }
 
+  .app-sidebar.collapsed .sidebar-link {
+    justify-content: center !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    gap: 0 !important;
+  }
+  
+  .app-sidebar.collapsed .sidebar-icon {
+    margin-right: 0 !important;
+    margin-left: 0 !important;
+    font-size: 1.25rem !important;
+  }
+  
+  .app-sidebar.collapsed .badge {
+    display: none !important;
+  }
 
-
-
-
+  .app-sidebar.collapsed .brand-header-wrapper {
+    justify-content: center !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    gap: 0 !important;
+  }
+}

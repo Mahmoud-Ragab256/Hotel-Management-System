@@ -1290,3 +1290,130 @@
 .home-empty-state {
   grid-column: 1 / -1;
 }
+
+/* Luxury Dark Mode Overrides for Guest Landing Page */
+.theme-dark .client-shell {
+  background: radial-gradient(circle at 12% 10%, rgba(200, 90, 73, 0.08), transparent 26rem),
+              radial-gradient(circle at 86% 18%, rgba(245, 158, 11, 0.04), transparent 24rem),
+              #111111;
+  color: #ffffff;
+}
+
+.theme-dark .client-title {
+  color: #ffffff;
+}
+
+.theme-dark .client-subtitle {
+  color: #9ca3af;
+}
+
+.theme-dark .client-card {
+  background: #161616;
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.25);
+}
+
+.theme-dark .client-card:hover {
+  border-color: rgba(200, 90, 73, 0.3);
+  box-shadow: 0 26px 60px rgba(200, 90, 73, 0.08);
+}
+
+.theme-dark .card-title {
+  color: #ffffff;
+}
+
+.theme-dark .card-text {
+  color: #9ca3af;
+}
+
+.theme-dark .small-muted {
+  color: #6b7280;
+}
+
+.theme-dark .amenity-pill {
+  background: rgba(255, 255, 255, 0.05);
+  color: #9ca3af;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.theme-dark .stat-grid {
+  background: rgba(22, 22, 22, 0.96);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+}
+
+.theme-dark .stat-box {
+  background: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.theme-dark .stat-label {
+  color: #9ca3af;
+}
+
+.theme-dark .stat-value {
+  color: #ffffff;
+}
+
+.theme-dark .hero-booking-card {
+  background: rgba(22, 22, 22, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 18px 46px rgba(0, 0, 0, 0.35);
+}
+
+.theme-dark .hero-booking-item {
+  background: #1a1a1a;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.theme-dark .hero-booking-value {
+  color: #ffffff;
+}
+
+.theme-dark .hero-floating-badge {
+  background: rgba(22, 22, 22, 0.92);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.theme-dark .experience-band {
+  background: rgba(22, 22, 22, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.15);
+}
+
+.theme-dark .feature-item {
+  color: #9ca3af;
+}
+
+.theme-dark .feature-item strong {
+  color: #ffffff;
+}
+
+.theme-dark .client-btn-outline {
+  background: #161616;
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.theme-dark .client-btn-outline:hover {
+  border-color: #c85a49;
+  color: #c85a49;
+}
+
+.theme-dark .loading-state,
+.theme-dark .empty-state {
+  color: #9ca3af;
+}
+
+.theme-dark .home-card-image {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Responsive Overrides for Client Bookings Card */
+@media (max-width: 576px) {
+  .booking-card-image-left {
+    width: 100% !important;
+    height: 180px !important;
+  }
+}
