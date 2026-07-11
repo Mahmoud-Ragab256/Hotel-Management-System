@@ -447,6 +447,11 @@ async guestLogin(payload) {
     return readObject(response, 'password');
   },
 
+  async addReview(payload) {
+    const response = await api.post('/dashboard/reviews', payload);
+    return readObject(response, 'review');
+  },
+
   async getAllReviews() {
     const response = await api.get('/dashboard/reviews');
     return readArray(response, 'reviews');

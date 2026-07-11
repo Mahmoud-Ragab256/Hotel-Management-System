@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import {
   Badge,
   Button,
@@ -204,7 +204,7 @@ function InfoRow({ icon, label, value }) {
   );
 }
 
-function ProfilePage() {
+function GuestProfilePage() {
   const { colors, isDark } = useTheme();
   const fileRef = useRef(null);
 
@@ -241,6 +241,7 @@ function ProfilePage() {
 
   const showFeedback = (type, message) => setFeedback({ type, message });
 
+  // Load profile
   useEffect(() => {
     try {
       const stored = localStorage.getItem('hotel_admin_user');
@@ -256,6 +257,42 @@ function ProfilePage() {
       .catch(() => { })
       .finally(() => setLoading(false));
   }, []);
+
+  // Load all bookings and reviews
+  const [allBookings, setAllBookings] = useState([]);
+  const [allReviews, setAllReviews] = useState([]);
+  const [bookingsReviewsLoading, setBookingsReviewsLoading] = useState(true);
+
+  useEffect(() => {
+    Promise.all([
+      dashboardApi.getBookings().catch(() => []),
+      dashboardApi.getAllReviews().catch(() => [])
+    ])
+      .then(([bookingsData, reviewsData]) => {
+        setAllBookings(Array.isArray(bookingsData) ? bookingsData : []);
+        setAllReviews(Array.isArray(reviewsData) ? reviewsData : []);
+      })
+      .finally(() => setBookingsReviewsLoading(false));
+  }, []);
+
+  // Filter bookings and reviews for current user
+  const myBookings = useMemo(() => {
+    if (!profile) return [];
+    return allBookings.filter(b => {
+      const bookingGuestId = b?.guestId?._id || b?.guestId?.id || b?.guestId || '';
+      const profileId = profile._id || profile.id;
+      return bookingGuestId === profileId;
+    });
+  }, [allBookings, profile]);
+
+  const myReviews = useMemo(() => {
+    if (!profile) return [];
+    return allReviews.filter(r => {
+      const reviewGuestId = r?.guestId?._id || r?.guestId?.id || r?.guestId || '';
+      const profileId = profile._id || profile.id;
+      return reviewGuestId === profileId;
+    });
+  }, [allReviews, profile]);
 
   const openEdit = () => {
     setEditForm({
@@ -358,23 +395,6 @@ function ProfilePage() {
     }
   };
 
-  const [bookings, setBookings] = useState([]);
-  const [bookingsLoading, setBookingsLoading] = useState(true);
-  const [reviews, setReviews] = useState([]);
-  const [reviewsLoading, setReviewsLoading] = useState(true);
-
-  useEffect(() => {
-    dashboardApi.getMyBookings()
-      .then((data) => setBookings(Array.isArray(data) ? data : []))
-      .catch(() => setBookings([]))
-      .finally(() => setBookingsLoading(false));
-
-    dashboardApi.getMyReviews()
-      .then((data) => setReviews(Array.isArray(data) ? data : []))
-      .catch(() => setReviews([]))
-      .finally(() => setReviewsLoading(false));
-  }, []);
-
   const initials = profile?.fullName
     ? profile.fullName.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase()
     : '?';
@@ -431,7 +451,6 @@ function ProfilePage() {
           color: ${colors.textSecondary} !important;
         }
         
-        /* Darker shade thin scrollbar/slider for profile navigations */
         .no-scrollbar::-webkit-scrollbar {
           height: 5px !important;
           display: block !important;
@@ -447,13 +466,7 @@ function ProfilePage() {
         .no-scrollbar::-webkit-scrollbar-thumb:hover {
           background: ${colors.accent} !important;
         }
-        .no-scrollbar {
-          scrollbar-width: thin !important;
-          scrollbar-color: ${isDark ? '#333333 #111111' : '#c1b4ac #f5f3ef'} !important;
-          -webkit-overflow-scrolling: touch !important;
-        }
 
-        /* Premium Responsive Layout and Padding Helper */
         .profile-grid-container {
           display: grid;
           grid-template-columns: minmax(0, 1fr);
@@ -504,12 +517,12 @@ function ProfilePage() {
       {loading && !profile ? (
         <div style={{ textAlign: "center", padding: "100px 0", color: colors.textSecondary }}>
           <div style={{ width: "36px", height: "36px", border: `3px solid ${colors.borderCard}`, borderTopColor: colors.accent, borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto 16px" }} />
-          <p style={{ margin: 0, fontSize: "14px" }}>Loading sanctuary details...</p>
+          <p style={{ margin: 0, fontSize: "14px" }}>Loading profile...</p>
         </div>
       ) : (
         <div className="profile-grid-container">
 
-          {/* LEFT: Premium VIP Sidebar Card */}
+          {/* LEFT: Sidebar Card */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', minWidth: 0, width: '100%', boxSizing: 'border-box' }}>
             <div style={{
               background: colors.bgCard,
@@ -525,7 +538,7 @@ function ProfilePage() {
               width: '100%'
             }}>
 
-              {/* Overlapping Avatar Container */}
+              {/* Avatar */}
               <div style={{ position: 'relative', width: '108px', height: '108px', margin: '0 auto 20px', zIndex: 3 }}>
                 <div style={{
                   width: '100%',
@@ -557,7 +570,7 @@ function ProfilePage() {
                   )}
                 </div>
 
-                {/* VIP Micro Badge */}
+                {/* VIP Badge */}
                 {profile?.vipLevel && (
                   <span style={{
                     position: 'absolute',
@@ -577,27 +590,27 @@ function ProfilePage() {
                 )}
               </div>
 
-              {/* Name and Basic details */}
+              {/* Name */}
               <h2 style={{ fontSize: '20px', fontWeight: '700', color: colors.textPrimary, margin: '0 0 6px', fontFamily: '"Playfair Display", serif' }}>
-                {profile?.fullName || 'Valued Guest'}
+                {profile?.fullName || 'Guest'}
               </h2>
               <div style={{ fontSize: '13px', color: colors.textSecondary, marginBottom: '24px', fontWeight: 300, wordBreak: 'break-all' }}>
                 {profile?.email}
               </div>
 
-              {/* Stats Highlights Grid */}
+              {/* Stats */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '24px', borderTop: `1px solid ${colors.borderCard}`, paddingTop: '20px' }}>
                 <div style={{ background: colors.bgCardAlt, padding: '12px', borderRadius: '12px', border: `1px solid ${colors.borderCard}` }}>
                   <div style={{ fontSize: '11px', fontWeight: 600, color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '4px' }}>Stays</div>
-                  <div style={{ fontSize: '18px', fontWeight: 700, color: colors.accent }}>{bookings.length}</div>
+                  <div style={{ fontSize: '18px', fontWeight: 700, color: colors.accent }}>{myBookings.length}</div>
                 </div>
                 <div style={{ background: colors.bgCardAlt, padding: '12px', borderRadius: '12px', border: `1px solid ${colors.borderCard}` }}>
                   <div style={{ fontSize: '11px', fontWeight: 600, color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '4px' }}>Reviews</div>
-                  <div style={{ fontSize: '18px', fontWeight: 700, color: colors.accent }}>{reviews.length}</div>
+                  <div style={{ fontSize: '18px', fontWeight: 700, color: colors.accent }}>{myReviews.length}</div>
                 </div>
               </div>
 
-              {/* Photo Upload Actions */}
+              {/* Photo Actions */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhotoChange} />
                 <button
@@ -653,10 +666,10 @@ function ProfilePage() {
             </div>
           </div>
 
-          {/* RIGHT: Dynamic Tab Workspace */}
+          {/* RIGHT: Tabs */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%', minWidth: 0, boxSizing: 'border-box' }}>
 
-            {/* Elegant Luxury Tabs Selector */}
+            {/* Tabs Navigation */}
             <div style={{
               display: 'flex',
               gap: '24px',
@@ -668,9 +681,9 @@ function ProfilePage() {
               {[
                 { id: 'profile', label: 'Overview', badge: null },
                 { id: 'rooms', label: 'My Rooms', badge: null },
-                { id: 'bookings', label: 'Reservations', badge: bookings.length > 0 ? bookings.length : null },
+                { id: 'bookings', label: 'Reservations', badge: null },
                 { id: 'invoices', label: 'My Invoices', badge: null },
-                { id: 'reviews', label: 'Guestbook Reviews', badge: reviews.length > 0 ? reviews.length : null }
+                { id: 'reviews', label: 'Reviews', badge: null }
               ].map(tab => {
                 const isActive = activeTab === tab.id;
                 return (
@@ -715,7 +728,7 @@ function ProfilePage() {
               })}
             </div>
 
-            {/* TAB CONTENTS 1: Overview & Personal Details */}
+            {/* TAB: Profile */}
             {activeTab === 'profile' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
@@ -732,7 +745,7 @@ function ProfilePage() {
                         Personal Information
                       </h3>
                       <p style={{ fontSize: '13px', color: colors.textSecondary, margin: 0, fontWeight: 300 }}>
-                        Your registered contact details and identity information.
+                        Your registered contact details.
                       </p>
                     </div>
                     <button
@@ -772,12 +785,12 @@ function ProfilePage() {
                     </div>
                     <div style={{ minWidth: 0, width: '100%' }}>
                       <InfoRow icon={faBriefcase} label="National ID / Passport" value={profile?.nationalId} />
-                      <InfoRow icon={faBuilding} label="VIP Account Class" value={profile?.vipLevel} />
+                      <InfoRow icon={faBuilding} label="VIP Level" value={profile?.vipLevel} />
                     </div>
                   </div>
                 </div>
 
-                {/* Security Section */}
+                {/* Security */}
                 <div style={{
                   background: colors.bgCard,
                   borderRadius: '20px',
@@ -785,10 +798,10 @@ function ProfilePage() {
                   boxShadow: colors.shadow
                 }} className="profile-card-responsive">
                   <h3 style={{ fontSize: '18px', fontWeight: '700', color: colors.textPrimary, margin: '0 0 4px', fontFamily: '"Playfair Display", serif' }}>
-                    Security & Credentials
+                    Security
                   </h3>
                   <p style={{ fontSize: '13px', color: colors.textSecondary, margin: '0 0 24px', fontWeight: 300 }}>
-                    Manage login authentication methods and password credentials.
+                    Manage your password and authentication.
                   </p>
 
                   <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '20px', padding: '16px 0', borderTop: `1px solid ${colors.borderCard}`, width: '100%', minWidth: 0, boxSizing: 'border-box' }}>
@@ -812,7 +825,7 @@ function ProfilePage() {
                           {profile?.passwordUpdatedAt ? (
                             `Last updated ${formatDisplayDate(profile.passwordUpdatedAt, { month: 'long', year: 'numeric' })}.`
                           ) : (
-                            'We recommend updating your password periodically to keep your account secure.'
+                            'Update your password to keep your account secure.'
                           )}
                         </div>
                       </div>
@@ -854,34 +867,33 @@ function ProfilePage() {
               <MyInvoicesPage hideHeader={true} />
             )}
 
-            {/* TAB CONTENTS 3: Reviews Left in guestbook card style */}
             {activeTab === 'reviews' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div style={{ marginBottom: '4px' }}>
                   <h3 style={{ fontSize: '18px', fontWeight: '700', color: colors.textPrimary, margin: '0 0 4px', fontFamily: '"Playfair Display", serif' }}>
-                    Guestbook Reviews
+                    My Reviews
                   </h3>
                   <p style={{ fontSize: '13px', color: colors.textSecondary, margin: 0, fontWeight: 300 }}>
-                    Your notes, feedback, and shared experience chronicles at Aethos.
+                    All your reviews and feedback.
                   </p>
                 </div>
 
-                {reviewsLoading ? (
+                {bookingsReviewsLoading ? (
                   <div style={{ textAlign: 'center', padding: '48px 0', background: colors.bgCard, borderRadius: '20px', border: `1px solid ${colors.borderCard}` }}>
                     <div style={{ width: '28px', height: '28px', border: `2px solid ${colors.borderCard}`, borderTopColor: colors.accent, borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 12px' }} />
-                    <span style={{ fontSize: '13px', color: colors.textSecondary }}>Retrieving reviews...</span>
+                    <span style={{ fontSize: '13px', color: colors.textSecondary }}>Loading reviews...</span>
                   </div>
-                ) : reviews.length === 0 ? (
+                ) : myReviews.length === 0 ? (
                   <div style={{ textAlign: 'center', padding: '60px 24px', background: colors.bgCard, borderRadius: '20px', border: `1px solid ${colors.borderCard}` }}>
                     <FontAwesomeIcon icon={faStar} size="2x" style={{ color: colors.textMuted, marginBottom: '16px' }} />
-                    <h4 style={{ fontSize: '16px', fontWeight: '600', color: colors.textPrimary, marginBottom: '6px' }}>No reviews left yet</h4>
+                    <h4 style={{ fontSize: '16px', fontWeight: '600', color: colors.textPrimary, marginBottom: '6px' }}>No reviews yet</h4>
                     <p style={{ fontSize: '13px', color: colors.textSecondary, maxWidth: '320px', margin: '0 auto' }}>
-                      After concluding a stay, you can leave a review directly from your past reservations to catalog your feedback.
+                      After completing a stay, you can leave a review.
                     </p>
                   </div>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    {reviews.map((r) => {
+                    {myReviews.map((r) => {
                       const id = r?._id || r?.id || '';
                       return (
                         <div
@@ -900,7 +912,7 @@ function ProfilePage() {
                                 Verified Stay Review
                               </div>
                               <div style={{ fontSize: '15px', fontWeight: '700', color: colors.textPrimary, fontFamily: '"Playfair Display", serif' }}>
-                                {r?.roomId?.roomNumber ? `Accomodation Room #${r.roomId.roomNumber}` : r?.title || 'Luxury Room Review'}
+                                {r?.roomId?.roomNumber ? `Room #${r.roomId.roomNumber}` : r?.title || 'Luxury Room Review'}
                               </div>
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)', padding: '4px 10px', borderRadius: '12px', border: `1px solid ${colors.borderCard}` }}>
@@ -922,7 +934,7 @@ function ProfilePage() {
                             </p>
                           )}
                           <div style={{ fontSize: '11px', color: colors.textMuted, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span>Chronicle Saved</span>
+                            <span>Review Submitted</span>
                             <span style={{ fontWeight: 500 }}>{toDateInput(r.createdAt)}</span>
                           </div>
                         </div>
@@ -942,7 +954,7 @@ function ProfilePage() {
       <Modal show={editModal} onHide={() => setEditModal(false)} centered size="lg">
         <Form onSubmit={handleSaveProfile}>
           <Modal.Header closeButton>
-            <Modal.Title>Edit Profile Settings</Modal.Title>
+            <Modal.Title>Edit Profile</Modal.Title>
           </Modal.Header>
           <Modal.Body style={{ padding: '24px' }}>
             <Row className="g-3">
@@ -959,7 +971,7 @@ function ProfilePage() {
                 />
               </Col>
               <Col md={6}>
-                <Form.Label style={{ fontSize: '11px', fontWeight: '700', color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Email Address</Form.Label>
+                <Form.Label style={{ fontSize: '11px', fontWeight: '700', color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Email</Form.Label>
                 <Form.Control
                   readOnly
                   value={editForm.email}
@@ -967,7 +979,7 @@ function ProfilePage() {
                 />
               </Col>
               <Col md={6}>
-                <Form.Label style={{ fontSize: '11px', fontWeight: '700', color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Phone Number</Form.Label>
+                <Form.Label style={{ fontSize: '11px', fontWeight: '700', color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Phone</Form.Label>
                 <Form.Control
                   value={editForm.phone}
                   onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
@@ -976,7 +988,7 @@ function ProfilePage() {
                 />
               </Col>
               <Col md={12}>
-                <Form.Label style={{ fontSize: '11px', fontWeight: '700', color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: '0.05em' }}>National ID / Passport</Form.Label>
+                <Form.Label style={{ fontSize: '11px', fontWeight: '700', color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: '0.05em' }}>ID / Passport</Form.Label>
                 <Form.Control
                   readOnly
                   value={editForm.nationalId}
@@ -1090,8 +1102,14 @@ function ProfilePage() {
         onCancel={() => { setPhotoCropModal(false); setPhotoCropFile(null); }}
         onConfirm={handleProfilePhotoCropConfirm}
       />
+
+      <style>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 }
 
-export default ProfilePage;
+export default GuestProfilePage;

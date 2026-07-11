@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Table, Badge, Spinner, Alert, Card, Button } from "react-bootstrap";
+import { Form } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { API_BASE_URL, dashboardApi, getApiErrorMessage } from "../services/api.js";
 import { useTheme } from "../context/ThemeContext.jsx";
+import FeedbackCard from "../components/FeedbackCard.jsx";
 
 const resolveImageUrl = (img) => {
   if (!img) return null;
@@ -12,35 +13,111 @@ const resolveImageUrl = (img) => {
   return `${base}${path}`;
 };
 
+const actionBtnStyle = (variant = 'primary', accent) => {
+  if (variant === 'danger') {
+    return {
+      background: 'transparent',
+      color: '#ef4444',
+      border: '1px solid #ef4444',
+      borderRadius: '12px',
+      padding: '8px 18px',
+      fontSize: '13px',
+      fontWeight: '600',
+      cursor: 'pointer',
+      transition: 'all 0.2s'
+    };
+  }
+  if (variant === 'outline') {
+    return {
+      background: 'transparent',
+      color: accent,
+      border: `1px solid ${accent}`,
+      borderRadius: '12px',
+      padding: '8px 18px',
+      fontSize: '13px',
+      fontWeight: '600',
+      cursor: 'pointer',
+      transition: 'all 0.2s'
+    };
+  }
+  if (variant === 'ghost') {
+    return {
+      background: 'transparent',
+      color: accent,
+      border: `1px solid ${accent}55`,
+      borderRadius: '12px',
+      padding: '8px 18px',
+      fontSize: '13px',
+      fontWeight: '600',
+      cursor: 'pointer',
+      transition: 'all 0.2s'
+    };
+  }
+  return {
+    background: accent,
+    color: '#ffffff',
+    border: 'none',
+    borderRadius: '12px',
+    padding: '8px 18px',
+    fontSize: '13px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    transition: 'all 0.2s'
+  };
+};
+
 const MyBookingsPage = ({ hideHeader = false }) => {
   const navigate = useNavigate();
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [userEmail, setUserEmail] = useState("");
+  const [feedback, setFeedback] = useState(null);
+  const [guestId, setGuestId] = useState("");
+  const [reviewedBookingIds, setReviewedBookingIds] = useState(new Set());
+  const [activeReviewBookingId, setActiveReviewBookingId] = useState("");
+  const [pendingAction, setPendingAction] = useState(null);
+  const [cancelReason, setCancelReason] = useState("");
+  const [reviewForms, setReviewForms] = useState({});
+
+  const showFeedback = (type, message) => setFeedback({ type, message });
+
+  const getReviewForm = (bookingId) => reviewForms[bookingId] || { rating: 5, comment: "" };
+
+  const updateReviewForm = (bookingId, patch) => {
+    setReviewForms((prev) => ({
+      ...prev,
+      [bookingId]: { ...getReviewForm(bookingId), ...patch }
+    }));
+  };
 
   const loadPageData = async () => {
     try {
-      setError("");
-
       const currentUser = await dashboardApi.getMe();
       const email = currentUser?.email || "";
-      setUserEmail(email);
+      const currentGuestId = currentUser?._id || currentUser?.id || "";
+      setGuestId(currentGuestId);
 
       if (!email) {
-        setError("Could not identify the logged-in user.");
+        showFeedback('danger', 'Could not identify the logged-in user.');
         setLoading(false);
         return;
       }
 
-
-      const [allBookings, allRooms, categories] = await Promise.all([
+      const [allBookings, allRooms, categories, allReviews] = await Promise.all([
         dashboardApi.getBookings(),
         dashboardApi.getRooms(),
-        dashboardApi.getRoomCategories()
+        dashboardApi.getRoomCategories(),
+        dashboardApi.getAllReviews().catch(() => [])
       ]);
+
+      const reviewedIds = new Set(
+        (allReviews || []).map((r) => {
+          const bid = r?.bookingId?._id || r?.bookingId?.id || r?.bookingId || "";
+          return bid.toString();
+        }).filter(Boolean)
+      );
+      setReviewedBookingIds(reviewedIds);
 
       const roomMap = new Map();
       (allRooms || []).forEach(room => {
@@ -63,11 +140,11 @@ const MyBookingsPage = ({ hideHeader = false }) => {
           if (fullRoom) {
             const roomCategoryId = fullRoom.categoryId?._id || fullRoom.categoryId;
             const catInfo = categoryMap.get(roomCategoryId);
-            
+
             roomImages = (fullRoom.images && fullRoom.images.length > 0)
               ? fullRoom.images
               : (catInfo?.images || []);
-            
+
             categoryName = catInfo?.name || "Luxury Suite";
           }
 
@@ -80,7 +157,7 @@ const MyBookingsPage = ({ hideHeader = false }) => {
 
       setBookings(userBookings);
     } catch (err) {
-      setError(getApiErrorMessage(err));
+      showFeedback('danger', getApiErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -90,37 +167,84 @@ const MyBookingsPage = ({ hideHeader = false }) => {
     loadPageData();
   }, []);
 
+  const handleGoToInvoices = (bookingId) => {
+    navigate(`/profile?tab=invoices&bookingId=${bookingId}`);
+  };
 
-  const handleConfirm = async (bookingId) => {
-    if (!window.confirm("Are you sure you want to confirm this booking?")) return;
+  const handleCheckout = async (booking) => {
+    const bookingId = booking._id || booking.id || "";
+    const roomId = booking.roomId?._id || booking.roomId || "";
+
     setActionLoading(true);
+    setPendingAction(null);
     try {
-
-      await dashboardApi.updateBooking(bookingId, { status: "Confirmed" });
+      await dashboardApi.updateBooking(bookingId, { status: "CheckedOut" });
+      if (roomId) {
+        await dashboardApi.updateRoom(roomId, { status: "Available" });
+      }
+      setActiveReviewBookingId(bookingId.toString());
+      updateReviewForm(bookingId.toString(), { rating: 5, comment: "" });
+      showFeedback('success', 'Checkout completed. Please share your experience below.');
       await loadPageData();
     } catch (err) {
-      setError(getApiErrorMessage(err));
+      showFeedback('danger', getApiErrorMessage(err));
     } finally {
       setActionLoading(false);
     }
   };
 
+  const handleSubmitReview = async (event, booking) => {
+    event.preventDefault();
+    if (!guestId) return;
 
-  const handleCancel = async (bookingId) => {
-    const reason = window.prompt("Please enter the reason for cancellation:");
-    if (reason === null) return;
-    if (!reason.trim()) {
-      alert("Cancellation reason is required.");
+    const bookingId = (booking._id || booking.id || "").toString();
+    const roomId = booking.roomId?._id || booking.roomId || "";
+    const form = getReviewForm(bookingId);
+
+    if (!form.comment.trim()) {
+      showFeedback('warning', 'Please write a comment for your review.');
       return;
     }
 
     setActionLoading(true);
     try {
-
-      await dashboardApi.cancelBooking(bookingId, reason);
+      await dashboardApi.addReview({
+        guestId,
+        roomId,
+        bookingId,
+        rating: Number(form.rating),
+        comment: form.comment.trim()
+      });
+      setActiveReviewBookingId("");
+      setReviewForms((prev) => {
+        const next = { ...prev };
+        delete next[bookingId];
+        return next;
+      });
+      showFeedback('success', 'Thank you! Your review has been submitted.');
       await loadPageData();
     } catch (err) {
-      setError(getApiErrorMessage(err));
+      showFeedback('danger', getApiErrorMessage(err));
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleCancel = async (bookingId) => {
+    if (!cancelReason.trim()) {
+      showFeedback('warning', 'Cancellation reason is required.');
+      return;
+    }
+
+    setActionLoading(true);
+    setPendingAction(null);
+    try {
+      await dashboardApi.cancelBooking(bookingId, cancelReason.trim());
+      setCancelReason("");
+      showFeedback('success', 'Booking cancelled successfully.');
+      await loadPageData();
+    } catch (err) {
+      showFeedback('danger', getApiErrorMessage(err));
     } finally {
       setActionLoading(false);
     }
@@ -158,6 +282,14 @@ const MyBookingsPage = ({ hideHeader = false }) => {
     );
   };
 
+  const inlinePanelStyle = {
+    marginTop: '4px',
+    padding: '16px',
+    borderRadius: '14px',
+    background: colors.bgCardAlt || colors.bgCard,
+    border: `1px solid ${colors.borderCard}`,
+  };
+
   if (loading) {
     return (
       <div className="d-flex justify-content-center align-items-center py-5" style={{ minHeight: '200px' }}>
@@ -175,7 +307,11 @@ const MyBookingsPage = ({ hideHeader = false }) => {
         </div>
       )}
 
-      {error && <Alert variant="danger" dismissible onClose={() => setError("")}>{error}</Alert>}
+      {feedback && (
+        <div className="mb-3">
+          <FeedbackCard feedback={feedback} onClose={() => setFeedback(null)} />
+        </div>
+      )}
 
       {!loading && bookings.length === 0 && (
         <div
@@ -196,9 +332,20 @@ const MyBookingsPage = ({ hideHeader = false }) => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {bookings.map((booking) => {
             const id = booking._id || booking.id || "";
+            const idStr = id.toString();
             const roomNum = booking.roomId?.roomNumber || booking.roomNumber || "N/A";
-            const isPending = booking.status?.trim() === "Pending";
+            const status = booking.status?.trim() || "Pending";
+            const isPending = status === "Pending";
+            const isConfirmed = status === "Confirmed" || status === "CheckedIn" || status === "Checked In";
+            const isCheckedOut = status === "CheckedOut";
+            const hasReview = reviewedBookingIds.has(idStr);
+            const showReviewForm = isCheckedOut && !hasReview && (
+              activeReviewBookingId === idStr || activeReviewBookingId === ""
+            );
+            const reviewForm = getReviewForm(idStr);
             const imgUrl = resolveImageUrl(booking.roomImages?.[0]) || "https://placehold.co/600x400?text=Room";
+            const isCheckoutPending = pendingAction?.type === 'checkout' && pendingAction.bookingId === idStr;
+            const isCancelPending = pendingAction?.type === 'cancel' && pendingAction.bookingId === idStr;
 
             return (
               <div
@@ -216,7 +363,6 @@ const MyBookingsPage = ({ hideHeader = false }) => {
                 onMouseEnter={(e) => { e.currentTarget.style.borderColor = colors.accent; }}
                 onMouseLeave={(e) => { e.currentTarget.style.borderColor = colors.borderCard; }}
               >
-                {/* Left Side: Room Photo (Start of the Row) */}
                 <div
                   style={{
                     width: '200px',
@@ -227,7 +373,6 @@ const MyBookingsPage = ({ hideHeader = false }) => {
                   className="booking-card-image-left"
                 />
 
-                {/* Right Side: Booking Details and Actions */}
                 <div
                   style={{
                     flex: 1,
@@ -239,7 +384,6 @@ const MyBookingsPage = ({ hideHeader = false }) => {
                     minWidth: '280px'
                   }}
                 >
-                  {/* Top Line: Category Name and Status */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
                     <div>
                       <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.06em', color: colors.accent, fontWeight: '700', marginBottom: '2px' }}>
@@ -249,7 +393,7 @@ const MyBookingsPage = ({ hideHeader = false }) => {
                         Room #{roomNum}
                       </h4>
                       <div style={{ fontSize: '11.5px', color: colors.textSecondary, fontFamily: 'monospace', marginTop: '3px' }}>
-                        ID: #{id.substring(0, 8).toUpperCase()}
+                        {booking.bookingNumber ? `Booking #${booking.bookingNumber}` : `ID: #${id.substring(0, 8).toUpperCase()}`}
                       </div>
                     </div>
                     <div>
@@ -257,10 +401,8 @@ const MyBookingsPage = ({ hideHeader = false }) => {
                     </div>
                   </div>
 
-                  {/* Divider */}
                   <div style={{ height: '1px', background: colors.borderCard, width: '100%' }} />
 
-                  {/* Booking Metadata: Dates & Price */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                       <div>
@@ -279,82 +421,171 @@ const MyBookingsPage = ({ hideHeader = false }) => {
                     </div>
 
                     <div style={{ textAlign: 'right' }}>
-                      <span style={{ fontSize: '10px', color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block' }}>Total Paid</span>
+                      <span style={{ fontSize: '10px', color: colors.textSecondary, textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block' }}>Total</span>
                       <span style={{ fontSize: '18px', fontWeight: '800', color: colors.accent }}>
                         ${Number(booking.totalPrice || 0).toLocaleString()}
                       </span>
                     </div>
                   </div>
 
-                  {/* Divider */}
                   <div style={{ height: '1px', background: colors.borderCard, width: '100%' }} />
 
-                  {/* Bottom Line: Actions */}
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
-                    {isPending ? (
-                      <div className="d-flex gap-2">
+                  {isCheckoutPending && (
+                    <div style={inlinePanelStyle}>
+                      <p style={{ fontSize: '13px', color: colors.textPrimary, margin: '0 0 12px', fontWeight: 600 }}>
+                        Confirm checkout?
+                      </p>
+                      <p style={{ fontSize: '13px', color: colors.textSecondary, margin: '0 0 14px' }}>
+                        The room will become available for other guests.
+                      </p>
+                      <div className="d-flex gap-2 flex-wrap">
                         <button
                           disabled={actionLoading}
-                          onClick={() => handleConfirm(id)}
-                          style={{
-                            background: colors.accent,
-                            color: '#ffffff',
-                            border: 'none',
-                            borderRadius: '12px',
-                            padding: '8px 18px',
-                            fontSize: '13px',
-                            fontWeight: '600',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s'
-                          }}
-                          onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.9'; }}
-                          onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
+                          onClick={() => handleCheckout(booking)}
+                          style={actionBtnStyle('primary', colors.accent)}
                         >
-                          Confirm Reservation
+                          {actionLoading ? 'Processing...' : 'Yes, Checkout'}
                         </button>
+                        <button
+                          disabled={actionLoading}
+                          onClick={() => setPendingAction(null)}
+                          style={actionBtnStyle('ghost', colors.textSecondary)}
+                        >
+                          Back
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {isCancelPending && (
+                    <div style={inlinePanelStyle}>
+                      <p style={{ fontSize: '13px', color: colors.textPrimary, margin: '0 0 10px', fontWeight: 600 }}>
+                        Cancel this booking
+                      </p>
+                      <Form.Group className="mb-3">
+                        <Form.Control
+                          as="textarea"
+                          rows={3}
+                          value={cancelReason}
+                          onChange={(e) => setCancelReason(e.target.value)}
+                          placeholder="Please enter the reason for cancellation..."
+                          style={{ background: colors.inputBg, borderColor: colors.inputBorder, color: colors.textPrimary, fontSize: '13px' }}
+                        />
+                      </Form.Group>
+                      <div className="d-flex gap-2 flex-wrap">
                         <button
                           disabled={actionLoading}
                           onClick={() => handleCancel(id)}
-                          style={{
-                            background: 'transparent',
-                            color: '#ef4444',
-                            border: '1px solid #ef4444',
-                            borderRadius: '12px',
-                            padding: '8px 18px',
-                            fontSize: '13px',
-                            fontWeight: '600',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s'
-                          }}
-                          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.05)'; }}
-                          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+                          style={actionBtnStyle('danger')}
                         >
-                          Cancel
+                          {actionLoading ? 'Cancelling...' : 'Confirm Cancel'}
+                        </button>
+                        <button
+                          disabled={actionLoading}
+                          onClick={() => { setPendingAction(null); setCancelReason(""); }}
+                          style={actionBtnStyle('ghost', colors.textSecondary)}
+                        >
+                          Back
                         </button>
                       </div>
-                    ) : (booking.status === "Confirmed" || booking.status === "CheckedIn" || booking.status === "Checked In") ? (
-                      <button
-                        onClick={() => navigate('/help-center')}
-                        style={{
-                          background: 'transparent',
-                          color: '#c85a49',
-                          border: '1px solid rgba(200, 90, 73, 0.4)',
-                          borderRadius: '12px',
-                          padding: '8px 18px',
-                          fontSize: '13px',
-                          fontWeight: '600',
-                          cursor: 'pointer',
-                          transition: 'all 0.2s'
-                        }}
-                        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(200, 90, 73, 0.05)'; e.currentTarget.style.borderColor = '#c85a49'; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.borderColor = 'rgba(200, 90, 73, 0.4)'; }}
-                      >
-                        Complain / Contact Support
-                      </button>
-                    ) : (
-                      <span style={{ color: colors.textSecondary, fontSize: '13px' }}>—</span>
-                    )}
-                  </div>
+                    </div>
+                  )}
+
+                  {showReviewForm && !isCheckoutPending && !isCancelPending && (
+                    <div style={inlinePanelStyle}>
+                      <p style={{ fontSize: '14px', color: colors.textPrimary, margin: '0 0 4px', fontWeight: 700 }}>
+                        How was your stay?
+                      </p>
+                      <p style={{ fontSize: '12px', color: colors.textSecondary, margin: '0 0 14px' }}>
+                        Room #{roomNum}
+                        {booking.bookingNumber ? ` · Booking #${booking.bookingNumber}` : ""}
+                      </p>
+                      <Form onSubmit={(e) => handleSubmitReview(e, booking)}>
+                        <Form.Group className="mb-3">
+                          <Form.Label style={{ fontSize: '12px', fontWeight: 600, color: colors.textSecondary }}>Rating</Form.Label>
+                          <div style={{ display: 'flex', gap: '6px' }}>
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <button
+                                key={star}
+                                type="button"
+                                onClick={() => updateReviewForm(idStr, { rating: star })}
+                                style={{
+                                  background: 'none',
+                                  border: 'none',
+                                  fontSize: '22px',
+                                  cursor: 'pointer',
+                                  color: star <= reviewForm.rating ? '#f59e0b' : colors.textMuted,
+                                  padding: 0
+                                }}
+                              >
+                                ★
+                              </button>
+                            ))}
+                          </div>
+                        </Form.Group>
+                        <Form.Group className="mb-3">
+                          <Form.Label style={{ fontSize: '12px', fontWeight: 600, color: colors.textSecondary }}>Your review</Form.Label>
+                          <Form.Control
+                            as="textarea"
+                            rows={3}
+                            required
+                            value={reviewForm.comment}
+                            onChange={(e) => updateReviewForm(idStr, { comment: e.target.value })}
+                            placeholder="Share your experience..."
+                            style={{ background: colors.inputBg, borderColor: colors.inputBorder, color: colors.textPrimary, fontSize: '13px' }}
+                          />
+                        </Form.Group>
+                        <button
+                          type="submit"
+                          disabled={actionLoading}
+                          style={actionBtnStyle('primary', colors.accent)}
+                        >
+                          {actionLoading ? 'Submitting...' : 'Submit Review'}
+                        </button>
+                      </Form>
+                    </div>
+                  )}
+
+                  {!isCheckoutPending && !isCancelPending && !showReviewForm && (
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      {isPending && (
+                        <>
+                          <button
+                            disabled={actionLoading}
+                            onClick={() => handleGoToInvoices(id)}
+                            style={actionBtnStyle('primary', colors.accent)}
+                          >
+                            Confirm Reservation
+                          </button>
+                          <button
+                            disabled={actionLoading}
+                            onClick={() => { setPendingAction({ type: 'cancel', bookingId: idStr }); setCancelReason(""); }}
+                            style={actionBtnStyle('danger')}
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      )}
+
+                      {isConfirmed && (
+                        <button
+                          disabled={actionLoading}
+                          onClick={() => setPendingAction({ type: 'checkout', bookingId: idStr })}
+                          style={actionBtnStyle('primary', colors.accent)}
+                        >
+                          Checkout
+                        </button>
+                      )}
+
+                      {isCheckedOut && hasReview && (
+                        <span style={{ color: colors.textSecondary, fontSize: '13px' }}>Review submitted ✓</span>
+                      )}
+
+                      {!isPending && !isConfirmed && !isCheckedOut && (
+                        <span style={{ color: colors.textSecondary, fontSize: '13px' }}>—</span>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             );

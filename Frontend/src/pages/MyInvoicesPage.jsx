@@ -1,25 +1,30 @@
 import React, { useState, useEffect } from "react";
-import { Row, Col, Card, Button, Spinner, Alert, Table } from "react-bootstrap";
+import { useSearchParams } from "react-router-dom";
 import { dashboardApi, getApiErrorMessage } from "../services/api.js";
 import { useTheme } from "../context/ThemeContext.jsx";
+import FeedbackCard from "../components/FeedbackCard.jsx";
 
 const MyInvoicesPage = ({ hideHeader = false }) => {
   const { colors, isDark } = useTheme();
+  const [searchParams] = useSearchParams();
+  const highlightBookingId = searchParams.get("bookingId") || "";
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [feedback, setFeedback] = useState(null);
   const [actionLoading, setActionLoading] = useState(null);
+  const [pendingAction, setPendingAction] = useState(null);
+
+  const showFeedback = (type, message) => setFeedback({ type, message });
 
   const fetchInvoices = async () => {
     try {
       setLoading(true);
-      setError("");
 
       const currentUser = await dashboardApi.getMe();
       const email = currentUser?.email || "";
 
       if (!email) {
-        setError("Could not identify the logged-in user.");
+        showFeedback('danger', 'Could not identify the logged-in user.');
         setInvoices([]);
         return;
       }
@@ -51,7 +56,7 @@ const MyInvoicesPage = ({ hideHeader = false }) => {
       }).map(invoice => {
         const bookingIdStr = (invoice.bookingId?._id || invoice.bookingId || "").toString();
         const matchedBooking = userBookings.find(b => (b._id || b.id || "").toString() === bookingIdStr);
-        
+
         let roomNumber = "N/A";
         if (matchedBooking) {
           const roomIdStr = matchedBooking.roomId?._id || matchedBooking.roomId;
@@ -62,7 +67,7 @@ const MyInvoicesPage = ({ hideHeader = false }) => {
             roomNumber = matchedBooking.roomNumber;
           }
         }
-        
+
         return {
           ...invoice,
           roomNumber
@@ -71,7 +76,7 @@ const MyInvoicesPage = ({ hideHeader = false }) => {
 
       setInvoices(userInvoices);
     } catch (err) {
-      setError(getApiErrorMessage(err));
+      showFeedback('danger', getApiErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -81,27 +86,29 @@ const MyInvoicesPage = ({ hideHeader = false }) => {
     fetchInvoices();
   }, []);
 
-  const handlePayInvoice = async (invoiceId) => {
+  const handlePayInvoice = async (invoiceId, bookingId) => {
     try {
       setActionLoading(invoiceId);
-      setError("");
+      setPendingAction(null);
       await dashboardApi.updateInvoice(invoiceId, { status: "Paid" });
+
+      if (bookingId) {
+        await dashboardApi.updateBooking(bookingId, { status: "Confirmed" });
+      }
+
+      showFeedback('success', 'Payment successful. Your booking is now confirmed.');
       await fetchInvoices();
     } catch (err) {
-      setError(getApiErrorMessage(err));
+      showFeedback('danger', getApiErrorMessage(err));
     } finally {
       setActionLoading(null);
     }
   };
 
   const handleCancelInvoice = async (invoiceId, bookingId) => {
-    if (!window.confirm("Are you sure you want to cancel this invoice and its related booking?")) {
-      return;
-    }
-
     try {
       setActionLoading(invoiceId);
-      setError("");
+      setPendingAction(null);
 
       await dashboardApi.updateInvoice(invoiceId, { status: "Cancelled" });
 
@@ -109,9 +116,10 @@ const MyInvoicesPage = ({ hideHeader = false }) => {
         await dashboardApi.cancelBooking(bookingId, "Invoice cancelled by user");
       }
 
+      showFeedback('success', 'Invoice and booking cancelled successfully.');
       await fetchInvoices();
     } catch (err) {
-      setError(getApiErrorMessage(err));
+      showFeedback('danger', getApiErrorMessage(err));
     } finally {
       setActionLoading(null);
     }
@@ -146,6 +154,11 @@ const MyInvoicesPage = ({ hideHeader = false }) => {
     );
   };
 
+  const hasPendingHighlight = highlightBookingId && invoices.some((inv) => {
+    const bid = (inv.bookingId?._id || inv.bookingId || "").toString();
+    return bid === highlightBookingId && inv.status?.trim() === "Pending";
+  });
+
   if (loading) {
     return (
       <div className="d-flex justify-content-center align-items-center py-5" style={{ minHeight: '200px' }}>
@@ -163,7 +176,17 @@ const MyInvoicesPage = ({ hideHeader = false }) => {
         </div>
       )}
 
-      {error && <Alert variant="danger">{error}</Alert>}
+      {hasPendingHighlight && !feedback && (
+        <div className="mb-3">
+          <FeedbackCard feedback={{ type: 'info', message: 'Complete payment below to confirm your reservation.' }} />
+        </div>
+      )}
+
+      {feedback && (
+        <div className="mb-3">
+          <FeedbackCard feedback={feedback} onClose={() => setFeedback(null)} />
+        </div>
+      )}
 
       {!loading && invoices.length === 0 && (
         <div
@@ -219,16 +242,30 @@ const MyInvoicesPage = ({ hideHeader = false }) => {
                 {invoices.map((invoice) => {
                   const id = invoice._id || invoice.id || "";
                   const bId = invoice?.bookingId?._id || invoice?.bookingId || "";
+                  const isHighlighted = highlightBookingId && bId.toString() === highlightBookingId;
+                  const isPayPending = pendingAction?.type === 'pay' && pendingAction.invoiceId === id;
+                  const isCancelPending = pendingAction?.type === 'cancel' && pendingAction.invoiceId === id;
 
                   return (
                     <tr
                       key={id}
                       style={{
                         borderBottom: `1px solid ${colors.borderCard}`,
-                        transition: 'background-color 0.2s'
+                        transition: 'background-color 0.2s',
+                        backgroundColor: isHighlighted ? (isDark ? 'rgba(200, 90, 73, 0.08)' : 'rgba(200, 90, 73, 0.06)') : 'transparent',
+                        outline: isHighlighted ? `2px solid ${colors.accent}` : 'none',
+                        outlineOffset: '-2px'
                       }}
-                      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = isDark ? 'rgba(255, 255, 255, 0.015)' : 'rgba(0, 0, 0, 0.01)'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+                      onMouseEnter={(e) => {
+                        if (!isHighlighted) {
+                          e.currentTarget.style.backgroundColor = isDark ? 'rgba(255, 255, 255, 0.015)' : 'rgba(0, 0, 0, 0.01)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = isHighlighted
+                          ? (isDark ? 'rgba(200, 90, 73, 0.08)' : 'rgba(200, 90, 73, 0.06)')
+                          : 'transparent';
+                      }}
                     >
                       <td className="px-4 py-3 fw-mono small" style={{ color: colors.textSecondary }}>
                         #{id ? id.substring(0, 8).toUpperCase() : "N/A"}
@@ -246,11 +283,11 @@ const MyInvoicesPage = ({ hideHeader = false }) => {
                         {invoice.createdAt ? new Date(invoice.createdAt).toLocaleDateString() : "N/A"}
                       </td>
                       <td className="px-4 py-3 text-end">
-                        {invoice.status?.trim() === "Pending" && (
+                        {invoice.status?.trim() === "Pending" && !isPayPending && !isCancelPending && (
                           <div className="d-flex justify-content-end gap-2 align-items-center">
                             <button
                               disabled={actionLoading !== null}
-                              onClick={() => handlePayInvoice(id)}
+                              onClick={() => setPendingAction({ type: 'pay', invoiceId: id, bookingId: bId })}
                               style={{
                                 background: colors.accent,
                                 color: '#ffffff',
@@ -265,18 +302,12 @@ const MyInvoicesPage = ({ hideHeader = false }) => {
                                 justifyContent: 'center',
                                 alignItems: 'center'
                               }}
-                              onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.9'; }}
-                              onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
                             >
-                              {actionLoading === id ? (
-                                <div style={{ width: '12px', height: '12px', border: '1.5px solid #ffffff', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />
-                              ) : (
-                                "Pay"
-                              )}
+                              Pay
                             </button>
                             <button
                               disabled={actionLoading !== null}
-                              onClick={() => handleCancelInvoice(id, bId)}
+                              onClick={() => setPendingAction({ type: 'cancel', invoiceId: id, bookingId: bId })}
                               style={{
                                 background: 'transparent',
                                 color: '#ef4444',
@@ -291,15 +322,93 @@ const MyInvoicesPage = ({ hideHeader = false }) => {
                                 justifyContent: 'center',
                                 alignItems: 'center'
                               }}
-                              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.05)'; }}
-                              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
                             >
-                              {actionLoading === id ? (
-                                <div style={{ width: '12px', height: '12px', border: '1.5px solid #ef4444', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />
-                              ) : (
-                                "Cancel"
-                              )}
+                              Cancel
                             </button>
+                          </div>
+                        )}
+
+                        {isPayPending && (
+                          <div style={{ textAlign: 'right' }}>
+                            <p style={{ fontSize: '12px', color: colors.textSecondary, margin: '0 0 8px' }}>
+                              Confirm payment of ${Number(invoice.totalAmount || 0).toLocaleString()}?
+                            </p>
+                            <div className="d-flex justify-content-end gap-2">
+                              <button
+                                disabled={actionLoading !== null}
+                                onClick={() => handlePayInvoice(id, bId)}
+                                style={{
+                                  background: colors.accent,
+                                  color: '#fff',
+                                  border: 'none',
+                                  borderRadius: '8px',
+                                  padding: '4px 10px',
+                                  fontSize: '12px',
+                                  fontWeight: '600',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                {actionLoading === id ? 'Paying...' : 'Confirm Pay'}
+                              </button>
+                              <button
+                                disabled={actionLoading !== null}
+                                onClick={() => setPendingAction(null)}
+                                style={{
+                                  background: 'transparent',
+                                  color: colors.textSecondary,
+                                  border: `1px solid ${colors.borderCard}`,
+                                  borderRadius: '8px',
+                                  padding: '4px 10px',
+                                  fontSize: '12px',
+                                  fontWeight: '600',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                Back
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {isCancelPending && (
+                          <div style={{ textAlign: 'right' }}>
+                            <p style={{ fontSize: '12px', color: colors.textSecondary, margin: '0 0 8px' }}>
+                              Cancel this invoice and its booking?
+                            </p>
+                            <div className="d-flex justify-content-end gap-2">
+                              <button
+                                disabled={actionLoading !== null}
+                                onClick={() => handleCancelInvoice(id, bId)}
+                                style={{
+                                  background: 'transparent',
+                                  color: '#ef4444',
+                                  border: '1px solid #ef4444',
+                                  borderRadius: '8px',
+                                  padding: '4px 10px',
+                                  fontSize: '12px',
+                                  fontWeight: '600',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                {actionLoading === id ? 'Cancelling...' : 'Confirm Cancel'}
+                              </button>
+                              <button
+                                disabled={actionLoading !== null}
+                                onClick={() => setPendingAction(null)}
+                                style={{
+                                  background: 'transparent',
+                                  color: colors.textSecondary,
+                                  border: `1px solid ${colors.borderCard}`,
+                                  borderRadius: '8px',
+                                  padding: '4px 10px',
+                                  fontSize: '12px',
+                                  fontWeight: '600',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                Back
+                              </button>
+                            </div>
                           </div>
                         )}
                       </td>
